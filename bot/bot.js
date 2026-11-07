@@ -1,5 +1,6 @@
 import { Bot, InlineKeyboard, Keyboard } from "grammy";
 import pg from "pg";
+import http from "http";
 import fs from "fs";
 
 const TOKEN = process.env.BOT_TOKEN;
@@ -226,6 +227,12 @@ bot.on("message:web_app_data", async (ctx) => {
 });
 
 bot.catch((e) => console.error("bot xato:", e.message));
+const PORT = process.env.PORT || 3000;
+http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "application/json" });
+  res.end(JSON.stringify({ status: "ok", bot: "tekit-sushi" }));
+}).listen(PORT, () => console.log(`Health server ${PORT} portda`));
+
 initDb().catch((e) => console.error("db init:", e.message)).finally(() => {
   bot.start();
   console.log("Tekit Sushi bot ishga tushdi");
