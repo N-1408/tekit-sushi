@@ -351,9 +351,10 @@ function placeOrder(){
   if(!name||phone.replace(/\D/g,"").length<9||(coMode==="delivery"&&!addr)){haptic("err");toast("Ma'lumotlarni to'liq kiriting");return;}
   const pay=[...document.querySelectorAll("#co-body .seg")].at(-1).querySelector(".on").textContent.trim();
   const items=allItems().filter(i=>cart[i.id]).map(i=>`${cart[i.id]}× ${i.n} — ${fmt(i.p*cart[i.id])}`);
-  const order={id:"TS"+Date.now().toString(36).toUpperCase(),name,phone,mode:coMode,addr,pay,items,sum:cartSum()+(coMode==="delivery"?15000:0),at:new Date().toLocaleString("uz-UZ"),status:"Yuborildi"};
+  const order={id:"TS"+Date.now().toString(36).toUpperCase(),name,phone,mode:coMode,addr,pay,items,sum:cartSum()+(coMode==="delivery"?15000:0),at:new Date().toLocaleString("uz-UZ"),status:"Yuborildi",tg_user_id:user.id};
   orders.unshift(order);save();
   try{ tg?.sendData(JSON.stringify({type:"order",...order})); }catch(e){}
+  try{ fetch("/api/order",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({type:"order",...order})}).catch(()=>{}); }catch(e){}
   cart={};save();updBadge();closeSheets();go("orders");haptic("ok");
   toast("Buyurtma qabul qilindi ✓");
 }
