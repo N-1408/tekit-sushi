@@ -1,30 +1,53 @@
-export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).json({ error: "POST only" });
-  const { SUPABASE_URL, SUPABASE_ANON_KEY } = process.env;
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return res.status(500).json({ error: "DB sozlanmagan" });
-  try {
-    const o = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-    if (!o || o.type !== "order" || !o.phone) return res.status(400).json({ error: "noto'g'ri buyurtma" });
-    const payload = {
-      id: o.id, tg_user_id: o.tg_user_id || null, name: o.name, phone: o.phone,
-      mode: o.mode, addr: o.addr, pay: o.pay, items: o.items, sum: o.sum,
-      status: "Yangi", created_at: new Date().toISOString(),
-    };
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-      method: "POST",
-      headers: {
-        apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-        "Content-Type": "application/json", Prefer: "return=representation",
-      },
-      body: JSON.stringify(payload),
+const { Pool } = require('pg');
+
+let pool;
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      connectionString: process.env.DATABASE_URL,
+      ssl: { rejectUnauthorized: false },
+      max: 3,
     });
-    if (!r.ok) {
-      const t = await r.text();
-      return res.status(r.status).json({ error: "DB xato", detail: t.slice(0, 300) });
-    }
-    const row = (await r.json())[0];
-    return res.status(201).json({ ok: true, id: row.id });
-  } catch (e) {
-    return res.status(500).json({ error: String(e.message || e) });
   }
+  return pool;
 }
+
+module.exports = async (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });
+
+  if (!process.env.DATABASE_URL) {
+    return res.status(503).json({ ok: false, error: 'DB sozlanmagan' });
+  }
+
+  try {
+    const o = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    if (!o || !o.items || !o.name || !o.phone) {
+      return res.status(400).json({ ok: false, error: 'Kerakli maydonlar yetishmaydi' });
+    }
+    const pool = getPool();
+    const result = await pool.query(
+      `INSERT INTO orders (tg_user_id, name, phone, address, branch, delivery_type, payment, items, total)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id, created_at`,
+      [
+        o.tg_user_id || null,
+        String(o.name),
+        String(o.phone),
+        o.address || null,
+        o.branch || null,
+        o.delivery_type || 'delivery',
+        o.payment || 'cash',
+        JSON.stringify(o.items),
+        Number(o.total) || 0,
+      ]
+    );
+    const row = result.rows[0];
+    return res.status(201).json({ ok: true, order_id: row.id, created_at: row.created_at });
+  } catch (e) {
+    console.error('order insert error', e);
+    return res.status(500).json({ ok: false, error: 'Server xatosi' });
+  }
+};
