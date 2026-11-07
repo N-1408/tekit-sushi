@@ -111,16 +111,15 @@ input,select,textarea{font:inherit}
 .pcard:active{transform:scale(.975)}
 @keyframes pop{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1}}
 .pimg{position:relative;aspect-ratio:1;background:#EFECE6;overflow:hidden}
-.pimg img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s var(--eo)}
-.pimg img.ld{opacity:1}
+.pimg img{width:100%;height:100%;object-fit:cover}
 .pimg .tag{
   position:absolute;top:9px;left:9px;font-size:9.5px;font-weight:800;letter-spacing:.05em;
   text-transform:uppercase;background:var(--acc);color:#fff;padding:4px 8px;border-radius:8px;
 }
 .pbody{padding:10px 12px 12px;display:flex;flex-direction:column;flex:1}
 .pname{font-size:13.5px;font-weight:700;line-height:1.25;letter-spacing:-.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:34px}
-.pw{font-size:11px;color:var(--ink3);font-weight:600;margin-top:2px}
-.pfoot{display:flex;align-items:center;justify-content:space-between;margin-top:9px}
+.pw{font-size:11px;color:var(--ink3);font-weight:600;margin-top:2px;min-height:15px}
+.pfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:9px}
 .price{font-size:14.5px;font-weight:800;letter-spacing:-.02em}
 .price i{font-style:normal;font-size:11px;font-weight:700;color:var(--ink2)}
 .addbtn{
@@ -373,7 +372,7 @@ function buildHero(){
   HERO.forEach((h,i)=>{
     if(!h.img) return;
     w.insertAdjacentHTML("beforeend",`<div class="hcard" data-i="${i}">
-      <img src="${h.img.img}" loading="lazy" alt=""><div class="hgrad"></div>
+      <img src="${CDN}${h.img.img}" loading="eager" alt=""><div class="hgrad"></div>
       <div class="hin"><div class="k">${{set:{uz:"Set",ru:"Сет",en:"Set"},hit:{uz:"Xit",ru:"Хит",en:"Hit"},new:{uz:"Yangi",ru:"Новое",en:"New"}}[h.k][LANG]}</div>
       <h2>${h.t[LANG]||h.t.uz}</h2><p>${h.d[LANG]||h.d.uz}</p></div></div>`);
     d.insertAdjacentHTML("beforeend",`<i${i===0?' class="on"':""}></i>`);
@@ -407,7 +406,7 @@ function indexMenu(){
   MENU.forEach(p=>p._q=(pT(p)+" "+pD(p)).toLowerCase());
 }
 function money(n){return fmt(n)+' <i>soʻm</i>'}
-function imgTag(p,cls){return `<img src="${CDN}${p.img}" loading="lazy" alt="" onload="this.classList.add('ld')">`}
+function imgTag(p,cls){return `<img src="${CDN}${p.img}" loading="lazy" decoding="async" alt="">`}
 
 function render(){
   const m=$("#menu"); let html="";
