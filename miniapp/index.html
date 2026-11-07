@@ -4,17 +4,18 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFFFFF">
 <title>Tekit Sushi</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
-  --havorang:#29A8E0; --havorang-2:#5CC9F7; --havorang-deep:#0E7CC4;
-  --delfin:#5C7683; --delfin-2:#3E525C;
-  --bg:#0A1014; --surface:#121B21; --surface-2:#182630; --line:rgba(140,180,205,.14);
-  --text:#EAF3F8; --muted:#8FA8B5; --danger:#F06A6A;
+  --havorang:#29A8E0; --havorang-deep:#0E7CC4; --havorang-tint:#E7F5FC;
+  --delfin:#5C7683;
+  --bg:#F4F7F9; --surface:#FFFFFF; --surface-2:#F1F5F8; --line:#E4EBF0;
+  --text:#17262E; --muted:#5C7683; --danger:#E5484D;
   --safe-top:0px; --safe-bottom:0px;
-  --radius:16px; --radius-lg:22px;
+  --radius:16px; --radius-lg:20px;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overscroll-behavior:none}
@@ -30,59 +31,60 @@ input{font-size:16px}
 img{display:block}
 
 /* ---------- header ---------- */
-.header{position:sticky;top:0;z-index:20;background:linear-gradient(to bottom,var(--bg) 70%,rgba(10,16,20,0));padding:10px 16px 14px;display:flex;align-items:center;gap:10px}
+.header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);padding:10px 16px 12px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line)}
 .logo{display:flex;align-items:center;gap:10px;flex:1}
-.logo-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--havorang),var(--havorang-deep));display:grid;place-items:center;font-size:19px;box-shadow:0 4px 14px rgba(41,168,224,.35)}
+.logo-mark{width:38px;height:38px;border-radius:12px;background:var(--havorang);display:grid;place-items:center;font-size:19px}
 .logo-name{font-size:17px;font-weight:800;letter-spacing:-0.02em}
 .logo-sub{font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
-.search{width:38px;height:38px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center;font-size:16px;border:1px solid var(--line)}
+.search{width:38px;height:38px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center;font-size:16px}
 
 /* ---------- hero ---------- */
-.hero{margin:4px 16px 6px;border-radius:var(--radius-lg);overflow:hidden;position:relative;height:120px;background:linear-gradient(120deg,#0E3C55 0%,#0E7CC4 55%,#29A8E0 100%);display:flex;align-items:center;padding:0 20px;box-shadow:0 10px 30px rgba(41,168,224,.25)}
-.hero::after{content:"";position:absolute;right:-30px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.08)}
-.hero::before{content:"";position:absolute;right:40px;bottom:-60px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,.06)}
+.hero{margin:12px 16px 2px;border-radius:var(--radius-lg);overflow:hidden;position:relative;height:108px;background:var(--havorang-tint);display:flex;align-items:center;padding:0 20px}
 .hero-txt{position:relative;z-index:1}
-.hero-tag{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.8)}
-.hero-title{font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-top:4px}
-.hero-sub{font-size:12px;color:rgba(255,255,255,.75);margin-top:2px}
+.hero-tag{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--havorang-deep)}
+.hero-title{font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-top:4px;color:var(--text)}
+.hero-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.hero-emoji{position:absolute;right:14px;bottom:-6px;font-size:74px;opacity:.9;transform:rotate(-8deg)}
 
 /* ---------- categories ---------- */
-.chips{display:flex;gap:8px;overflow-x:auto;padding:10px 16px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 2px;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity}
 .chips::-webkit-scrollbar{display:none}
-.chip{flex:0 0 auto;scroll-snap-align:start;padding:9px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:13.5px;font-weight:600;transition:color 200ms ease-out,background 200ms ease-out,border-color 200ms ease-out,transform 200ms ease-out}
-.chip.on{background:var(--havorang);border-color:transparent;color:#fff;box-shadow:0 4px 12px rgba(41,168,224,.35)}
+.chip{flex:0 0 auto;scroll-snap-align:start;padding:9px 16px;border-radius:999px;background:var(--surface);border:1px solid var(--line);color:var(--muted);font-size:13.5px;font-weight:600;transition:background 200ms ease-out,color 200ms ease-out,border-color 200ms ease-out}
+.chip.on{background:var(--havorang);border-color:transparent;color:#fff}
 
 /* ---------- products ---------- */
 .section-h{padding:14px 16px 10px;font-size:16px;font-weight:800;letter-spacing:-0.02em;display:flex;align-items:baseline;justify-content:space-between}
 .section-h span{font-size:12px;font-weight:500;color:var(--muted)}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:0 16px}
-.card{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);transition:transform 200ms ease-out,opacity 200ms ease-out}
+.card{background:var(--surface);border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);transition:transform 200ms ease-out}
 .card:active{transform:scale(.97)}
-.thumb{height:110px;display:grid;place-items:center;font-size:44px;background:linear-gradient(135deg,var(--surface-2),#0F2833)}
+.thumb{height:112px;background:var(--havorang-tint)}
+.thumb img{width:100%;height:100%;object-fit:cover}
+.thumb span{display:grid;place-items:center;height:100%;font-size:44px}
 .card-body{padding:10px 12px 12px}
 .card-name{font-size:13.5px;font-weight:600;line-height:1.3;letter-spacing:-0.01em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;min-height:35px}
 .card-meta{font-size:11px;color:var(--muted);margin-top:3px}
 .card-foot{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
 .price{font-weight:800;font-size:14.5px;font-variant-numeric:tabular-nums;letter-spacing:-0.01em}
 .price small{font-size:10.5px;color:var(--muted);font-weight:600}
-.add-btn{width:30px;height:30px;border-radius:10px;background:var(--havorang);display:grid;place-items:center;color:#fff;font-size:17px;font-weight:700;box-shadow:0 3px 10px rgba(41,168,224,.4);transition:transform 150ms ease-out}
+.add-btn{width:30px;height:30px;border-radius:10px;background:var(--havorang);display:grid;place-items:center;color:#fff;font-size:17px;font-weight:700;transition:transform 150ms ease-out}
 .add-btn:active{transform:scale(.9)}
 .empty{padding:50px 16px;text-align:center;color:var(--muted);font-size:14px}
 
 /* ---------- bottom nav ---------- */
-.navbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(14,22,28,.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 8px calc(8px + var(--safe-bottom))}
-.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:600;transition:color 200ms ease-out,transform 150ms ease-out}
-.tab.on{color:var(--havorang-2)}
+.navbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.95);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid var(--line);display:flex;padding:8px 8px calc(8px + var(--safe-bottom))}
+.tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--muted);font-size:10.5px;font-weight:600;transition:color 200ms ease-out}
+.tab.on{color:var(--havorang)}
 .tab-ic{font-size:21px;position:relative}
 .badge{position:absolute;top:-4px;right:-10px;min-width:17px;height:17px;padding:0 4px;border-radius:9px;background:var(--havorang);color:#fff;font-size:10px;font-weight:800;display:grid;place-items:center;font-variant-numeric:tabular-nums;animation:pop 300ms cubic-bezier(.2,1.6,.4,1)}
 @keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
 
 /* ---------- sheets ---------- */
-.overlay{position:fixed;inset:0;background:rgba(4,8,10,.6);z-index:40;opacity:0;pointer-events:none;transition:opacity 250ms ease-out}
+.overlay{position:fixed;inset:0;background:rgba(23,38,46,.35);z-index:40;opacity:0;pointer-events:none;transition:opacity 250ms ease-out}
 .overlay.on{opacity:1;pointer-events:auto}
-.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-radius:22px 22px 0 0;border-top:1px solid var(--line);transform:translateY(100%);transition:transform 300ms cubic-bezier(.32,.72,0,1);max-height:86%;display:flex;flex-direction:column;box-shadow:0 -20px 60px rgba(0,0,0,.5)}
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:50;background:var(--surface);border-radius:22px 22px 0 0;transform:translateY(100%);transition:transform 300ms cubic-bezier(.32,.72,0,1);max-height:86%;display:flex;flex-direction:column;box-shadow:0 -12px 40px rgba(23,38,46,.12)}
 .sheet.on{transform:translateY(0)}
-.grab{width:40px;height:4px;border-radius:2px;background:var(--delfin);opacity:.5;margin:10px auto 4px;flex:0 0 auto}
+.grab{width:40px;height:4px;border-radius:2px;background:var(--line);margin:10px auto 4px;flex:0 0 auto}
 .sheet-head{padding:8px 20px 12px;display:flex;align-items:center;justify-content:space-between;flex:0 0 auto}
 .sheet-title{font-size:18px;font-weight:800;letter-spacing:-0.02em}
 .sheet-scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 16px 16px}
@@ -91,24 +93,28 @@ img{display:block}
 /* cart row */
 .crow{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .crow:last-child{border-bottom:none}
-.crow-ic{width:52px;height:52px;border-radius:12px;background:var(--surface-2);display:grid;place-items:center;font-size:24px;flex-shrink:0}
+.crow-ic{width:52px;height:52px;border-radius:12px;background:var(--havorang-tint);overflow:hidden;flex-shrink:0}
+.crow-ic img{width:100%;height:100%;object-fit:cover}
+.crow-ic span{display:grid;place-items:center;height:100%;font-size:24px}
 .crow-n{flex:1;min-width:0}
 .crow-name{font-size:14px;font-weight:600;letter-spacing:-0.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .crow-price{font-size:12.5px;color:var(--muted);margin-top:2px;font-variant-numeric:tabular-nums}
 .stepper{display:flex;align-items:center;gap:2px;background:var(--surface-2);border-radius:11px;padding:3px}
 .step{width:26px;height:26px;border-radius:9px;display:grid;place-items:center;font-size:15px;color:var(--muted);transition:background 150ms ease-out,transform 150ms ease-out}
-.step:active{background:var(--surface);transform:scale(.9)}
+.step:active{background:var(--line);transform:scale(.9)}
 .step.q{color:var(--text);font-weight:700;font-size:13px;width:22px;font-variant-numeric:tabular-nums;pointer-events:none}
 
 /* buttons */
-.btn{width:100%;padding:15px;border-radius:15px;background:linear-gradient(135deg,var(--havorang),var(--havorang-deep));color:#fff;font-size:15px;font-weight:700;letter-spacing:-0.01em;box-shadow:0 6px 18px rgba(41,168,224,.35);transition:transform 150ms ease-out,opacity 200ms ease-out}
+.btn{width:100%;padding:15px;border-radius:14px;background:var(--havorang);color:#fff;font-size:15px;font-weight:700;letter-spacing:-0.01em;box-shadow:0 4px 14px rgba(41,168,224,.25);transition:transform 150ms ease-out,opacity 200ms ease-out}
 .btn:disabled{opacity:.45;box-shadow:none}
-.btn-ghost{background:var(--surface-2);color:var(--text);box-shadow:none;border:1px solid var(--line)}
+.btn-ghost{background:var(--surface-2);color:var(--text);box-shadow:none}
 .total-row{display:flex;justify-content:space-between;font-size:13px;color:var(--muted);padding:3px 0;font-variant-numeric:tabular-nums}
 .total-row.b{color:var(--text);font-size:15px;font-weight:800;padding-top:6px}
 
 /* product detail */
-.pd-hero{font-size:76px;display:grid;place-items:center;height:180px;background:linear-gradient(135deg,var(--surface-2),#0F2833);border-radius:var(--radius-lg)}
+.pd-hero{height:200px;border-radius:var(--radius-lg);overflow:hidden;background:var(--havorang-tint)}
+.pd-hero img{width:100%;height:100%;object-fit:cover}
+.pd-hero span{display:grid;place-items:center;height:100%;font-size:76px}
 .pd-name{font-size:20px;font-weight:800;letter-spacing:-0.02em;margin-top:14px}
 .pd-desc{font-size:13.5px;color:var(--muted);line-height:1.55;margin-top:6px;max-width:65ch}
 .pd-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
@@ -119,15 +125,15 @@ img{display:block}
 /* forms */
 .field{margin-bottom:10px}
 .field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin:0 2px 6px}
-.field input,.field textarea{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:13px 14px;color:var(--text);outline:none;transition:border-color 200ms ease-out;user-select:text;-webkit-user-select:text}
-.field input:focus,.field textarea:focus{border-color:var(--havorang)}
-.field textarea{height:70px;resize:none;font-family:inherit}
+.field input,.field textarea,.field select{width:100%;background:var(--surface-2);border:1px solid transparent;border-radius:13px;padding:13px 14px;color:var(--text);outline:none;transition:border-color 200ms ease-out;user-select:text;-webkit-user-select:text;font:inherit;font-size:16px;appearance:none}
+.field input:focus,.field textarea:focus,.field select:focus{border-color:var(--havorang);background:var(--surface)}
+.field textarea{height:70px;resize:none}
 
 /* orders */
-.orow{background:var(--surface-2);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid var(--line)}
+.orow{background:var(--surface);border-radius:var(--radius);padding:14px;margin-bottom:10px;border:1px solid var(--line)}
 .orow-top{display:flex;justify-content:space-between;align-items:center}
 .orow-id{font-size:13px;font-weight:800;letter-spacing:-0.01em}
-.pill{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:rgba(41,168,224,.16);color:var(--havorang-2)}
+.pill{font-size:10.5px;font-weight:700;padding:4px 10px;border-radius:999px;background:var(--havorang-tint);color:var(--havorang-deep)}
 .orow-items{font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.5}
 .orow-sum{font-size:14px;font-weight:800;margin-top:8px;font-variant-numeric:tabular-nums}
 
@@ -136,7 +142,7 @@ img{display:block}
 @keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 
 /* toast */
-.toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-bottom));transform:translateX(-50%) translateY(12px);background:var(--surface-2);border:1px solid var(--line);color:var(--text);padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:60;opacity:0;pointer-events:none;transition:opacity 250ms ease-out,transform 250ms ease-out;white-space:nowrap}
+.toast{position:fixed;left:50%;bottom:calc(90px + var(--safe-bottom));transform:translateX(-50%) translateY(12px);background:var(--text);color:#fff;padding:10px 18px;border-radius:999px;font-size:13px;font-weight:600;z-index:60;opacity:0;pointer-events:none;transition:opacity 250ms ease-out,transform 250ms ease-out;white-space:nowrap}
 .toast.on{opacity:1;transform:translateX(-50%)}
 </style>
 </head>
@@ -156,6 +162,7 @@ img{display:block}
     <div class="hero-title">Setlarga −20%</div>
     <div class="hero-sub">Har kuni 14:00 – 16:00</div>
   </div>
+  <div class="hero-emoji">🍱</div>
 </div>
 
 <div id="chips" class="chips"></div>
@@ -198,7 +205,7 @@ try {
   tg?.ready(); tg?.expand(); tg?.requestFullscreen?.();
   if (tg?.initDataUnsafe?.user) {
     user = { name: [tg.initDataUnsafe.user.first_name, tg.initDataUnsafe.user.last_name].filter(Boolean).join(" ") || "Mijoz", id: tg.initDataUnsafe.user.id };
-    tg.setHeaderColor?.("#0A1014"); tg.setBackgroundColor?.("#0A1014");
+    tg.setHeaderColor?.("#FFFFFF"); tg.setBackgroundColor?.("#FFFFFF");
     tg.disableVerticalSwipes?.();
     tg.enableClosingConfirmation?.();
   }
@@ -207,18 +214,18 @@ const haptic = t => { try { t === "ok" ? tg?.HapticFeedback?.notificationOccurre
 
 const MENU = [
   { cat:"Setlar", emoji:"🍱", items:[
-    { id:"s1", n:"Salmon Set 50 don", p:459000, w:"50 dona · yasai, maki, unagi", e:"🍣", d:"Lavlagi, losos va unagi rollari — katta dasturxonga mo'ljallangan mashhur set." },
-    { id:"s2", n:"Yakudza Set 46 don", p:369000, w:"46 dona · 6 xil rol", e:"🍱", d:"Yakudza — qizil kaviar, cheddar va zarang rollari bilan boy set." },
+    { id:"s1", n:"Salmon Set 50 don", p:459000, w:"50 dona · yasai, maki, unagi", e:"🍣", img:"img/img_03.jpg", d:"Lavlagi, losos va unagi rollari — katta dasturxonga mo'ljallangan mashhur set." },
+    { id:"s2", n:"Yakudza Set 46 don", p:369000, w:"46 dona · 6 xil rol", e:"🍱", img:"img/img_01.jpg", d:"Yakudza — qizil kaviar, cheddar va zarang rollari bilan boy set." },
     { id:"s3", n:"Tsuki Set 30 don", p:241000, w:"30 dona · 4 xil rol", e:"🌀", d:"Oilaviy uchastur uchun yengil va xilma-xil set." },
   ]},
   { cat:"Rollar", emoji:"🍥", items:[
-    { id:"r1", n:"Philadelphia Roll 8 don", p:69000, w:"8 dona · losos, cheddar", e:"🍥", d:"Klassika: losos, cheddar pishloqi va xurchta tok." },
-    { id:"r2", n:"California Roll 8 don", p:58000, w:"8 dona · qisqichbaqa", e:"◍", d:"Qisqichbaqa go'shti, avokado va tobiko." },
-    { id:"r3", n:"Unagi Roll 8 don", p:74000, w:"8 dona · unagi, kunjit", e:"🍜", d:"Grilda pishirilgan unagi, unagi sousi va kunjit." },
+    { id:"r1", n:"Philadelphia Roll 8 don", p:69000, w:"8 dona · losos, cheddar", e:"🍥", img:"img/img_04.jpg", d:"Klassika: losos, cheddar pishloqi va xurchta tok." },
+    { id:"r2", n:"California Roll 8 don", p:58000, w:"8 dona · qisqichbaqa", e:"◍", img:"img/img_05.jpg", d:"Qisqichbaqa go'shti, avokado va tobiko." },
+    { id:"r3", n:"Tempura Unagi Roll 8 don", p:74000, w:"8 dona · unagi, kunjit", e:"🍜", img:"img/img_02.jpg", d:"Grilda pishirilgan unagi, unagi sousi va kunjit." },
     { id:"r4", n:"Yasai Maki 8 don", p:33000, w:"8 dona · vegetarian", e:"🥬", d:"Avokado, bodring va bulg'or qalampiri — vegetarian roll." },
   ]},
   { cat:"Sushi", emoji:"🍣", items:[
-    { id:"su1", n:"Nigiri Losos 8 don", p:64000, w:"8 dona · shari, losos", e:"🍣", d:"Qo'lda tayyorlangan nigiri, yangi losos bilan." },
+    { id:"su1", n:"Nigiri Losos 8 don", p:64000, w:"8 dona · shari, losos", e:"🍣", img:"img/img_06.jpg", d:"Qo'lda tayyorlangan nigiri, yangi losos bilan." },
     { id:"su2", n:"Gunkan Ikra 4 don", p:52000, w:"4 dona · ikra", e:"◉", d:"Tobiko ikra bilan gunkan sushi." },
     { id:"su3", n:"Sashimi Losos 9 don", p:89000, w:"9 dona · toza losos", e:"🐟", d:"Ajoyib kesilgan losos sashimi, vasabi bilan." },
   ]},
@@ -228,7 +235,7 @@ const MENU = [
     { id:"sal3", n:"Kimchi Salad", p:45000, w:"220 g · achchiq", e:"🌶️", d:"Kimchi, govjildi va sezonal sous." },
   ]},
   { cat:"Vok", emoji:"🍜", items:[
-    { id:"w1", n:"Udon Losos bilan", p:69000, w:"320 g · udon, teriyaki", e:"🍜", d:"Udon makaron, losos va teriyaki sousi." },
+    { id:"w1", n:"Udon Losos bilan", p:69000, w:"320 g · udon, teriyaki", e:"🍜", img:"img/img_07.jpg", d:"Udon makaron, losos va teriyaki sousi." },
     { id:"w2", n:"Wok Tovuq bilan", p:55000, w:"320 g · sabzavotlar", e:"🥘", d:"Tovuq, bulg'or qalampiri va yashil piyoz bilan wok." },
   ]},
   { cat:"Suplar", emoji:"🍲", items:[
@@ -241,7 +248,7 @@ const MENU = [
   ]},
   { cat:"Ichimliklar", emoji:"🥤", items:[
     { id:"b1", n:"Matcha Latte", p:42000, w:"400 ml", e:"🍵", d:"Sovutgan matcha latte, sut bilan." },
-    { id:"b2", n:"Babbl Te Leym", p:39000, w:"400 ml", e:"🧋", d:"Yirik tapioka sharbatlari bilan mevali babbl te." },
+    { id:"b2", n:"Babbl Te Leym", p:39000, w:"400 ml", e:"🧋", img:"img/img_08.jpg", d:"Yirik tapioka sharbatlari bilan mevali babbl te." },
     { id:"b3", n:"Rice Lemonade", p:21000, w:"300 ml", e:"🍋", d:"Yapon rice lemonade, yengil va qurqoq." },
   ]},
 ];
@@ -284,8 +291,9 @@ function renderGrid(){
   menuView.innerHTML=`<div class="section-h">${c.cat}<span>${c.items.length} ta</span></div><div class="grid">${c.items.map(cardHtml).join("")}</div>`;
 }
 function cardHtml(i){
+  const thumb = i.img ? `<img src="${i.img}" alt="" loading="lazy">` : `<span>${i.e}</span>`;
   return `<article class="card" onclick="openPD('${i.id}')">
-    <div class="thumb">${i.e}</div>
+    <div class="thumb">${thumb}</div>
     <div class="card-body"><div class="card-name">${i.n}</div><div class="card-meta">${i.w}</div>
     <div class="card-foot"><div class="price">${(i.p/1000).toFixed(0)}<small> ming so'm</small></div><button class="add-btn" onclick="event.stopPropagation();addToCart('${i.id}')">+</button></div></div></article>`;
 }
@@ -293,7 +301,8 @@ function cardHtml(i){
 /* --- product detail --- */
 function openPD(id){
   pdItem=allItems().find(i=>i.id===id); pdQty=1;
-  pdBody.innerHTML=`<div class="pd-hero">${pdItem.e}</div>
+  const hero = pdItem.img ? `<img src="${pdItem.img}" alt="">` : `<span>${pdItem.e}</span>`;
+  pdBody.innerHTML=`<div class="pd-hero">${hero}</div>
     <div class="pd-name">${pdItem.n}</div><div class="pd-desc">${pdItem.d}</div>
     <div class="pd-row"><div class="price" style="font-size:18px" id="pd-price"></div>
     <div class="stepper"><button class="step" onclick="pdStep(-1)">−</button><span class="step q" id="pd-q">1</span><button class="step" onclick="pdStep(1)">+</button></div></div>`;
@@ -312,7 +321,7 @@ function addToCart(id,q=1){cart[id]=(cart[id]||0)+q;save();updBadge();haptic("ok
 function updBadge(){const n=cartCount(),b=cartBadge;if(n){b.style.display="grid";b.textContent=n;}else b.style.display="none";}
 function renderCart(){
   const items=allItems().filter(i=>cart[i.id]);
-  cartItems.innerHTML = items.length ? items.map(i=>`<div class="crow"><div class="crow-ic">${i.e}</div>
+  cartItems.innerHTML = items.length ? items.map(i=>`<div class="crow"><div class="crow-ic">${i.img?`<img src="${i.img}" alt="">`:`<span>${i.e}</span>`}</div>
     <div class="crow-n"><div class="crow-name">${i.n}</div><div class="crow-price">${fmt(i.p)} × ${cart[i.id]} = ${fmt(i.p*cart[i.id])}</div></div>
     <div class="stepper"><button class="step" onclick="chQty('${i.id}',-1)">−</button><span class="step q">${cart[i.id]}</span><button class="step" onclick="chQty('${i.id}',1)">+</button></div></div>`).join("")
     : `<div class="empty">Savat bo'sh 🍽️<br><span style="font-size:12px">Menyudan taom tanlang</span></div>`;
@@ -336,7 +345,7 @@ function openCheckout(){
       ${coMode==="delivery"
         ?`<div class="field"><label>Manzil</label><input id="f-addr" placeholder="Tuman, ko'cha, uy, xonadon"></div>
           <div class="field"><label>Izoh (ixtiyoriy)</label><textarea id="f-note" placeholder="Maxsus talablar..."></textarea></div>`
-        :`<div class="field"><label>Filial</label><select id="f-branch" style="width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:13px;padding:13px;color:var(--text);font:inherit"><option>Tekit Sushi — Markaz</option><option>Tekit Sushi — Yunusobod</option><option>Tekit Sushi — Chilonzor</option></select></div>`}
+        :`<div class="field"><label>Filial</label><select id="f-branch"><option>Tekit Sushi — Markaz</option><option>Tekit Sushi — Yunusobod</option><option>Tekit Sushi — Chilonzor</option></select></div>`}
       <div class="field"><label>To'lov usuli</label>
         <div class="seg"><button class="on" onclick="paySet(this)">💵 Naqd</button><button onclick="paySet(this)">💳 Payme</button><button onclick="paySet(this)">💳 Click</button></div></div>
       <div class="total-row b" style="padding:8px 0 12px"><span>Jami</span><span>${fmt(cartSum()+(coMode==="delivery"?15000:0))}</span></div>

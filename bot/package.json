@@ -3,5 +3,5 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": { "start": "node bot.js" },
-  "dependencies": { "grammy": "^1.30.0" }
+  "dependencies": { "grammy": "^1.30.0", "pg": "^8.11.3" }
 }
