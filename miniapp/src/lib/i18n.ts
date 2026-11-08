@@ -22,6 +22,7 @@ export const T = {
     st_new: 'Yangi', st_confirmed: 'Tasdiqlandi', st_cooking: 'Tayyorlanmoqda', st_delivering: 'Yoʻlda', st_done: 'Yetkazildi', st_cancelled: 'Bekor qilindi',
     guest: 'Telegram orqali kiramiz', all: 'Barchasi',
     admin: 'Admin panel', adminPass: 'Admin parolini kiriting', login: 'Kirish', wrongPass: 'Parol xato, qaytadan',
+    promo: 'Promokod', promoApply: 'Qo\u2018llash', promoOk: 'Qo\u2018llandi', promoInvalid: 'Promokod topilmadi', language: 'Til',
   },
   ru: {
     brand: 'Tekit Sushi', tagline: 'Японская кухня · Ташкент',
@@ -43,6 +44,7 @@ export const T = {
     st_new: 'Новый', st_confirmed: 'Подтверждён', st_cooking: 'Готовится', st_delivering: 'В пути', st_done: 'Доставлен', st_cancelled: 'Отменён',
     guest: 'Вход через Telegram', all: 'Все',
     admin: 'Админ панель', adminPass: 'Введите пароль админа', login: 'Войти', wrongPass: 'Неверный пароль',
+    promo: 'Промокод', promoApply: 'Применить', promoOk: 'Применён', promoInvalid: 'Промокод не найден', language: 'Язык',
   },
   en: {
     brand: 'Tekit Sushi', tagline: 'Japanese food · Tashkent',
@@ -64,6 +66,7 @@ export const T = {
     st_new: 'New', st_confirmed: 'Confirmed', st_cooking: 'Preparing', st_delivering: 'On the way', st_done: 'Delivered', st_cancelled: 'Cancelled',
     guest: 'Sign in via Telegram', all: 'All',
     admin: 'Admin panel', adminPass: 'Enter admin password', login: 'Log in', wrongPass: 'Wrong password',
+    promo: 'Promo code', promoApply: 'Apply', promoOk: 'Applied', promoInvalid: 'Promo code not found', language: 'Language',
   },
 } as const
 

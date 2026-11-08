@@ -47,7 +47,7 @@ export default function Product() {
             {rel.map(r => (
               <button key={r.id} onClick={() => { haptic(); nav(`/p/${r.id}`); setQ(1) }}
                 className="press shrink-0 w-[124px] bg-white border border-navy-line rounded-[16px] overflow-hidden text-left active:scale-95 transition-transform">
-                <img src={`/img/${r.img}.jpg`} alt="" loading="lazy" className="w-full aspect-square object-cover bg-navy-soft" />
+                <img src={pImg(r)} alt="" loading="lazy" decoding="async" className="w-full aspect-square object-cover bg-navy-soft" />
                 <div className="p-2">
                   <div className="text-[11.5px] font-bold truncate">{pName(r, lang)}</div>
                   <div className="text-[12px] font-extrabold mt-0.5">{fmt(r.price)}</div>

@@ -1,6 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStore, pName, CATS } from '../lib/store'
+import { useStore, pName, pImg, CATS } from '../lib/store'
 import { TopBar, ProductCard } from '../components/ui'
 import { haptic } from '../lib/tg'
 
@@ -38,7 +38,7 @@ export default function Home() {
           <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-4 pb-1">
             {CATS.map(c => (
               <button key={c.id} onClick={() => { haptic(); nav(`/cat/${c.id}`) }}
-                className="press shrink-0 flex flex-col items-center gap-1.5 bg-white border border-navy-line rounded-[18px] px-3.5 py-2.5 active:scale-95 transition-transform">
+                className="press shrink-0 w-[76px] h-[88px] flex flex-col items-center justify-center gap-1.5 bg-white border border-navy-line rounded-[18px] active:scale-95 transition-transform">
                 <span className="text-[24px]">{CAT_ICON[(c as any).id] || '🍽'}</span>
                 <span className="text-[11px] font-bold">{(c as any)[lang] || t.catNames[c.id]}</span>
               </button>
@@ -50,7 +50,7 @@ export default function Home() {
               <img src="/box.png" alt="" className="w-[74px] h-[74px] rounded-2xl object-cover bg-white/15" onError={e => (e.currentTarget.style.display = 'none')} />
               <div className="flex-1 text-white">
                 <div className="text-[15px] font-extrabold">{t.freeDelivery}</div>
-                <div className="text-[12px] font-medium text-white/75 mt-0.5">{t.city} · {t.payLater}</div>
+                <div className="text-[12px] font-medium text-white/75 mt-0.5">{t.city} · 🛵</div>
               </div>
             </div>
           </section>
@@ -62,7 +62,7 @@ export default function Home() {
                 {fav.map(p => (
                   <button key={p.id} onClick={() => { haptic(); nav(`/p/${p.id}`) }}
                     className="press shrink-0 w-[136px] bg-white border border-navy-line rounded-[18px] overflow-hidden text-left active:scale-95 transition-transform">
-                    <img src={`/img/${p.img}.jpg`} alt="" loading="lazy" className="w-full aspect-square object-cover bg-navy-soft" />
+                    <img src={pImg(p)} alt="" loading="lazy" decoding="async" className="w-full aspect-square object-cover bg-navy-soft" />
                     <div className="p-2 text-[12px] font-bold truncate">{pName(p, lang)}</div>
                   </button>
                 ))}
@@ -76,6 +76,22 @@ export default function Home() {
               {hits.slice(0, 8).map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
             </div>
           </section>
+
+          {(['sushi', 'roll', 'ichimlik'] as const).map(cid => {
+            const list = products.filter(p => p.cat === cid).slice(0, 10)
+            if (!list.length) return null
+            return (
+              <section className="mt-5" key={cid}>
+                <div className="flex items-center justify-between pr-4">
+                  <h2 className="px-4 text-[17px] font-extrabold">{t.catNames[cid]}</h2>
+                  <button onClick={() => { haptic(); nav(`/cat/${cid}`) }} className="text-[12px] font-bold text-navy active:opacity-60">{t.all} →</button>
+                </div>
+                <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-2.5 pb-1">
+                  {list.map((p, i) => <div key={p.id} className="w-[152px] shrink-0"><ProductCard p={p} i={i} /></div>)}
+                </div>
+              </section>
+            )
+          })}
         </>
       )}
     </div>

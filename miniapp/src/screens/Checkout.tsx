@@ -15,11 +15,27 @@ export default function Checkout() {
   const [mode, setMode] = React.useState<'delivery' | 'pickup'>('delivery')
   const [addr, setAddr] = React.useState(last?.addr || '')
   const [pay, setPay] = React.useState<'cash' | 'card'>('cash')
-  const [when, setWhen] = React.useState('')
   const [note, setNote] = React.useState('')
   const [busy, setBusy] = React.useState(false)
   const [err, setErr] = React.useState('')
   const [done, setDone] = React.useState<{ oid: number } | null>(null)
+  const [promoCode, setPromoCode] = React.useState('')
+  const [promoPct, setPromoPct] = React.useState(0)
+  const [promoMsg, setPromoMsg] = React.useState('')
+  const [promoBusy, setPromoBusy] = React.useState(false)
+  const discount = promoPct > 0 ? Math.round(sum * promoPct / 100) : 0
+
+  async function applyPromo() {
+    const c = promoCode.trim().toUpperCase()
+    if (!c) return
+    setPromoBusy(true); setPromoMsg('')
+    try {
+      const r = await fetch(`/api/promo?code=${encodeURIComponent(c)}`)
+      if (r.ok) { const j = await r.json(); setPromoPct(j.percent); setPromoMsg(`${t.promoOk} · −${j.percent}%`) }
+      else { setPromoPct(0); setPromoMsg(t.promoInvalid) }
+    } catch { setPromoMsg(t.promoInvalid) }
+    setPromoBusy(false)
+  }
 
   const valid = name.trim().length > 1 && phone.replace(/\D/g, '').length >= 9 && (mode === 'pickup' || addr.trim().length > 4)
 
@@ -29,7 +45,8 @@ export default function Checkout() {
       const r = await fetch('/api/order', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name, phone, mode, addr: mode === 'delivery' ? addr : '', pay, when, note,
+          name, phone, mode, addr: mode === 'delivery' ? addr : '', pay, note,
+          promo: promoPct > 0 ? promoCode : '',
           total: sum, lang, tg_user_id: (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id ?? null,
           items: cart.filter(l => l.q > 0).map(l => ({ id: l.id, slug: l.slug, title: pName(l, lang), q: l.q, price: l.price })),
         }),
@@ -83,20 +100,28 @@ export default function Checkout() {
               <div className="text-[11.5px] font-semibold text-[#A2A9C6] mt-1.5">{t.paySoon}</div>
             </Line>
 
-            <Line label={t.whenDeliver}><input className={input} value={when} onChange={e => setWhen(e.target.value)} placeholder={t.asap} /></Line>
+            <Line label={t.promo}>
+              <div className="flex gap-2">
+                <input className={input + ' flex-1 uppercase'} value={promoCode} onChange={e => { setPromoCode(e.target.value.toUpperCase()); setPromoPct(0); setPromoMsg('') }} placeholder="TEKIT10" />
+                <button onClick={applyPromo} disabled={promoBusy || !promoCode.trim()}
+                  className="press px-5 rounded-xl bg-navy text-white text-[13px] font-bold disabled:opacity-40">{t.promoApply}</button>
+              </div>
+              {promoMsg && <div className={`text-[11.5px] font-bold mt-1.5 ${promoPct > 0 ? 'text-emerald-600' : 'text-[#8A93B8]'}`}>{promoMsg}</div>}
+            </Line>
             <Line label={t.comment}><input className={input} value={note} onChange={e => setNote(e.target.value)} placeholder="…" /></Line>
 
             <div className="bg-white border border-navy-line rounded-[18px] p-4">
               <div className="flex justify-between text-[13.5px] font-semibold text-[#4A5270]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
               <div className="flex justify-between text-[13.5px] font-semibold text-[#4A5270] mt-2"><span>{t.delivery}</span><span className="text-emerald-600 font-bold">{t.free}</span></div>
+              {discount > 0 && <div className="flex justify-between text-[13.5px] font-semibold text-[#4A5270] mt-2"><span>{t.promo} ({promoCode})</span><span className="text-emerald-600 font-bold">−{fmt(discount)} UZS</span></div>}
               <div className="h-px bg-navy-line my-3" />
-              <div className="flex justify-between text-[17px] font-extrabold"><span>{t.total}</span><span>{fmt(sum)} UZS</span></div>
+              <div className="flex justify-between text-[17px] font-extrabold"><span>{t.total}</span><span>{fmt(sum - discount)} UZS</span></div>
             </div>
 
             {err && <div className="text-[13px] font-bold text-red-500 text-center">{err}</div>}
           </div>
           <div className="px-4 mt-5">
-            <BigButton disabled={!valid || busy} onClick={submit}>{busy ? '…' : `${t.confirmOrder} · ${fmt(sum)}`}</BigButton>
+            <BigButton disabled={!valid || busy} onClick={submit}>{busy ? '…' : `${t.confirmOrder} · ${fmt(sum - discount)}`}</BigButton>
           </div>
         </>
       )}

@@ -9,6 +9,17 @@ export function initTelegram() {
     TGA.setBackgroundColor?.('#F6F7FB')
     TGA.disableVerticalSwipes?.()
     TGA.requestFullscreen?.()
+    const applyInsets = (e: any) => {
+      const st = document.documentElement.style
+      const top = e?.content_safe_area?.top ?? (TGA as any).contentSafeAreaInset?.top ?? 0
+      const bottom = e?.content_safe_area?.bottom ?? (TGA as any).contentSafeAreaInset?.bottom ?? 0
+      st.setProperty('--sat', `${Number(top) || 0}px`)
+      st.setProperty('--sab', `${Number(bottom) || 0}px`)
+      if (e?.height) st.setProperty('--svh', `${e.height}px`)
+    }
+    try { TGA.onEvent?.('viewportChanged', applyInsets) } catch {}
+    try { TGA.onEvent?.('contentSafeAreaChanged', applyInsets) } catch {}
+    applyInsets({})
   } catch {}
 }
 

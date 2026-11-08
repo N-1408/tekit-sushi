@@ -11,7 +11,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 button, a, [role="button"] { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
-input, textarea, select { font-size: 16px; }
+input, textarea, select { font-size: 16px !important; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 .app-h { height: 100dvh; }
