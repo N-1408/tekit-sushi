@@ -2,25 +2,21 @@ import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore, pName, pImg, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
-import { haptic } from '../lib/tg'
+import { haptic, useNativeBack } from '../lib/tg'
 
 export function WhaleMark({ size = 40 }: { size?: number }) {
   return <img src="/logo.png" width={size} height={size} className="rounded-[12px]" alt="" />
 }
 
 export function TopBar({ title, right }: { title?: string; right?: React.ReactNode }) {
-  const { t, lang, setLang } = useStore()
+  const { t } = useStore()
+  useNativeBack(!!title)
   return (
-    <header className="sticky top-0 z-30 bg-paper/90 backdrop-blur-xl border-b border-navy-line"
+    <header className="sticky top-0 z-30 bg-paper border-b border-navy-line"
       style={{ paddingTop: 'calc(10px + var(--sat))' }}>
       <div className="flex items-center gap-2.5 px-4 pb-2.5">
         {title ? (
-          <>
-            <button onClick={() => history.back()} className="press w-9 h-9 rounded-full bg-white border border-navy-line grid place-items-center">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M15 18l-6-6 6-6" /></svg>
-            </button>
-            <div className="text-[17px] font-extrabold flex-1">{title}</div>
-          </>
+          <div className="text-[17px] font-extrabold flex-1">{title}</div>
         ) : (
           <>
             <WhaleMark />
@@ -67,7 +63,7 @@ function LangPicker() {
 const ICONS: Record<string, React.ReactNode> = {
   home: <path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z" />,
   cart: <><path d="M6 6h15l-1.7 8.5a2 2 0 0 1-2 1.5H9.2a2 2 0 0 1-2-1.6L5.3 3.7A1 1 0 0 0 4.3 3H2" /><circle cx="9.5" cy="20" r="1.3" /><circle cx="17.5" cy="20" r="1.3" /></>,
-  orders: <><rect x="4" y="4" width="16" height="17" rx="3" /><path d="M8 3v4M16 3v4M4 11h16" /></>,
+  orders: <><path d="M5 3h14v18l-2.33-1.75L14.33 21 12 19.25 9.67 21 7.33 19.25 5 21z" /><path d="M9 8.5h6M9 12.5h6" fill="none" /></>,
   profile: <><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 5-5.5 8-5.5s6.5 1.5 8 5.5" /></>,
 }
 
@@ -75,6 +71,7 @@ export function TabBar() {
   const { t, cartCount } = useStore()
   const nav = useNavigate()
   const loc = window.location.pathname
+  if (loc.startsWith('/p/')) return null
   const tabs = [
     { id: 'home', to: '/', label: t.tabHome, icon: 'home' },
     { id: 'cart', to: '/cart', label: t.tabCart, icon: 'cart' },
@@ -82,7 +79,7 @@ export function TabBar() {
     { id: 'profile', to: '/profile', label: t.tabProfile, icon: 'profile' },
   ]
   return (
-    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-white/92 backdrop-blur-xl border-t border-navy-line"
+    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line"
       style={{ paddingBottom: 'calc(8px + var(--sab))' }}>
       <div className="flex">
         {tabs.map(tb => {
@@ -93,7 +90,7 @@ export function TabBar() {
               <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${on ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
                 <svg width="23" height="23" viewBox="0 0 24 24" fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{ICONS[tb.icon]}</svg>
                 {tb.id === 'cart' && cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] px-1 rounded-full bg-navy text-white text-[9.5px] font-extrabold grid place-items-center border-2 border-white">{cartCount}</span>
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-navy text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-white">{cartCount}</span>
                 )}
               </span>
               {tb.label}
@@ -121,7 +118,8 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
         </button>
         {p.hit && <span className="absolute top-2 left-2 bg-navy text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg">{t.hit}</span>}
         <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
-          className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-navy text-white text-[20px] font-semibold grid place-items-center shadow-[0_6px_14px_-4px_rgba(10,33,148,.55)] active:scale-85 transition-transform">+</button>
+          className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-navy text-white grid place-items-center shadow-[0_6px_14px_-4px_rgba(10,33,148,.55)] active:scale-85 transition-transform">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></button>
       </div>
       <div className="p-2.5">
         <div className="text-[13.5px] font-bold leading-snug line-clamp-2 min-h-[36px]">{pName(p, lang)}</div>

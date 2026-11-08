@@ -58,7 +58,7 @@ export default function Product() {
         </section>
       )}
 
-      <div className="fixed left-0 right-0 bottom-0 z-30 bg-white/95 backdrop-blur-xl border-t border-navy-line px-4 pt-3"
+      <div className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line px-4 pt-3"
         style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
         <div className="flex gap-2.5 items-center">
           <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />

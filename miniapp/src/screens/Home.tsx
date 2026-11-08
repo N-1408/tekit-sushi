@@ -59,13 +59,22 @@ export default function Home() {
             <section className="mt-5">
               <h2 className="px-4 text-[17px] font-extrabold">{t.favTitle}</h2>
               <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-2.5 pb-1">
-                {fav.map(p => (
-                  <button key={p.id} onClick={() => { haptic(); nav(`/p/${p.id}`) }}
-                    className="press shrink-0 w-[136px] bg-white border border-navy-line rounded-[18px] overflow-hidden text-left active:scale-95 transition-transform">
-                    <img src={pImg(p)} alt="" loading="lazy" decoding="async" className="w-full aspect-square object-cover bg-navy-soft" />
-                    <div className="p-2 text-[12px] font-bold truncate">{pName(p, lang)}</div>
-                  </button>
-                ))}
+                {fav.map(p => {
+                  const on = favs.includes(p.id)
+                  return (
+                    <article key={p.id} onClick={() => { haptic(); nav(`/p/${p.id}`) }}
+                      className="press shrink-0 w-[136px] bg-white border border-navy-line rounded-[18px] overflow-hidden cursor-pointer active:scale-95 transition-transform">
+                      <div className="relative">
+                        <img src={pImg(p)} alt="" loading="lazy" decoding="async" className="w-full aspect-square object-cover bg-navy-soft" />
+                        <button onClick={e => { e.stopPropagation(); toggleFav(p.id); haptic() }}
+                          className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/95 grid place-items-center shadow-sm active:scale-90 transition-transform">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill={on ? '#E23B52' : 'none'} stroke={on ? '#E23B52' : '#8A93B8'} strokeWidth="2"><path d="M12 21C7 16.6 3 13.4 3 9.3 3 6.4 5.2 4 8 4c1.6 0 3.1.8 4 2.1C12.9 4.8 14.4 4 16 4c2.8 0 5 2.4 5 5.3 0 4.1-4 7.3-9 11.7z" /></svg>
+                        </button>
+                      </div>
+                      <div className="p-2 text-[12px] font-bold truncate">{pName(p, lang)}</div>
+                    </article>
+                  )
+                })}
               </div>
             </section>
           )}

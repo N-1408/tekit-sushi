@@ -1,3 +1,4 @@
+import React from 'react'
 export const TGA: any = (window as any).Telegram?.WebApp
 
 export function initTelegram() {
@@ -9,17 +10,20 @@ export function initTelegram() {
     TGA.setBackgroundColor?.('#F6F7FB')
     TGA.disableVerticalSwipes?.()
     TGA.requestFullscreen?.()
-    const applyInsets = (e: any) => {
+    const applyInsets = (e?: any) => {
+      const cs = e?.contentSafeArea ?? ((TGA as any).contentSafeAreaInset || {})
       const st = document.documentElement.style
-      const top = e?.content_safe_area?.top ?? (TGA as any).contentSafeAreaInset?.top ?? 0
-      const bottom = e?.content_safe_area?.bottom ?? (TGA as any).contentSafeAreaInset?.bottom ?? 0
-      st.setProperty('--sat', `${Number(top) || 0}px`)
-      st.setProperty('--sab', `${Number(bottom) || 0}px`)
-      if (e?.height) st.setProperty('--svh', `${e.height}px`)
+      const top = Number(cs.top) || 0
+      const bottom = Number(cs.bottom) || 0
+      if (top > 0) st.setProperty('--sat', `${top}px`)
+      if (bottom > 0) st.setProperty('--sab', `${bottom}px`)
     }
     try { TGA.onEvent?.('viewportChanged', applyInsets) } catch {}
+    try { TGA.onEvent?.('safeAreaChanged', applyInsets) } catch {}
     try { TGA.onEvent?.('contentSafeAreaChanged', applyInsets) } catch {}
-    applyInsets({})
+    applyInsets()
+    setTimeout(applyInsets, 600)
+    setTimeout(applyInsets, 1800)
   } catch {}
 }
 
@@ -38,6 +42,13 @@ export function sendData(data: unknown) {
   try { TGA?.sendData(JSON.stringify(data)) } catch {}
 }
 
-export function backButtonType() {
-  try { TGA?.BackButton } catch {}
+export function useNativeBack(active: boolean) {
+  React.useEffect(() => {
+    if (!active) return
+    const bb = TGA?.BackButton
+    if (!bb?.show) return
+    const go = () => history.back()
+    try { bb.onClick(go); bb.show() } catch {}
+    return () => { try { bb.offClick?.(go); bb.hide() } catch {} }
+  }, [active])
 }
