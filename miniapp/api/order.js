@@ -12,6 +12,18 @@ function getPool() {
   return pool;
 }
 
+let ensured;
+function ensureSchema() {
+  if (!ensured) {
+    ensured = getPool().query(
+      `ALTER TABLE orders ADD COLUMN IF NOT EXISTS note text;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_time text;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS status text DEFAULT 'new';`
+    ).then(() => true).catch(e => { console.error('ensureSchema', e); return false; });
+  }
+  return ensured;
+}
+
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -24,14 +36,15 @@ module.exports = async (req, res) => {
   }
 
   try {
+    await ensureSchema();
     const o = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     if (!o || !o.items || !o.name || !o.phone) {
       return res.status(400).json({ ok: false, error: 'Kerakli maydonlar yetishmaydi' });
     }
     const pool = getPool();
     const result = await pool.query(
-      `INSERT INTO orders (tg_user_id, name, phone, address, branch, delivery_type, payment, items, total)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING id, created_at`,
+      `INSERT INTO orders (tg_user_id, name, phone, address, branch, delivery_type, payment, items, total, note, delivery_time)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id, created_at`,
       [
         o.tg_user_id || null,
         String(o.name),
@@ -40,8 +53,10 @@ module.exports = async (req, res) => {
         o.branch || null,
         o.delivery_type || 'delivery',
         o.payment || 'cash',
-        JSON.stringify(o.items),
+        JSON.stringify(o.items || []),
         Number(o.total) || 0,
+        o.note ? String(o.note) : null,
+        o.when ? String(o.when) : null,
       ]
     );
     const row = result.rows[0];

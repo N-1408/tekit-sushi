@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); }
+html { -webkit-tap-highlight-color: transparent; }
+html, body { overscroll-behavior-y: none; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+  background: #F6F7FB; color: #0E1839; letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+button, a, [role="button"] { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+input, textarea, select { font-size: 16px; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
+.app-h { height: 100dvh; }
+
+/* katakana brand pattern (navy bg, white outline wordmarks) */
+.tekit-pattern {
+  background-color: #0A2194;
+  background-image: repeating-linear-gradient(0deg, transparent 0 78px, rgba(255,255,255,.09) 78px 79px);
+  overflow: hidden; position: relative;
+}
+.tekit-pattern::before {
+  content: ""; position: absolute; inset: -30%;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='340' height='150'><text x='0' y='60' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.14' font-family='Arial'>TEKIT ティキット</text><text x='170' y='130' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.14' font-family='Arial'>TEKIT ティキット</text></svg>");
+  background-size: 340px 150px;
+}
+
+@keyframes fadeUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+.anim-up { animation: fadeUp .45s cubic-bezier(.23,1,.32,1) backwards; }
+@keyframes sheetIn { from { transform: translateY(100%) } to { transform: none } }
+.anim-sheet { animation: sheetIn .45s cubic-bezier(.32,.72,0,1); }
+@keyframes pageIn { from { opacity: 0; transform: translateX(24px) } to { opacity: 1; transform: none } }
+.anim-page { animation: pageIn .3s cubic-bezier(.23,1,.32,1); }
+@keyframes popIn { from { transform: scale(.6); opacity: 0 } to { transform: scale(1); opacity: 1 } }
+.anim-pop { animation: popIn .45s cubic-bezier(.34,1.56,.64,1) both; }
+@keyframes spin { to { transform: rotate(360deg) } }
+.spin { animation: spin .8s linear infinite; }
+.press:active { transform: scale(.96); }
