@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { Routes, Route } from 'react-router-dom'
 import Home from './screens/Home'
 import Cat from './screens/Cat'
 import Product from './screens/Product'
@@ -16,7 +16,7 @@ export default function App() {
   useEffect(() => { initTg() }, [])
 
   return (
-    <BrowserRouter>
+    <>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/cat/:cat" element={<Cat />} />
@@ -29,6 +29,6 @@ export default function App() {
       </Routes>
       <TabBar />
       {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 z-[60] bg-navy-deep text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
-    </BrowserRouter>
+    </>
   )
 }
