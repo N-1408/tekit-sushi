@@ -229,11 +229,23 @@ bot.on("message:web_app_data", async (ctx) => {
 bot.catch((e) => console.error("bot xato:", e.message));
 const PORT = process.env.PORT || 3000;
 http.createServer((req, res) => {
+  if (req.method === "POST" && (req.url || "").split("?")[0] === "/telegram/webhook") {
+    let body = "";
+    req.on("data", (c) => (body += c));
+    req.on("end", async () => {
+      try {
+        const update = JSON.parse(body || "{}");
+        await bot.handleUpdate(update);
+      } catch (e) { console.error("webhook:", e.message); }
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end('{"ok":true}');
+    });
+    return;
+  }
   res.writeHead(200, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ status: "ok", bot: "tekit-sushi" }));
 }).listen(PORT, () => console.log(`Health server ${PORT} portda`));
 
 initDb().catch((e) => console.error("db init:", e.message)).finally(() => {
-  bot.start();
-  console.log("Tekit Sushi bot ishga tushdi");
+  console.log("Tekit Sushi bot ishga tushdi (webhook)");
 });
