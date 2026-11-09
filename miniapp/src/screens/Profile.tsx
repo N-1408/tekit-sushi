@@ -12,7 +12,7 @@ export default function Profile() {
   ]
   return (
     <div className="pb-28">
-      <TopBar title={t.tabProfile} />
+      <TopBar title={t.tabProfile} back={false} />
       <div className="px-4 mt-4">
         <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-lg">
           <img src="/logo.png" className="w-14 h-14 rounded-2xl bg-white/20" alt="" />

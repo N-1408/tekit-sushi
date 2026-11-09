@@ -22,7 +22,7 @@ export default function Orders() {
 
   return (
     <div className="pb-28">
-      <TopBar title={t.tabOrders} />
+      <TopBar title={t.tabOrders} back={false} />
       {myOrders.length === 0 ? (
         <div className="px-4">
           <Empty emoji="📦" title={t.noOrders} sub={t.noOrdersSub}

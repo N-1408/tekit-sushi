@@ -13,7 +13,7 @@ export default function Cart() {
 
   return (
     <div className="pb-28">
-      <TopBar title={t.tabCart} right={<div />} />
+      <TopBar title={t.tabCart} back={false} right={<div />} />
       {lines.length === 0 ? (
         <div className="px-4">
           <Empty emoji="🛒" title={t.cartEmpty} sub={t.cartEmptySub}
