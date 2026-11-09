@@ -149,10 +149,15 @@ export function Sheet({ open, onClose, title, children, foot }: {
   // Pastga surib yopish (surgich zonasi: dastak + sarlavha)
   const [dy, setDy] = React.useState(0)
   const [drag, setDrag] = React.useState(false)
+  const [entered, setEntered] = React.useState(false)
   const st = React.useRef<{ y0: number; y: number; t: number } | null>(null)
   const vel = React.useRef(0)
   const timer = React.useRef<number | null>(null)
 
+  React.useEffect(() => {
+    const id = window.setTimeout(() => setEntered(true), 520)
+    return () => clearTimeout(id)
+  }, [])
   React.useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
 
   const onDown = (e: React.TouchEvent) => {
@@ -166,7 +171,7 @@ export function Sheet({ open, onClose, title, children, foot }: {
     const y = e.touches[0].clientY
     const now = performance.now()
     const dt = now - st.current.t
-    if (dt > 0) vel.current = ((y - st.current.y) / dt) * 0.6 + vel.current * 0.4
+    if (dt >= 8) vel.current = ((y - st.current.y) / dt) * 0.35 + vel.current * 0.65
     st.current = { ...st.current, y, t: now }
     let d = y - st.current.y0
     if (d < 0) d = 0
@@ -178,8 +183,8 @@ export function Sheet({ open, onClose, title, children, foot }: {
     const d = dy
     st.current = null
     setDrag(false)
-    const fast = vel.current > 0.6
-    if (d > 110 || (fast && d > 24)) {
+    const fast = vel.current > 1.0
+    if (d > 130 || (fast && d > 36)) {
       setDy(window.innerHeight + 80)
       timer.current = window.setTimeout(onClose, 300)
     } else {
@@ -194,7 +199,7 @@ export function Sheet({ open, onClose, title, children, foot }: {
       <div className="absolute inset-0 bg-navy-deep/45 backdrop-blur-[2px]" onClick={onClose}
         style={{ opacity: Math.max(0, 1 - dy / 420), transition: drag ? 'none' : 'opacity .3s' }} />
       <div
-        className={`${moving ? '' : 'anim-sheet '}absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[82dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none`}
+        className={`${!entered && !moving ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[82dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none`}
         style={{ transform: `translateY(${dy}px)`, transition: drag ? 'none' : 'transform .32s cubic-bezier(.32,.72,0,1)' }}
       >
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
