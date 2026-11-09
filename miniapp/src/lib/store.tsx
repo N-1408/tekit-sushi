@@ -44,6 +44,8 @@ export type MyOrder = {
   sum: number; mode: string; pay: string; addr: string; name: string; phone: string
 }
 
+export type User = { tg_id?: number; name: string; phone: string; addr: string; lat?: number; lon?: number }
+
 export type Store = {
   lang: Lang; setLang: (l: Lang) => void; t: Trans
   products: Product[]
@@ -56,6 +58,11 @@ export type Store = {
   sheetP: Product | null; openP: (p: Product) => void; closeP: () => void
   role: string | null
   roleReady: boolean
+  user: User | null
+  saveUser: (p: Partial<User>) => void
+  ob: boolean
+  openOb: () => void
+  closeOb: () => void
 }
 
 const Ctx = createContext<Store>(null as any)
@@ -73,11 +80,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(() => load<Product[]>('tk-menu-v2', PRODUCTS))
   const [role, setRole] = useState<string | null>(null)
   const [roleReady, setRoleReady] = useState(false)
+  const [user, setUser] = useState<User | null>(() => load<User | null>('tk-user', null))
+  const [ob, setOb] = useState(false)
 
   useEffect(() => { localStorage.setItem('tk-lang', JSON.stringify(lang)) }, [lang])
   useEffect(() => { localStorage.setItem('tk-cart', JSON.stringify(cartMap)) }, [cartMap])
   useEffect(() => { localStorage.setItem('tk-favs', JSON.stringify(favs)) }, [favs])
   useEffect(() => { localStorage.setItem('tk-orders', JSON.stringify(myOrders.slice(0, 30))) }, [myOrders])
+  useEffect(() => { if (user) localStorage.setItem('tk-user', JSON.stringify(user)) }, [user])
 
   const setLang = useCallback((l: Lang) => setLangS(l), [])
   const add = useCallback((id: string, q = 1) => setCartMap(c => ({ ...c, [id]: (c[id] || 0) + q })), [])
@@ -91,6 +101,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const showToast = useCallback((s: string) => { setToast(s); setTimeout(() => setToast(null), 1800) }, [])
   const saveMyOrder = useCallback((o: MyOrder) => setMyOrders(a => [o, ...a].slice(0, 30)), [])
   const openP = useCallback((p: Product) => setSheetP(p), [])
+  const saveUser = useCallback((p: Partial<User>) => setUser(u => ({ ...(u || {}), ...p } as User)), [])
+  const openOb = useCallback(() => setOb(true), [])
+  const closeOb = useCallback(() => setOb(false), [])
   const closeP = useCallback(() => setSheetP(null), [])
 
   useEffect(() => {
@@ -128,8 +141,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .filter(Boolean) as CartLine[]
     const count = lines.reduce((s, l) => s + l.q, 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, sheetP, openP, closeP, role, roleReady }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, openP, closeP])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, openP, closeP, saveUser, openOb, closeOb])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

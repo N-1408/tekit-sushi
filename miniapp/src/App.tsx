@@ -15,10 +15,11 @@ import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
 import { TabBar, ProductSheet } from './components/ui'
+import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 
 export default function App() {
-  const { initTg, toast } = useStore()
+  const { initTg, toast, user, ob } = useStore()
   const loc = useLocation()
   const isAdmin = loc.pathname.startsWith('/admin')
   useEffect(() => { initTg() }, [])
@@ -44,6 +45,7 @@ export default function App() {
         <Route path="/admin/cats" element={<AdminGate><AdminCats /></AdminGate>} />
         <Route path="/admin/promos" element={<AdminShell><AdminPromos /></AdminShell>} />
       </Routes>
+      {!isAdmin && (!user || ob) && <Onboarding />}
       {!isAdmin && <TabBar />}
       {!isAdmin && <ProductSheet />}
       {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 z-[60] bg-navy-deep text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}

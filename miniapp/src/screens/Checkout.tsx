@@ -8,14 +8,14 @@ import { TopBar, BigButton } from '../components/ui'
 const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{label}</div>{children}</div>
 
 export default function Checkout() {
-  const { t, lang, cart, myOrders, setLang, clearCart } = useStore()
+  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser } = useStore()
   const nav = useNavigate()
   const sum = cart.filter(l => l.q > 0).reduce((s, l) => s + l.q * l.price, 0)
   const last = myOrders[0]
-  const [name, setName] = React.useState(last?.name || '')
-  const [phone, setPhone] = React.useState(last?.phone || '')
+  const [name, setName] = React.useState(last?.name || user?.name || '')
+  const [phone, setPhone] = React.useState(last?.phone || user?.phone || '')
   const [mode, setMode] = React.useState<'delivery' | 'pickup'>('delivery')
-  const [addr, setAddr] = React.useState(last?.addr || '')
+  const [addr, setAddr] = React.useState(last?.addr || user?.addr || '')
   const [pay, setPay] = React.useState<'cash' | 'card'>('cash')
   const [note, setNote] = React.useState('')
   const [busy, setBusy] = React.useState(false)
@@ -57,6 +57,7 @@ export default function Checkout() {
       const j = await r.json()
       setDone({ oid: j.order_id })
       clearCart()
+      saveUser({ name: name.trim() || user?.name || '', phone: phone.trim() || user?.phone || '', addr: mode === 'delivery' && addr.trim() ? addr.trim() : (user?.addr ?? '') })
     } catch { setErr(t.orderFail) }
     setBusy(false)
   }

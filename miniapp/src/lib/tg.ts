@@ -38,6 +38,32 @@ export function tgUser(): { id: number; first_name?: string; username?: string; 
   return TGA?.initDataUnsafe?.user || null
 }
 
+export function requestLocation(): Promise<{ lat: number; lon: number } | null> {
+  return new Promise(resolve => {
+    let done = false
+    const fin = (v: any) => { if (!done) { done = true; resolve(v) } }
+    try {
+      if (TGA?.requestLocation) {
+        try { TGA.requestLocation((r: any) => {
+          if (r && r.latitude != null && r.longitude != null) fin({ lat: r.latitude, lon: r.longitude })
+          else fin(null)
+        }) } catch { fin(null) }
+        setTimeout(() => fin(null), 20000)
+        return
+      }
+    } catch {}
+    try {
+      if (navigator.geolocation?.getCurrentPosition) {
+        navigator.geolocation.getCurrentPosition(
+          p => fin({ lat: p.coords.latitude, lon: p.coords.longitude }),
+          () => fin(null), { timeout: 12000, enableHighAccuracy: false })
+        return
+      }
+    } catch {}
+    fin(null)
+  })
+}
+
 export function haptic(kind: 'light' | 'medium' | 'heavy' | 'success' | 'error' = 'light') {
   try {
     if (kind === 'success' || kind === 'error') TGA?.HapticFeedback?.notificationOccurred(kind)

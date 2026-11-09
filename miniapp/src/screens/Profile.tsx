@@ -12,7 +12,7 @@ const ROW_ICON: Record<string, React.ReactNode> = {
 }
 
 export default function Profile() {
-  const { t, lang, setLang, myOrders, favs, role } = useStore()
+  const { t, lang, setLang, myOrders, favs, role, user, openOb } = useStore()
   const nav = useNavigate()
   const [sheet, setSheet] = React.useState<null | 'branches' | 'contacts' | 'delivery' | 'about'>(null)
 
@@ -81,11 +81,19 @@ export default function Profile() {
       <div className="px-4 mt-4">
         <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-lg">
           <img src="/logo.png" className="w-14 h-14 rounded-2xl bg-white/20" alt="" />
-          <div className="text-white">
-            <div className="text-[16px] font-extrabold">{t.brand}</div>
-            <div className="text-[12px] text-white/75 font-medium">{t.guest}</div>
+          <div className="text-white flex-1">
+            <div className="text-[16px] font-extrabold">{user?.name || t.brand}</div>
+            <div className="text-[12px] text-white/75 font-medium">{user ? (user.phone || user.addr || t.brand) : t.guest}</div>
           </div>
+          <button onClick={openOb} className="press bg-white/15 border border-white/25 text-white text-[12px] font-bold px-3.5 py-2 rounded-xl">
+            {user ? t.obEdit : t.obReg}
+          </button>
         </div>
+        {user?.addr ? (
+          <div className="mt-2.5 bg-white border border-navy-line rounded-[18px] px-4 py-1">
+            {infoRow(t.address, <span className="max-w-[210px]">{user.addr}</span>)}
+          </div>
+        ) : null}
 
         <div className="mt-4 bg-white border border-navy-line rounded-[18px] overflow-hidden">
           {rows.map((r, i) => (
