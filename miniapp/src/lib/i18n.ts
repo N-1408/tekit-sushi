@@ -23,6 +23,12 @@ export const T = {
     guest: 'Telegram orqali kiramiz', all: 'Barchasi',
     admin: 'Admin panel', adminPass: 'Admin parolini kiriting', login: 'Kirish', wrongPass: 'Parol xato, qaytadan',
     promo: 'Promokod', promoApply: 'Qo\u2018llash', promoOk: 'Qo\u2018llandi', promoInvalid: 'Promokod topilmadi', language: 'Til',
+    pBranches: 'Filiallar', pContacts: 'Kontaktlar', pDeliveryPay: 'Yetkazish va to\u02bblov', pAbout: 'Biz haqimizda',
+    aboutText: 'Tekit Sushi — Toshkentdagi yapon taomlari. Har bir set buyurtma olgandan keyin qo\u02bblda, yangi mahsulotdan tayyorlanadi. 30\u201345 daqiqada issiq va toza yetkazib beramiz.',
+    dpDelivery: 'Yetkazib berish', dpFree: 'Bepul · Toshkent bo\u02bbylab', dpTime: 'Yetkazish vaqti', dpTimeVal: '30\u201345 daqiqa',
+    dpPay: 'To\u02bblov', dpPayVal: 'Naqd yoki kartaga o\u02bbtkazish', dpSoon: 'Payme / Click tez orada qo\u02bbshiladi',
+    branchName: 'Tekit Sushi · Toshkent', branchSoon: 'Aniq manzil tez orada qo\u02bbshiladi',
+    ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Telefon', ctSoon: 'Tez orada qo\u02bbshiladi',
   },
   ru: {
     brand: 'Tekit Sushi', tagline: 'Японская кухня · Ташкент',
@@ -45,6 +51,12 @@ export const T = {
     guest: 'Вход через Telegram', all: 'Все',
     admin: 'Админ панель', adminPass: 'Введите пароль админа', login: 'Войти', wrongPass: 'Неверный пароль',
     promo: 'Промокод', promoApply: 'Применить', promoOk: 'Применён', promoInvalid: 'Промокод не найден', language: 'Язык',
+    pBranches: 'Филиалы', pContacts: 'Контакты', pDeliveryPay: 'Доставка и оплата', pAbout: 'О нас',
+    aboutText: 'Tekit Sushi — японская кухня в Ташкенте. Каждый сет готовится вручную после заказа, из свежих продуктов. Доставляем горячим и аккуратно за 30–45 минут.',
+    dpDelivery: 'Доставка', dpFree: 'Бесплатно · по Ташкенту', dpTime: 'Время доставки', dpTimeVal: '30–45 минут',
+    dpPay: 'Оплата', dpPayVal: 'Наличные или перевод на карту', dpSoon: 'Payme / Click скоро',
+    branchName: 'Tekit Sushi · Ташкент', branchSoon: 'Точный адрес скоро добавим',
+    ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Телефон', ctSoon: 'Скоро',
   },
   en: {
     brand: 'Tekit Sushi', tagline: 'Japanese food · Tashkent',
@@ -67,6 +79,12 @@ export const T = {
     guest: 'Sign in via Telegram', all: 'All',
     admin: 'Admin panel', adminPass: 'Enter admin password', login: 'Log in', wrongPass: 'Wrong password',
     promo: 'Promo code', promoApply: 'Apply', promoOk: 'Applied', promoInvalid: 'Promo code not found', language: 'Language',
+    pBranches: 'Branches', pContacts: 'Contacts', pDeliveryPay: 'Delivery & payment', pAbout: 'About us',
+    aboutText: 'Tekit Sushi is Japanese food in Tashkent. Every set is made by hand after you order, from fresh ingredients. Delivered hot and neat within 30–45 minutes.',
+    dpDelivery: 'Delivery', dpFree: 'Free · across Tashkent', dpTime: 'Delivery time', dpTimeVal: '30–45 minutes',
+    dpPay: 'Payment', dpPayVal: 'Cash or card transfer', dpSoon: 'Payme / Click coming soon',
+    branchName: 'Tekit Sushi · Tashkent', branchSoon: 'Exact address coming soon',
+    ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Phone', ctSoon: 'Coming soon',
   },
 } as const
 

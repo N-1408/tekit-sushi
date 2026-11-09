@@ -47,7 +47,7 @@ export default function Home() {
 
           <section className="px-4 mt-4">
             <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-[0_12px_28px_-12px_rgba(10,33,148,.5)]">
-              <img src="/box.png" alt="" className="w-[74px] h-[74px] rounded-2xl object-cover bg-white/15" onError={e => (e.currentTarget.style.display = 'none')} />
+              <img src="/logo.png" alt="" width={74} height={74} className="w-[74px] h-[74px] rounded-2xl object-cover bg-white/15" />
               <div className="flex-1 text-white">
                 <div className="text-[15px] font-extrabold">{t.freeDelivery}</div>
                 <div className="text-[12px] font-medium text-white/75 mt-0.5">{t.city} · 🛵</div>
