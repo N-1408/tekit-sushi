@@ -141,10 +141,6 @@ async function handleUpdate(u) {
       }
       return api('sendMessage', { chat_id: chat.id, text: tr.welcome(from.first_name ?? 'Siz'), parse_mode: 'HTML', reply_markup: menuKeyboard(tr) });
     }
-    if (m.text && (m.text === '/menu' || m.text.startsWith('/menu '))) {
-      const tr = t(await getUser(from.id));
-      return api('sendMessage', { chat_id: chat.id, text: tr.welcome(from.first_name ?? 'Siz'), parse_mode: 'HTML', reply_markup: menuKeyboard(tr) });
-    }
     if (m.text && m.text.startsWith('/admin')) {
       del(chat.id, m.message_id);
       const parts = m.text.trim().split(/\s+/);
