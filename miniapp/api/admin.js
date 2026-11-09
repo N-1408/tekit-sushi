@@ -55,6 +55,95 @@ function slugify(s) {
   return str(s, 80).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'item';
 }
 
+async function buildStats(P, days) {
+  const [dayRows, statusRows, periodRows, prevRows, hourRows, dowRows, topItems, deliveryRows, paymentRows, cancelRows, reasonRows, custRows, promoRows, today, pending, menuCount] = await Promise.all([
+    P.query(`SELECT (created_at AT TIME ZONE 'Asia/Tashkent')::date AS d,
+                    count(*)::int AS n,
+                    coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day'))
+             GROUP BY 1 ORDER BY 1`, [Math.max(days, 2)]),
+    P.query(`SELECT status, count(*)::int AS n
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day'))
+             GROUP BY 1`, [days]),
+    P.query(`SELECT count(*)::int AS n,
+                    count(*) FILTER (WHERE status <> 'cancelled')::int AS nc,
+                    coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day'))`, [days]),
+    P.query(`SELECT count(*)::int AS n,
+                    count(*) FILTER (WHERE status <> 'cancelled')::int AS nc,
+                    coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
+             FROM orders
+             WHERE created_at >= (now() - ($2::int * interval '1 day')) AND created_at < (now() - ($1::int * interval '1 day'))`, [days, days * 2]),
+    P.query(`SELECT EXTRACT(HOUR FROM (created_at AT TIME ZONE 'Asia/Tashkent'))::int AS h, count(*)::int AS n
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day'))
+             GROUP BY 1`, [days]),
+    P.query(`SELECT EXTRACT(DOW FROM (created_at AT TIME ZONE 'Asia/Tashkent'))::int AS dow, count(*)::int AS n
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day'))
+             GROUP BY 1`, [days]),
+    P.query(`SELECT item->>'id' AS id, item->>'title' AS title,
+                    sum((item->>'q')::int)::int AS qty,
+                    sum((item->>'q')::int * (item->>'price')::int)::bigint AS revenue
+             FROM orders, json_array_elements(items::json) AS item
+             WHERE created_at >= (now() - ($1::int * interval '1 day')) AND status <> 'cancelled'
+             GROUP BY 1, 2 ORDER BY qty DESC LIMIT 10`, [days]),
+    P.query(`SELECT coalesce(delivery_type, 'delivery') AS k, count(*)::int AS n
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day'))
+             GROUP BY 1`, [days]),
+    P.query(`SELECT coalesce(payment, 'cash') AS k, count(*)::int AS n
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day'))
+             GROUP BY 1`, [days]),
+    P.query(`SELECT count(*)::int AS n,
+                    coalesce(sum(total),0)::bigint AS revenue
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day')) AND status = 'cancelled'`, [days]),
+    P.query(`SELECT coalesce(nullif(btrim(coalesce(status_note, '')), ''), '-') AS reason, count(*)::int AS n
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day')) AND status = 'cancelled'
+             GROUP BY 1 ORDER BY 2 DESC LIMIT 5`, [days]),
+    P.query(`SELECT max(name) AS name, phone, count(*)::int AS n,
+                    coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day')) AND phone IS NOT NULL AND phone <> ''
+             GROUP BY phone ORDER BY n DESC, revenue DESC LIMIT 5`, [days]),
+    P.query(`SELECT promo_code AS code, count(*)::int AS n, coalesce(sum(discount),0)::bigint AS discount
+             FROM orders
+             WHERE created_at >= (now() - ($1::int * interval '1 day')) AND promo_code IS NOT NULL AND promo_code <> ''
+             GROUP BY 1 ORDER BY n DESC LIMIT 5`, [days]),
+    P.query(`SELECT count(*)::int AS n,
+                    coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
+             FROM orders
+             WHERE (created_at AT TIME ZONE 'Asia/Tashkent')::date = (now() AT TIME ZONE 'Asia/Tashkent')::date`),
+    P.query(`SELECT count(*)::int AS n FROM orders WHERE status = 'new'`),
+    P.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true`),
+  ])
+  const pr = periodRows.rows[0] || {}
+  const pv = prevRows.rows[0] || {}
+  const canc = cancelRows.rows[0] || {}
+  return {
+    today: { orders: today.rows[0]?.n || 0, revenue: Number(today.rows[0]?.revenue || 0) },
+    pending: pending.rows[0]?.n || 0,
+    period: { orders: pr.n || 0, revenue: Number(pr.revenue || 0), nonCancelled: pr.nc || 0, prevOrders: pv.n || 0, prevNonCancelled: pv.nc || 0, prevRevenue: Number(pv.revenue || 0) },
+    byStatus: statusRows.rows,
+    days: dayRows.rows.map(r => ({ d: r.d, n: r.n, revenue: Number(r.revenue) })),
+    hours: hourRows.rows.map(r => ({ h: r.h, n: r.n })),
+    dows: dowRows.rows.map(r => ({ dow: r.dow, n: r.n })),
+    topItems: topItems.rows.map(r => ({ id: r.id, title: r.title, qty: r.qty, revenue: Number(r.revenue) })),
+    delivery: deliveryRows.rows.map(r => ({ k: r.k, n: r.n })),
+    payment: paymentRows.rows.map(r => ({ k: r.k, n: r.n })),
+    cancels: { n: canc.n || 0, revenue: Number(canc.revenue || 0), reasons: reasonRows.rows.map(r => ({ reason: r.reason, n: r.n })) },
+    customers: custRows.rows.map(r => ({ name: r.name, phone: r.phone, n: r.n, revenue: Number(r.revenue) })),
+    promos: promoRows.rows.map(r => ({ code: r.code, n: r.n, discount: Number(r.discount) })),
+    menuCount: menuCount.rows[0]?.n || 0,
+  }
+}
+
 export default async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -71,32 +160,11 @@ export default async (req, res) => {
     const action = str(req.query.action || 'orders', 20);
     try {
       if (action === 'bootstrap') {
-        const [o, dayRows, statusRows, today, pending, topItems, menuCount, catsR, itemsR, promosR] = await Promise.all([
+        const [o, st, catsR, itemsR, promosR] = await Promise.all([
           P.query(`SELECT id, created_at, name, phone, address, branch, delivery_type, payment, total, status, status_note,
                           items, note, delivery_time, promo_code, discount
                    FROM orders ORDER BY id DESC LIMIT 300`),
-          P.query(`SELECT (created_at AT TIME ZONE 'Asia/Tashkent')::date AS d,
-                          count(*)::int AS n,
-                          coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
-                   FROM orders
-                   WHERE created_at >= (now() - ($1::int * interval '1 day'))
-                   GROUP BY 1 ORDER BY 1`, [7]),
-          P.query(`SELECT status, count(*)::int AS n
-                   FROM orders
-                   WHERE (created_at AT TIME ZONE 'Asia/Tashkent')::date = (now() AT TIME ZONE 'Asia/Tashkent')::date
-                   GROUP BY 1`),
-          P.query(`SELECT count(*)::int AS n,
-                          coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
-                   FROM orders
-                   WHERE (created_at AT TIME ZONE 'Asia/Tashkent')::date = (now() AT TIME ZONE 'Asia/Tashkent')::date`),
-          P.query(`SELECT count(*)::int AS n FROM orders WHERE status = 'new'`),
-          P.query(`SELECT item->>'id' AS id, item->>'title' AS title,
-                          sum((item->>'q')::int)::int AS qty,
-                          sum((item->>'q')::int * (item->>'price')::int)::bigint AS revenue
-                   FROM orders, json_array_elements(items::json) AS item
-                   WHERE created_at >= (now() - ($1::int * interval '1 day')) AND status <> 'cancelled'
-                   GROUP BY 1, 2 ORDER BY qty DESC LIMIT 5`, [7]),
-          P.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true`),
+          buildStats(P, 7),
           P.query(`SELECT * FROM menu_categories ORDER BY sort`),
           P.query(`SELECT * FROM menu_items ORDER BY sort, cat`),
           P.query(`SELECT code, percent, active FROM promos ORDER BY code`),
@@ -104,14 +172,7 @@ export default async (req, res) => {
         return res.status(200).json({
           ok: true,
           orders: o.rows,
-          stats: {
-            today: { orders: today.rows[0]?.n || 0, revenue: Number(today.rows[0]?.revenue || 0) },
-            pending: pending.rows[0]?.n || 0,
-            byStatus: statusRows.rows,
-            days: dayRows.rows.map(r => ({ d: r.d, n: r.n, revenue: Number(r.revenue) })),
-            topItems: topItems.rows.map(r => ({ id: r.id, title: r.title, qty: r.qty, revenue: Number(r.revenue) })),
-            menuCount: menuCount.rows[0]?.n || 0,
-          },
+          stats: st,
           cats: catsR.rows,
           items: itemsR.rows,
           promos: promosR.rows,
@@ -126,41 +187,7 @@ export default async (req, res) => {
       }
       if (action === 'stats') {
         const days = [1, 7, 30].includes(Number(req.query.days)) ? Number(req.query.days) : 7;
-        const dayRows = await P.query(`
-          SELECT (created_at AT TIME ZONE 'Asia/Tashkent')::date AS d,
-                 count(*)::int AS n,
-                 coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
-          FROM orders
-          WHERE created_at >= (now() - ($1::int * interval '1 day'))
-          GROUP BY 1 ORDER BY 1`, [Math.max(days, 2)]);
-        const statusRows = await P.query(`
-          SELECT status, count(*)::int AS n
-          FROM orders
-          WHERE (created_at AT TIME ZONE 'Asia/Tashkent')::date = (now() AT TIME ZONE 'Asia/Tashkent')::date
-          GROUP BY 1`);
-        const today = await P.query(`
-          SELECT count(*)::int AS n,
-                 coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
-          FROM orders
-          WHERE (created_at AT TIME ZONE 'Asia/Tashkent')::date = (now() AT TIME ZONE 'Asia/Tashkent')::date`);
-        const pending = await P.query(`SELECT count(*)::int AS n FROM orders WHERE status = 'new'`);
-        const topItems = await P.query(`
-          SELECT item->>'id' AS id, item->>'title' AS title,
-                 sum((item->>'q')::int)::int AS qty,
-                 sum((item->>'q')::int * (item->>'price')::int)::bigint AS revenue
-          FROM orders, json_array_elements(items::json) AS item
-          WHERE created_at >= (now() - ($1::int * interval '1 day')) AND status <> 'cancelled'
-          GROUP BY 1, 2 ORDER BY qty DESC LIMIT 5`, [days]);
-        const menuCount = await P.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true`);
-        return res.status(200).json({
-          ok: true,
-          today: { orders: today.rows[0]?.n || 0, revenue: Number(today.rows[0]?.revenue || 0) },
-          pending: pending.rows[0]?.n || 0,
-          byStatus: statusRows.rows,
-          days: dayRows.rows.map(r => ({ d: r.d, n: r.n, revenue: Number(r.revenue) })),
-          topItems: topItems.rows.map(r => ({ id: r.id, title: r.title, qty: r.qty, revenue: Number(r.revenue) })),
-          menuCount: menuCount.rows[0]?.n || 0,
-        });
+        return res.status(200).json({ ok: true, ...(await buildStats(P, days)) });
       }
       if (action === 'menu') {
         const cats = (await P.query(`SELECT * FROM menu_categories ORDER BY sort`)).rows;

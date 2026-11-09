@@ -1,6 +1,20 @@
 
 export type AdminOrders = any[]
-export type AdminStat = { today: { orders: number; revenue: number }; pending: number; byStatus: { status: string; n: number }[]; days: { d: string; n: number; revenue: number }[]; topItems: { id: string; title: string; qty: number; revenue: number }[]; menuCount: number }
+export type AdminStat = {
+  today: { orders: number; revenue: number }; pending: number
+  period: { orders: number; revenue: number; nonCancelled: number; prevOrders: number; prevNonCancelled: number; prevRevenue: number }
+  byStatus: { status: string; n: number }[]
+  days: { d: string; n: number; revenue: number }[]
+  hours: { h: number; n: number }[]
+  dows: { dow: number; n: number }[]
+  topItems: { id: string; title: string; qty: number; revenue: number }[]
+  delivery: { k: string; n: number }[]
+  payment: { k: string; n: number }[]
+  cancels: { n: number; revenue: number; reasons: { reason: string; n: number }[] }
+  customers: { name: string; phone: string; n: number; revenue: number }[]
+  promos: { code: string; n: number; discount: number }[]
+  menuCount: number
+}
 
 export function authHeaders(key: string, role: string | null, uid?: number): Record<string, string> {
   if (uid && role === 'admin') return { 'X-Tg-Id': String(uid) }
