@@ -6,7 +6,7 @@ import { haptic } from '../lib/tg'
 import { TopBar, Qty, Empty, BigButton } from '../components/ui'
 
 export default function Cart() {
-  const { t, lang, cart, setQty, clearCart } = useStore()
+  const { t, lang, cart, setQty, clearCart, openP } = useStore()
   const nav = useNavigate()
   const lines = cart.filter(l => l.q > 0)
   const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
@@ -25,7 +25,7 @@ export default function Cart() {
             {lines.map(l => (
               <div key={l.id} className="flex gap-3 bg-white border border-navy-line rounded-[18px] p-2.5">
                 <img src={pImg(l)} alt="" className="w-[68px] h-[68px] rounded-xl object-cover bg-navy-soft cursor-pointer"
-                  onClick={() => nav(`/p/${l.id}`)} />
+                  onClick={() => { haptic(); openP(l) }} />
                 <div className="flex-1 min-w-0">
                   <div className="text-[13.5px] font-bold line-clamp-2">{pName(l, lang)}</div>
                   <div className="text-[12px] font-semibold text-[#8A93B8] mt-0.5">{l.weight}</div>

@@ -9,7 +9,7 @@ const CAT_ICON: Record<string, string> = {
 }
 
 export default function Home() {
-  const { t, lang, products, favs, showToast, toggleFav } = useStore()
+  const { t, lang, products, favs, showToast, toggleFav, openP } = useStore()
   const nav = useNavigate()
   const [q, setQ] = React.useState('')
   const hits = products.filter(p => p.hit)
@@ -46,8 +46,8 @@ export default function Home() {
           </div>
 
           <section className="px-4 mt-4">
-            <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-[0_12px_28px_-12px_rgba(10,33,148,.5)]">
-              <img src="/box.png" alt="" className="w-[74px] h-[74px] rounded-2xl object-cover bg-white/15" onError={e => (e.currentTarget.style.display = 'none')} />
+            <div className="tekit-pattern rounded-[22px] px-5 py-7 flex items-center gap-4 shadow-[0_12px_28px_-12px_rgba(10,33,148,.5)]">
+              <img src="/box.png" alt="" className="w-[84px] h-[84px] rounded-2xl object-cover bg-white/15" onError={e => (e.currentTarget.style.display = 'none')} />
               <div className="flex-1 text-white">
                 <div className="text-[15px] font-extrabold">{t.freeDelivery}</div>
                 <div className="text-[12px] font-medium text-white/75 mt-0.5">{t.city} · 🛵</div>
@@ -62,7 +62,7 @@ export default function Home() {
                 {fav.map(p => {
                   const on = favs.includes(p.id)
                   return (
-                    <article key={p.id} onClick={() => { haptic(); nav(`/p/${p.id}`) }}
+                    <article key={p.id} onClick={() => { haptic(); openP(p) }}
                       className="press shrink-0 w-[136px] bg-white border border-navy-line rounded-[18px] overflow-hidden cursor-pointer active:scale-95 transition-transform">
                       <div className="relative">
                         <img src={pImg(p)} alt="" loading="lazy" decoding="async" className="w-full aspect-square object-cover bg-navy-soft" />

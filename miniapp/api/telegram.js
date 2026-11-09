@@ -177,7 +177,7 @@ async function handleUpdate(u) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') { res.status(200).json({ ok: true, service: 'tekit-sushi-bot' }); return; }
+  if (req.method !== 'POST') { res.status(200).json({ ok: true, service: 'tekit-sushi-bot', token: !!TOKEN }); return; }
   try {
     const update = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     await handleUpdate(update);

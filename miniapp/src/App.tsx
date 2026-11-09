@@ -8,7 +8,7 @@ import Checkout from './screens/Checkout'
 import Orders from './screens/Orders'
 import Profile from './screens/Profile'
 import Admin from './screens/Admin'
-import { TabBar } from './components/ui'
+import { TabBar, ProductSheet } from './components/ui'
 import { useStore } from './lib/store'
 
 export default function App() {
@@ -28,6 +28,7 @@ export default function App() {
         <Route path="/admin" element={<Admin />} />
       </Routes>
       <TabBar />
+      <ProductSheet />
       {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 z-[60] bg-navy-deep text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
     </>
   )

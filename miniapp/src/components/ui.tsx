@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useNavigate } from 'react-router-dom'
 import { useStore, pName, pImg, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
+import { pDesc } from '../lib/store'
 import { haptic, useNativeBack } from '../lib/tg'
 
 export function WhaleMark({ size = 40 }: { size?: number }) {
@@ -48,8 +50,8 @@ function LangPicker() {
         <div className="space-y-2 pb-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic(); setOpen(false) }}
-              className={`press w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl border text-left transition-all ${lang === l ? 'bg-navy text-white border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.4)]' : 'bg-white border-navy-line'}`}>
-              <span className="text-[26px]">{FLAGS[l]}</span>
+              className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-navy text-white border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.4)]' : 'bg-white border-navy-line'}`}>
+              <span className="text-[22px]">{FLAGS[l]}</span>
               <span className="text-[15px] font-extrabold flex-1">{LANG_NAME[l]}</span>
               {lang === l && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>}
             </button>
@@ -103,11 +105,10 @@ export function TabBar() {
 }
 
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const { lang, add, favs, toggleFav, showToast, t } = useStore()
-  const nav = useNavigate()
+  const { lang, add, favs, toggleFav, showToast, t, openP } = useStore()
   const fav = favs.includes(p.id)
   return (
-    <article onClick={() => { haptic(); nav(`/p/${p.id}`) }}
+    <article onClick={() => { haptic(); openP(p) }}
       className="anim-up bg-white border border-navy-line rounded-[18px] overflow-hidden active:scale-[.975] transition-transform duration-200 cursor-pointer"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
       <div className="relative aspect-square bg-navy-soft">
@@ -133,11 +134,17 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
 export function Sheet({ open, onClose, title, children, foot }: {
   open: boolean; onClose: () => void; title: string; children: React.ReactNode; foot?: React.ReactNode
 }) {
+  React.useEffect(() => {
+    if (!open) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [open])
   if (!open) return null
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-navy-deep/45 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="anim-sheet absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[88dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)]">
+      <div className="anim-sheet absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[82dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain">
         <div className="w-10 h-1.5 rounded-full bg-[#D8DCEA] mx-auto mt-2.5" />
         <div className="flex items-center justify-between px-5 pt-1.5 pb-1">
           <h3 className="text-[18px] font-extrabold">{title}</h3>
@@ -145,10 +152,11 @@ export function Sheet({ open, onClose, title, children, foot }: {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
           </button>
         </div>
-        <div className="overflow-y-auto px-5 py-3 flex-1">{children}</div>
+        <div className="overflow-y-auto px-5 py-3 flex-1 overscroll-contain">{children}</div>
         {foot && <div style={{ paddingBottom: 'calc(14px + var(--sab))' }} className="px-5 pt-2">{foot}</div>}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 
@@ -192,4 +200,47 @@ export function StatusChip({ status, label }: { status: string; label: string })
     delivering: 'bg-indigo-100 text-indigo-700', done: 'bg-emerald-100 text-emerald-700', cancelled: 'bg-red-100 text-red-600',
   }
   return <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg ${colors[status] || 'bg-navy-soft text-navy-ink'}`}>{label}</span>
+}
+
+export function ProductSheet() {
+  const { sheetP, closeP, lang, t, add, favs, toggleFav, showToast } = useStore()
+  const [q, setQ] = React.useState(1)
+  React.useEffect(() => { setQ(1) }, [sheetP?.id])
+  if (!sheetP) return null
+  const p = sheetP
+  const fav = favs.includes(p.id)
+  return (
+    <Sheet open onClose={closeP} title={pName(p, lang)}
+      foot={
+        <div className="flex gap-2.5 items-center">
+          <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
+          <button onClick={() => { add(p.id, q); haptic('medium'); showToast(t.added); closeP() }}
+            className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform">
+            {t.addCart} · {fmt(p.price * q)}
+          </button>
+        </div>
+      }>
+      <div>
+        <div className="relative rounded-[18px] overflow-hidden bg-navy-soft">
+          <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover" />
+          <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
+            className="absolute top-2.5 right-2.5 w-10 h-10 rounded-full bg-white grid place-items-center shadow-md active:scale-90 transition-transform">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill={fav ? '#E23B52' : 'none'} stroke={fav ? '#E23B52' : '#8A93B8'} strokeWidth="2"><path d="M12 21C7 16.6 3 13.4 3 9.3 3 6.4 5.2 4 8 4c1.6 0 3.1.8 4 2.1C12.9 4.8 14.4 4 16 4c2.8 0 5 2.4 5 5.3 0 4.1-4 7.3-9 11.7z" /></svg>
+          </button>
+          {p.pcs ? <span className="absolute bottom-2.5 left-3 bg-white/95 text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
+        </div>
+        <div className="mt-3 flex items-start justify-between gap-3">
+          <div className="text-[19px] font-extrabold leading-tight flex-1">{pName(p, lang)}</div>
+          <div className="text-[18px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[12px] text-[#8A93B8]"> UZS</span></div>
+        </div>
+        {p.weight ? (
+          <div className="mt-2 flex items-center gap-1.5 bg-white border border-navy-line rounded-xl px-3 py-2 w-fit">
+            <span className="text-[14px]">⚖️</span>
+            <span className="text-[12.5px] font-bold">{p.weight}</span>
+          </div>
+        ) : null}
+        <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
+      </div>
+    </Sheet>
+  )
 }

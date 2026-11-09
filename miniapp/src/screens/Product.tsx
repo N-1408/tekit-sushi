@@ -13,7 +13,6 @@ export default function Product() {
   const [q, setQ] = React.useState(1)
   if (!p) return <div className="pb-28"><TopBar title="…" /></div>
   const fav = favs.includes(p.id)
-  const rel = products.filter(x => x.cat === p.cat && x.id !== p.id).slice(0, 4)
 
   return (
     <div className="pb-32">
@@ -39,24 +38,6 @@ export default function Product() {
         ) : null}
         <p className="mt-3 text-[14px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
       </div>
-
-      {rel.length > 0 && (
-        <section className="mt-6">
-          <h2 className="px-4 text-[15px] font-extrabold">{t.similar}</h2>
-          <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-2.5 pb-1">
-            {rel.map(r => (
-              <button key={r.id} onClick={() => { haptic(); nav(`/p/${r.id}`); setQ(1) }}
-                className="press shrink-0 w-[124px] bg-white border border-navy-line rounded-[16px] overflow-hidden text-left active:scale-95 transition-transform">
-                <img src={pImg(r)} alt="" loading="lazy" decoding="async" className="w-full aspect-square object-cover bg-navy-soft" />
-                <div className="p-2">
-                  <div className="text-[11.5px] font-bold truncate">{pName(r, lang)}</div>
-                  <div className="text-[12px] font-extrabold mt-0.5">{fmt(r.price)}</div>
-                </div>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
 
       <div className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line px-4 pt-3"
         style={{ paddingBottom: 'calc(12px + var(--sab))' }}>

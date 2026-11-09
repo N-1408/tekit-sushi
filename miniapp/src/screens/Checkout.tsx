@@ -8,7 +8,7 @@ import { TopBar, BigButton } from '../components/ui'
 const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{label}</div>{children}</div>
 
 export default function Checkout() {
-  const { t, lang, cart, myOrders, setLang } = useStore()
+  const { t, lang, cart, myOrders, setLang, clearCart } = useStore()
   const nav = useNavigate()
   const sum = cart.filter(l => l.q > 0).reduce((s, l) => s + l.q * l.price, 0)
   const last = myOrders[0]
@@ -56,6 +56,7 @@ export default function Checkout() {
       if (!r.ok) throw new Error()
       const j = await r.json()
       setDone({ oid: j.order_id })
+      clearCart()
     } catch { setErr(t.orderFail) }
     setBusy(false)
   }
