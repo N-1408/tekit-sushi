@@ -145,17 +145,71 @@ export function Sheet({ open, onClose, title, children, foot }: {
     document.body.style.overflow = 'hidden'
     return () => { document.body.style.overflow = prev }
   }, [open])
+
+  // Pastga surib yopish (surgich zonasi: dastak + sarlavha)
+  const [dy, setDy] = React.useState(0)
+  const [drag, setDrag] = React.useState(false)
+  const st = React.useRef<{ y0: number; y: number; t: number } | null>(null)
+  const vel = React.useRef(0)
+  const timer = React.useRef<number | null>(null)
+
+  React.useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+
+  const onDown = (e: React.TouchEvent) => {
+    if (timer.current) return
+    st.current = { y0: e.touches[0].clientY, y: e.touches[0].clientY, t: performance.now() }
+    vel.current = 0
+    setDrag(true)
+  }
+  const onMove = (e: React.TouchEvent) => {
+    if (!st.current) return
+    const y = e.touches[0].clientY
+    const now = performance.now()
+    const dt = now - st.current.t
+    if (dt > 0) vel.current = ((y - st.current.y) / dt) * 0.6 + vel.current * 0.4
+    st.current = { ...st.current, y, t: now }
+    let d = y - st.current.y0
+    if (d < 0) d = 0
+    else if (d > 260) d = 260 + (d - 260) * 0.15
+    setDy(d)
+  }
+  const onEnd = () => {
+    if (!st.current) return
+    const d = dy
+    st.current = null
+    setDrag(false)
+    const fast = vel.current > 0.6
+    if (d > 110 || (fast && d > 24)) {
+      setDy(window.innerHeight + 80)
+      timer.current = window.setTimeout(onClose, 300)
+    } else {
+      setDy(0)
+    }
+  }
+
   if (!open) return null
+  const moving = drag || dy > 0
   return createPortal(
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-navy-deep/45 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="anim-sheet absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[82dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain">
-        <div className="w-10 h-1.5 rounded-full bg-[#D8DCEA] mx-auto mt-2.5" />
-        <div className="flex items-center justify-between px-5 pt-1.5 pb-1">
-          <h3 className="text-[18px] font-extrabold">{title}</h3>
-          <button onClick={onClose} className="press w-8 h-8 rounded-full bg-navy-soft grid place-items-center text-[#8A93B8]">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-          </button>
+      <div className="absolute inset-0 bg-navy-deep/45 backdrop-blur-[2px]" onClick={onClose}
+        style={{ opacity: Math.max(0, 1 - dy / 420), transition: drag ? 'none' : 'opacity .3s' }} />
+      <div
+        className={`${moving ? '' : 'anim-sheet '}absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[82dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none`}
+        style={{ transform: `translateY(${dy}px)`, transition: drag ? 'none' : 'transform .32s cubic-bezier(.32,.72,0,1)' }}
+      >
+        <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
+          style={{ touchAction: 'none' }}>
+          <div className="pt-2.5 pb-1">
+            <div className="w-10 h-1.5 rounded-full bg-[#D8DCEA] mx-auto" />
+          </div>
+          <div className="flex items-center justify-between px-5 pt-1.5 pb-1">
+            <h3 className="text-[18px] font-extrabold">{title}</h3>
+            <button onClick={onClose} className="press w-8 h-8 rounded-full bg-navy-soft grid place-items-center text-[#8A93B8]">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
         <div className="overflow-y-auto px-5 py-3 flex-1 overscroll-contain">{children}</div>
         {foot && <div style={{ paddingBottom: 'calc(14px + var(--sab))' }} className="px-5 pt-2">{foot}</div>}
