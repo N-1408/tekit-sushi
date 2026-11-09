@@ -62,7 +62,7 @@ function Body() {
 
   const st: AdminStat | null = range === 7 ? (a.data?.stats || null) : local
   const period = st?.period || { orders: 0, revenue: 0, nonCancelled: 0, prevOrders: 0, prevNonCancelled: 0, prevRevenue: 0 }
-  const aov = period.nonCancelled > 0 ? period.revenue / period.nonCancelled : 0
+  const aov = period.nonCancelled > 0 ? Math.round(period.revenue / period.nonCancelled) : 0
   const aovPrev = period.prevNonCancelled > 0 ? period.prevRevenue / period.prevNonCancelled : 0
 
   const days = st?.days || []
@@ -124,13 +124,7 @@ function Body() {
                 </span>
               </div>
               <div className="mt-1 text-[26px] font-extrabold tracking-tight">{fmt(period.revenue)} <span className="text-[13px] font-bold text-white/70">UZS</span></div>
-              <div className="mt-2.5 flex gap-4 text-[11.5px] font-semibold text-white/80">
-                <span>{period.orders} {t.aOrdersN}</span>
-                <span>·</span>
-                <span>{t.aAvgCheck}: {aov > 0 ? fmt(aov) : '—'} UZS</span>
-                <span>·</span>
-                <span>{t.aToday}: {st.today.orders} · {fmt(st.today.revenue)}</span>
-              </div>
+              <div className="mt-2.5 text-[11.5px] font-semibold text-white/80">{period.orders} {t.aOrdersN}</div>
             </div>
           </div>
 
@@ -167,7 +161,7 @@ function Body() {
               {bars.map((d, i) => (
                 <div key={d.d} className="flex-1 flex flex-col items-center gap-1" title={`${d.d}: ${d.n}`}>
                   <div className="w-full rounded-t-md bg-navy/90 transition-all" style={{ height: `${Math.max(4, (d.n / maxN) * 86)}px`, opacity: 0.55 + 0.45 * (d.n / maxN) }} />
-                  <div className="text-[8.5px] font-bold text-[#8A93B8] leading-none">{d.d.slice(8)}</div>
+                  <div className="text-[8.5px] font-bold text-[#8A93B8] leading-none">{d.d.slice(8, 10)}</div>
                 </div>
               ))}
             </div>
