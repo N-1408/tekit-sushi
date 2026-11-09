@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --sat: var(--tg-content-safe-area-inset-top, env(safe-area-inset-top, 0px)); --sab: var(--tg-content-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)); }
+:root { --sat: max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
 html { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior-y: none; }
 body {

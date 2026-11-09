@@ -64,7 +64,7 @@ export default function Product() {
           <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
           <button onClick={() => { add(p.id, q); haptic('medium'); showToast(t.added); nav(-1) }}
             className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform">
-            {t.checkout} · {fmt(p.price * q)}
+            {t.addCart} · {fmt(p.price * q)}
           </button>
         </div>
       </div>

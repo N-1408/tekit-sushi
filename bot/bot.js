@@ -247,7 +247,7 @@ http.createServer((req, res) => {
 }).listen(PORT, () => console.log(`Health server ${PORT} portda`));
 
 initDb().catch((e) => console.error("db init:", e.message)).finally(() => {
-  const hook = `${process.env.RENDER_EXTERNAL_URL || "https://tekit-sushi-bot.onrender.com"}/telegram/webhook`;
-  bot.api.setWebhook(hook, { drop_pending_updates: false }).then(() => console.log("webhook o'rnatildi:", hook)).catch((e) => console.error("setWebhook:", e.message));
-  console.log("Tekit Sushi bot ishga tushdi (webhook)");
+  // Webhook endi Vercel'da (miniapp/api/telegram.js). Bu servis qayta ishga tushsa
+  // webhookni o'ziga tortmasligi uchun setWebhook olib tashlandi.
+  console.log("Tekit Sushi bot ishga tushdi (webhook Vercelda)");
 });

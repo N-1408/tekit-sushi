@@ -5,6 +5,8 @@ import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
 import { TopBar, BigButton } from '../components/ui'
 
+const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{label}</div>{children}</div>
+
 export default function Checkout() {
   const { t, lang, cart, myOrders, setLang } = useStore()
   const nav = useNavigate()
@@ -58,7 +60,6 @@ export default function Checkout() {
     setBusy(false)
   }
 
-  const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{label}</div>{children}</div>
   const chip = (on: boolean) => `press flex-1 py-2.5 rounded-xl text-[13px] font-bold border transition-all ${on ? 'bg-navy text-white border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.4)]' : 'bg-white text-navy-ink border-navy-line'}`
   const input = "w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 placeholder:text-[#A2A9C6]"
 

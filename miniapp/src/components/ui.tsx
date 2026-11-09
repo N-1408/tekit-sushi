@@ -60,12 +60,12 @@ function LangPicker() {
   )
 }
 
-const ICONS: Record<string, React.ReactNode> = {
+const ICONS = (on: boolean): Record<string, React.ReactNode> => ({
   home: <path d="M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z" />,
   cart: <><path d="M6 6h15l-1.7 8.5a2 2 0 0 1-2 1.5H9.2a2 2 0 0 1-2-1.6L5.3 3.7A1 1 0 0 0 4.3 3H2" /><circle cx="9.5" cy="20" r="1.3" /><circle cx="17.5" cy="20" r="1.3" /></>,
-  orders: <><path d="M5 3h14v18l-2.33-1.75L14.33 21 12 19.25 9.67 21 7.33 19.25 5 21z" /><path d="M9 8.5h6M9 12.5h6" fill="none" /></>,
+  orders: <><path d="M5 3h14v16.3l-1.75 1.3-1.75-1.3-1.75 1.3-1.75-1.3-1.75 1.3-1.75-1.3-1.75 1.3L5 19.3z" /><path d="M8.5 8.5h7M8.5 12.5h7" fill="none" stroke={on ? '#fff' : 'currentColor'} strokeWidth="2" strokeLinecap="round" /></>,
   profile: <><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 5-5.5 8-5.5s6.5 1.5 8 5.5" /></>,
-}
+})
 
 export function TabBar() {
   const { t, cartCount } = useStore()
@@ -88,7 +88,7 @@ export function TabBar() {
             <button key={tb.id} onClick={() => { if (!on) { haptic(); nav(tb.to) } }}
               className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${on ? 'text-navy' : 'text-[#A2A9C6]'}`}>
               <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${on ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
-                <svg width="23" height="23" viewBox="0 0 24 24" fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{ICONS[tb.icon]}</svg>
+                <svg width="23" height="23" viewBox="0 0 24 24" fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{ICONS(on)[tb.icon]}</svg>
                 {tb.id === 'cart' && cartCount > 0 && (
                   <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-navy text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-white">{cartCount}</span>
                 )}

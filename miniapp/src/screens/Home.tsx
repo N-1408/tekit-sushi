@@ -9,7 +9,7 @@ const CAT_ICON: Record<string, string> = {
 }
 
 export default function Home() {
-  const { t, lang, products, favs, showToast } = useStore()
+  const { t, lang, products, favs, showToast, toggleFav } = useStore()
   const nav = useNavigate()
   const [q, setQ] = React.useState('')
   const hits = products.filter(p => p.hit)
@@ -67,7 +67,7 @@ export default function Home() {
                       <div className="relative">
                         <img src={pImg(p)} alt="" loading="lazy" decoding="async" className="w-full aspect-square object-cover bg-navy-soft" />
                         <button onClick={e => { e.stopPropagation(); toggleFav(p.id); haptic() }}
-                          className="absolute top-1.5 right-1.5 w-7 h-7 rounded-full bg-white/95 grid place-items-center shadow-sm active:scale-90 transition-transform">
+                          className="absolute top-1 right-1 z-10 w-8 h-8 rounded-full bg-white/95 grid place-items-center shadow-sm active:scale-90 transition-transform touch-manipulation">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill={on ? '#E23B52' : 'none'} stroke={on ? '#E23B52' : '#8A93B8'} strokeWidth="2"><path d="M12 21C7 16.6 3 13.4 3 9.3 3 6.4 5.2 4 8 4c1.6 0 3.1.8 4 2.1C12.9 4.8 14.4 4 16 4c2.8 0 5 2.4 5 5.3 0 4.1-4 7.3-9 11.7z" /></svg>
                         </button>
                       </div>

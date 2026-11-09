@@ -10,17 +10,24 @@ export function initTelegram() {
     TGA.setBackgroundColor?.('#F6F7FB')
     TGA.disableVerticalSwipes?.()
     TGA.requestFullscreen?.()
-    const applyInsets = (e?: any) => {
-      const cs = e?.contentSafeArea ?? ((TGA as any).contentSafeAreaInset || {})
+    const applyInsets = () => {
       const st = document.documentElement.style
+      const ios = TGA?.platform === 'ios' || /iPhone|iPad|iPod/i.test(navigator.userAgent || '')
+      // Telegram suzuvchi Close/Back tugmalari kontent ustida turadi (iOS ham, fullscreen ham):
+      // yuqoriga qo'shimcha bo'shlik ajratamiz
+      st.setProperty('--tg-extra', (TGA?.isFullscreen || ios) ? '44px' : '0px')
+      const cs = (TGA as any).contentSafeAreaInset || {}
       const top = Number(cs.top) || 0
       const bottom = Number(cs.bottom) || 0
-      if (top > 0) st.setProperty('--sat', `${top}px`)
-      if (bottom > 0) st.setProperty('--sab', `${bottom}px`)
+      if (top > 0) st.setProperty('--tg-csa-top', `${top}px`)
+      else st.removeProperty('--tg-csa-top')
+      if (bottom > 0) st.setProperty('--tg-csa-bottom', `${bottom}px`)
+      else st.removeProperty('--tg-csa-bottom')
     }
     try { TGA.onEvent?.('viewportChanged', applyInsets) } catch {}
     try { TGA.onEvent?.('safeAreaChanged', applyInsets) } catch {}
     try { TGA.onEvent?.('contentSafeAreaChanged', applyInsets) } catch {}
+    try { TGA.onEvent?.('fullscreenChanged', applyInsets) } catch {}
     applyInsets()
     setTimeout(applyInsets, 600)
     setTimeout(applyInsets, 1800)
