@@ -5,10 +5,18 @@ import { useStore } from '../../lib/store'
 import { tgUser, haptic, useNativeBack } from '../../lib/tg'
 import { authHeaders } from '../../lib/admin'
 
+export type AdminData = {
+  orders: any[]; stats: any; cats: any[]; items: any[]; promos: any[]
+}
+const EMPTY_DATA: AdminData = { orders: [], stats: null, cats: [], items: [], promos: [] }
+
 export type AdminCtx = {
   key: string; roleOk: boolean; uid?: number
   h: () => Record<string, string>
   ready: boolean
+  data: AdminData
+  update: (patch: Partial<AdminData>) => void
+  refresh: () => void
   refreshRole: () => void
 }
 const ACtx = React.createContext<AdminCtx>(null as any)
@@ -23,6 +31,9 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
   const [input, setInput] = React.useState('')
   const [err, setErr] = React.useState('')
   const { t } = useStore()
+  const [data, setData] = React.useState<AdminData | null>(() => {
+    try { const v = localStorage.getItem('tk-admin-data'); return v ? JSON.parse(v) : null } catch { return null }
+  })
   const roleOk = !!uid && role === 'admin'
 
   const verify = React.useCallback(async (k: string) => {
@@ -40,10 +51,38 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
     verify(key).then(ok => { if (!ok) { try { localStorage.removeItem('tk-admin') } catch {}; setKey('') } })
   }, [roleOk, key, verify])
 
+  const update = React.useCallback((patch: Partial<AdminData>) => {
+    setData(d => {
+      const n = { ...(d || EMPTY_DATA), ...patch }
+      try { localStorage.setItem('tk-admin-data', JSON.stringify(n)) } catch {}
+      return n
+    })
+  }, [])
+
+  const refresh = React.useCallback(async () => {
+    try {
+      const r = await fetch('/api/admin?action=bootstrap', { headers: authHeaders(key, role, uid) })
+      if (!r.ok) return
+      const j = await r.json()
+      if (j?.ok) {
+        const n: AdminData = { orders: j.orders || [], stats: j.stats || null, cats: j.cats || [], items: j.items || [], promos: j.promos || [] }
+        setData(n)
+        try { localStorage.setItem('tk-admin-data', JSON.stringify(n)) } catch {}
+      }
+    } catch {}
+  }, [key, role, uid])
+
+  React.useEffect(() => {
+    if (!(!!key || roleOk)) return
+    refresh()
+  }, [refresh])
+
   const ctx: AdminCtx = {
     key, roleOk, uid,
     h: () => authHeaders(key, role, uid),
     ready: !!key || roleOk,
+    data: data || EMPTY_DATA,
+    update, refresh,
     refreshRole: () => {},
   }
 
@@ -157,17 +196,7 @@ function AdminTabBar() {
   const loc = useLocation()
   const { t } = useStore()
   const a = useAdmin()
-  const [pending, setPending] = React.useState<number | null>(null)
-
-  React.useEffect(() => {
-    if (!a.ready) return
-    let live = true
-    const tick = () => fetch('/api/admin?action=stats&days=1', { headers: a.h() })
-      .then(r => r.ok ? r.json() : null).then(j => { if (live && j?.ok) setPending(j.pending ?? 0) }).catch(() => {})
-    tick()
-    const iv = setInterval(tick, 30000)
-    return () => { live = false; clearInterval(iv) }
-  }, [])
+  const pending = (a.data?.orders || []).filter((o: any) => o.status === 'new').length
 
   const tabs = [
     { id: 'orders', to: '/admin', label: t.aTabO, icon: 'orders' },

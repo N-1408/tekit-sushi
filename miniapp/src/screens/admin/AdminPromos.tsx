@@ -10,21 +10,10 @@ export default function AdminPromos() {
 function Body() {
   const { t, showToast } = useStore()
   const a = useAdmin()
-  const [promos, setPromos] = React.useState<any[]>([])
+  const promos: any[] = a.data?.promos || []
   const [code, setCode] = React.useState('')
   const [pct, setPct] = React.useState('')
   const [busy, setBusy] = React.useState(false)
-  const [loaded, setLoaded] = React.useState(false)
-
-  const load = React.useCallback(() => {
-    if (!a.ready) return
-    fetch('/api/admin?action=promos', { headers: a.h() })
-      .then(r => r.ok ? r.json() : null).then(j => {
-        if (j?.ok) { setPromos(j.promos || []); setLoaded(true) }
-        else if (r.status === 401) setLoaded(true)
-      }).catch(() => setLoaded(true))
-  }, [])
-  React.useEffect(() => { load() }, [load, a.ready])
 
   async function add() {
     if (busy || !code.trim()) return
@@ -35,21 +24,21 @@ function Body() {
         body: JSON.stringify({ action: 'promo_add', code, percent: Number(pct) }),
       })
       const j = await r.json().catch(() => null)
-      if (r.ok && j?.ok) { showToast(t.aSavedA); haptic('success'); setCode(''); setPct(''); load() }
+      if (r.ok && j?.ok) { showToast(t.aSavedA); haptic('success'); setCode(''); setPct(''); a.refresh() }
       else { showToast(j?.error || t.orderFail); haptic('error') }
     } catch { showToast(t.orderFail) }
     setBusy(false)
   }
 
   async function toggle(codeV: string) {
-    setPromos(ps => ps.map(p => p.code === codeV ? { ...p, active: !p.active } : p))
+    a.update({ promos: promos.map(p => p.code === codeV ? { ...p, active: !p.active } : p) })
     const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() }, body: JSON.stringify({ action: 'promo_toggle', code: codeV }) })
-    if (!r.ok) { load(); haptic('error') } else haptic()
+    if (!r.ok) { a.refresh(); haptic('error') } else haptic()
   }
 
   async function del(codeV: string) {
     const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() }, body: JSON.stringify({ action: 'promo_del', code: codeV }) })
-    if (r.ok) { setPromos(ps => ps.filter(p => p.code !== codeV)); haptic('medium') } else haptic('error')
+    if (r.ok) { a.update({ promos: promos.filter(p => p.code !== codeV) }); haptic('medium') } else haptic('error')
   }
 
   return (
@@ -65,7 +54,7 @@ function Body() {
         </div>
       </div>
       <div className="px-4 mt-3 space-y-2">
-        {!loaded ? [0, 1].map(i => <div key={i} className="h-[64px] rounded-[18px] bg-white border border-navy-line animate-pulse" />) :
+        {!a.ready && promos.length === 0 ? [0, 1].map(i => <div key={i} className="h-[64px] rounded-[18px] bg-white border border-navy-line animate-pulse" />) :
           promos.length === 0 ? (
             <div className="mt-6 text-center text-[14px] font-semibold text-[#8A93B8]">— {t.aNoPromos} —</div>
           ) : promos.map(p => (

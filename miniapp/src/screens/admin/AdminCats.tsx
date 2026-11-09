@@ -21,18 +21,13 @@ function Body() {
   const [f, setF] = React.useState<any>({ ...blank })
   const [busy, setBusy] = React.useState(false)
 
-  const load = React.useCallback(() => {
-    if (!a.ready) return
-    fetch('/api/admin?action=menu', { headers: a.h() })
-      .then(r => r.ok ? r.json() : null).then(j => {
-        if (!j?.ok) return
-        setCats(j.cats || [])
-        const m: Record<string, number> = {}
-        for (const it of j.items || []) m[it.cat] = (m[it.cat] || 0) + 1
-        setCounts(m)
-      }).catch(() => {})
-  }, [])
-  React.useEffect(() => { load() }, [load, a.ready])
+  React.useEffect(() => {
+    if (!a.data) return
+    setCats(a.data.cats || [])
+    const m: Record<string, number> = {}
+    for (const it of a.data.items || []) m[it.cat] = (m[it.cat] || 0) + 1
+    setCounts(m)
+  }, [a.data])
 
   const set = (k: string, v: any) => setF((s: any) => ({ ...s, [k]: v }))
   function openEdit(c: Cat) { setEdit(c); setIsNew(false); setF({ ...blank, ...c }) }
@@ -46,7 +41,7 @@ function Body() {
         body: JSON.stringify({ action: isNew ? 'cat_add' : 'cat_save', ...f }),
       })
       const j = await r.json().catch(() => null)
-      if (r.ok && j?.ok) { showToast(t.aSavedA); haptic('success'); setEdit(null); load() }
+      if (r.ok && j?.ok) { showToast(t.aSavedA); haptic('success'); setEdit(null); a.refresh() }
       else { showToast(j?.error || t.orderFail); haptic('error') }
     } catch { showToast(t.orderFail) }
     setBusy(false)
@@ -57,7 +52,7 @@ function Body() {
       method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() },
       body: JSON.stringify({ action: 'aksiya', mode: 'cat', slug: c.slug, sale_active: on, sale_percent: pct }),
     })
-    if (r.ok) { haptic('success'); load() } else { haptic('error') }
+    if (r.ok) { haptic('success'); a.refresh() } else { haptic('error') }
   }
 
   return (

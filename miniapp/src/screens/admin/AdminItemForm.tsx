@@ -34,18 +34,14 @@ function Body() {
   const [imgPreview, setImgPreview] = React.useState('')
 
   React.useEffect(() => {
-    if (!a.ready) return
-    fetch('/api/admin?action=menu', { headers: a.h() })
-      .then(r => r.ok ? r.json() : null).then(j => {
-        if (!j?.ok) return
-        setCats((j.cats || []).filter((c: Cat) => c.active))
-        if (id) {
-          const it: Item | undefined = (j.items || []).find((x: Item) => x.id === id)
-          if (it) setF({ ...blank, ...it, sale_price: it.sale_price || 0 })
-        }
-        setLoaded(true)
-      }).catch(() => setLoaded(true))
-  }, [id, a.ready])
+    if (!a.data) return
+    setCats((a.data.cats || []).filter((c: Cat) => c.active))
+    if (id) {
+      const it: Item | undefined = (a.data.items || []).find((x: Item) => x.id === id)
+      if (it) setF({ ...blank, ...it, sale_price: it.sale_price || 0 })
+      setLoaded(true)
+    }
+  }, [a.data, id])
 
   const set = (k: string, v: any) => setF((s: any) => ({ ...s, [k]: v }))
 
@@ -65,7 +61,7 @@ function Body() {
         body: JSON.stringify({ action: isNew ? 'menu_add' : 'menu_save', ...f }),
       })
       const j = await r.json().catch(() => null)
-      if (r.ok && j?.ok) { showToast(t.aSavedA); haptic('success'); nav(`/admin/menu/${f.cat}`, { replace: true }) }
+      if (r.ok && j?.ok) { a.refresh(); showToast(t.aSavedA); haptic('success'); nav(`/admin/menu/${f.cat}`, { replace: true }) }
       else { showToast(j?.error || t.orderFail); haptic('error') }
     } catch { showToast(t.orderFail) }
     setBusy(false)
@@ -76,7 +72,7 @@ function Body() {
     try {
       const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() }, body: JSON.stringify({ action: 'menu_del', id }) })
       const j = await r.json().catch(() => null)
-      if (r.ok && j?.ok) { showToast(t.aDeletedA); haptic('medium'); nav(`/admin/menu/${f.cat}`, { replace: true }) }
+      if (r.ok && j?.ok) { a.refresh(); showToast(t.aDeletedA); haptic('medium'); nav(`/admin/menu/${f.cat}`, { replace: true }) }
       else showToast(j?.error || t.orderFail)
     } catch { showToast(t.orderFail) }
     setBusy(false)

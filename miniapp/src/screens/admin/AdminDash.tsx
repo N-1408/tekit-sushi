@@ -12,20 +12,33 @@ export default function AdminDash() {
 function Body() {
   const { t, lang } = useStore()
   const a = useAdmin()
-  const [st, setSt] = React.useState<AdminStat | null>(null)
+  const [local, setLocal] = React.useState<AdminStat | null>(null)
   const [range, setRange] = React.useState<1 | 7 | 30>(7)
   const [err, setErr] = React.useState('')
 
   React.useEffect(() => {
+    if (range === 7) { setLocal(null); setErr(''); return }
     if (!a.ready) return
     let dead = false
-    setSt(null)
+    setLocal(null)
     fetch(`/api/admin?action=stats&days=${range}`, { headers: a.h() })
       .then(r => r.ok ? r.json() : null).then(j => {
         if (dead) return
-        if (j?.ok) setSt(j); else setErr('x')
+        if (j?.ok) setLocal(j); else setErr('x')
       }).catch(() => { if (!dead) setErr('x') })
     return () => { dead = true }
+  }, [range, a.ready])
+
+  const st: AdminStat | null = range === 7 ? (a.data?.stats || null) : local
+
+  React.useEffect(() => {
+    if (range !== 7 || !a.ready) return
+    const aRef = a
+    let live = true
+    const tick = () => fetch('/api/admin?action=stats&days=7', { headers: aRef.h() })
+      .then(r => r.ok ? r.json() : null).then(j => { if (live && j?.ok) a.update({ stats: j }) }).catch(() => {})
+    const iv = setInterval(tick, 20000)
+    return () => { live = false; clearInterval(iv) }
   }, [range, a.ready])
 
   const byS: Record<string, number> = {}
@@ -84,12 +97,12 @@ function Body() {
             ))}
           </div>
 
-          {st.topItems.length > 0 && (
+          {(st?.topItems || []).length > 0 && (
             <div className="px-4 mt-3">
               <div className="bg-white border border-navy-line rounded-[20px] p-4">
                 <div className="text-[13.5px] font-extrabold">{t.aTopItems}</div>
                 <div className="mt-2.5 space-y-2.5">
-                  {st.topItems.map((it, i) => (
+                  {(st?.topItems || []).map((it: any, i: number) => (
                     <div key={it.id || i} className="flex items-center gap-3">
                       <div className={`w-6 h-6 rounded-lg grid place-items-center text-[11px] font-extrabold ${i === 0 ? 'bg-navy text-white' : 'bg-navy-soft text-navy-ink'}`}>{i + 1}</div>
                       <div className="flex-1 min-w-0 text-[13px] font-bold truncate">{it.title || '—'}</div>

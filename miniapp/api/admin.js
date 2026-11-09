@@ -70,6 +70,53 @@ export default async (req, res) => {
     if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
     const action = str(req.query.action || 'orders', 20);
     try {
+      if (action === 'bootstrap') {
+        const [o, dayRows, statusRows, today, pending, topItems, menuCount, catsR, itemsR, promosR] = await Promise.all([
+          P.query(`SELECT id, created_at, name, phone, address, branch, delivery_type, payment, total, status, status_note,
+                          items, note, delivery_time, promo_code, discount
+                   FROM orders ORDER BY id DESC LIMIT 300`),
+          P.query(`SELECT (created_at AT TIME ZONE 'Asia/Tashkent')::date AS d,
+                          count(*)::int AS n,
+                          coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
+                   FROM orders
+                   WHERE created_at >= (now() - ($1::int * interval '1 day'))
+                   GROUP BY 1 ORDER BY 1`, [7]),
+          P.query(`SELECT status, count(*)::int AS n
+                   FROM orders
+                   WHERE (created_at AT TIME ZONE 'Asia/Tashkent')::date = (now() AT TIME ZONE 'Asia/Tashkent')::date
+                   GROUP BY 1`),
+          P.query(`SELECT count(*)::int AS n,
+                          coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue
+                   FROM orders
+                   WHERE (created_at AT TIME ZONE 'Asia/Tashkent')::date = (now() AT TIME ZONE 'Asia/Tashkent')::date`),
+          P.query(`SELECT count(*)::int AS n FROM orders WHERE status = 'new'`),
+          P.query(`SELECT item->>'id' AS id, item->>'title' AS title,
+                          sum((item->>'q')::int)::int AS qty,
+                          sum((item->>'q')::int * (item->>'price')::int)::bigint AS revenue
+                   FROM orders, json_array_elements(items::json) AS item
+                   WHERE created_at >= (now() - ($1::int * interval '1 day')) AND status <> 'cancelled'
+                   GROUP BY 1, 2 ORDER BY qty DESC LIMIT 5`, [7]),
+          P.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true`),
+          P.query(`SELECT * FROM menu_categories ORDER BY sort`),
+          P.query(`SELECT * FROM menu_items ORDER BY sort, cat`),
+          P.query(`SELECT code, percent, active FROM promos ORDER BY code`),
+        ]);
+        return res.status(200).json({
+          ok: true,
+          orders: o.rows,
+          stats: {
+            today: { orders: today.rows[0]?.n || 0, revenue: Number(today.rows[0]?.revenue || 0) },
+            pending: pending.rows[0]?.n || 0,
+            byStatus: statusRows.rows,
+            days: dayRows.rows.map(r => ({ d: r.d, n: r.n, revenue: Number(r.revenue) })),
+            topItems: topItems.rows.map(r => ({ id: r.id, title: r.title, qty: r.qty, revenue: Number(r.revenue) })),
+            menuCount: menuCount.rows[0]?.n || 0,
+          },
+          cats: catsR.rows,
+          items: itemsR.rows,
+          promos: promosR.rows,
+        });
+      }
       if (action === 'orders') {
         const r = await P.query(
           `SELECT id, created_at, name, phone, address, branch, delivery_type, payment, total, status, status_note,

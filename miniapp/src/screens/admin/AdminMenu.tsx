@@ -17,22 +17,8 @@ function Body() {
   const { t, lang } = useStore()
   const a = useAdmin()
   const { cat: catParam } = useParams()
-  const [items, setItems] = React.useState<Item[]>([])
-  const [cats, setCats] = React.useState<Cat[]>([])
-  const [q, setQ] = React.useState('')
-  const [err, setErr] = React.useState('')
-  const [loaded, setLoaded] = React.useState(false)
-
-  const load = React.useCallback(() => {
-    if (!a.ready) return
-    fetch('/api/admin?action=menu', { headers: a.h() })
-      .then(r => r.ok ? r.json() : null).then(j => {
-        if (j?.ok) { setItems(j.items || []); setCats(j.cats || []); setErr('') }
-        else if (r.status === 401) setErr('auth'); else setErr('x')
-        setLoaded(true)
-      }).catch(() => { setErr('x'); setLoaded(true) })
-  }, [])
-  React.useEffect(() => { load() }, [load, a.ready])
+  const items: Item[] = a.data?.items || []
+  const cats: Cat[] = a.data?.cats || []
 
   const catsWith = cats.filter(c => c.active || (items.filter(i => i.cat === c.slug).length > 0))
   const cur = catParam && cats.some(c => c.slug === catParam) ? catParam : catsWith[0]?.slug
@@ -44,9 +30,9 @@ function Body() {
   const countIn = (slug: string) => items.filter(i => i.cat === slug).length
 
   async function toggleItem(it: Item) {
-    setItems(ls => ls.map(x => x.id === it.id ? { ...x, active: !x.active } : x))
+    a.update({ items: items.map(x => x.id === it.id ? { ...x, active: !x.active } : x) })
     const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() }, body: JSON.stringify({ action: 'menu_toggle', id: it.id }) })
-    if (!r.ok) { load(); haptic('error') } else haptic()
+    if (!r.ok) { a.refresh(); haptic('error') } else haptic()
   }
 
   return (
@@ -73,8 +59,7 @@ function Body() {
         </div>
       )}
 
-      {err ? <div className="px-4 mt-8 text-center text-[13.5px] font-bold text-red-500">{t.wrongPass}</div> :
-        !loaded ? (
+      {!a.ready && items.length === 0 ? (
           <div className="px-4 mt-3 space-y-2">{[0, 1, 2, 3].map(i => <div key={i} className="h-[68px] rounded-[18px] bg-white border border-navy-line animate-pulse" />)}</div>
         ) : shown.length === 0 ? (
           <div className="px-4 mt-10 text-center text-[14px] font-semibold text-[#8A93B8]">— {t.aNoItems} —</div>

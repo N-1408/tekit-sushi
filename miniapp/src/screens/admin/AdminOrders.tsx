@@ -27,7 +27,6 @@ export default function AdminOrders() {
 function Body() {
   const { t, showToast } = useStore()
   const a = useAdmin()
-  const [orders, setOrders] = React.useState<O[]>([])
   const [err, setErr] = React.useState('')
   const [filter, setFilter] = React.useState<string>('new')
   const [q, setQ] = React.useState('')
@@ -36,26 +35,30 @@ function Body() {
   const [cancelO, setCancelO] = React.useState<O | null>(null)
   const [cancelNote, setCancelNote] = React.useState('')
   const [openId, setOpenId] = React.useState<number | null>(null)
-  const maxIdRef = React.useRef(0)
-  const firstRef = React.useRef(true)
+  const cached = a.data?.orders || []
+  const maxIdRef = React.useRef(Math.max(0, ...cached.map((o: O) => Number(o.id) || 0)))
+  const firstRef = React.useRef(cached.length === 0)
+  const orders: O[] = a.data?.orders || []
 
   const parseItems = (raw: any): any[] => {
     if (Array.isArray(raw)) return raw
     try { const v = JSON.parse(String(raw || '[]')); return Array.isArray(v) ? v : [] } catch { return [] }
   }
 
+  const aRef = React.useRef(a); aRef.current = a
   const load = React.useCallback(async () => {
-    if (!a.ready) return
+    const A = aRef.current
+    if (!A.ready) return
     const myMax = maxIdRef.current
     try {
-      const r = await fetch('/api/admin?action=orders', { headers: a.h() })
+      const r = await fetch('/api/admin?action=orders', { headers: A.h() })
       if (r.status === 401) { setErr('auth'); return }
       const j = await r.json()
       if (!j?.ok) { setErr('x'); return }
       const list: O[] = j.orders || []
       setErr('')
       const top = list.reduce((m, o) => Math.max(m, Number(o.id) || 0), 0)
-      setOrders(list)
+      A.update({ orders: list })
       if (top > myMax) {
         if (!firstRef.current) {
           beepNewOrder()
@@ -84,7 +87,7 @@ function Body() {
       })
       const j = await r.json().catch(() => null)
       if (r.ok && j?.ok) {
-        setOrders(os => os.map(o => o.id === id ? { ...o, status, status_note: note || o.status_note, status_at: new Date().toISOString() } : o))
+        a.update({ orders: (a.data?.orders || []).map(o => o.id === id ? { ...o, status, status_note: note || o.status_note, status_at: new Date().toISOString() } : o) })
         haptic('success')
       } else {
         showToast(j?.error || t.orderFail); haptic('error')
