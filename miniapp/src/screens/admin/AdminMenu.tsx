@@ -17,6 +17,7 @@ function Body() {
   const { t, lang } = useStore()
   const a = useAdmin()
   const { cat: catParam } = useParams()
+  const [q, setQ] = React.useState('')
   const items: Item[] = a.data?.items || []
   const cats: Cat[] = a.data?.cats || []
 
