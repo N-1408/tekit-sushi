@@ -9,8 +9,9 @@ export type Product = {
   t_uz: string; t_ru: string; t_en: string
   d_uz: string; d_ru: string; d_en: string
   pcs: number; weight?: string; hit?: boolean
+  old_price?: number | null; sale_percent?: number; sale_active?: boolean
 }
-export const PRODUCTS = menu as Product[]
+export const PRODUCTS: Product[] = menu as Product[]
 
 export const CATS = [
   { id: 'hit', uz: 'Xitlar', ru: 'Хиты', en: 'Best sellers', emoji: '🔥' },
@@ -30,7 +31,10 @@ export const CATS = [
 export const CDN = 'https://cdn.delever.uz/delever/'
 export const pDesc = (p: Product | CartLine, l: Lang) => (p as any)['d_' + l] || (p as any).d_uz
 export const pName = (p: Product | CartLine, l: Lang) => (p as any)['t_' + l] || (p as any).t_uz
-export const pImg = (p: Product | CartLine) => CDN + (p as any).img
+export const pImg = (p: Product | CartLine) => {
+  const im = String((p as any).img || '')
+  return /^https?:/i.test(im) ? im : CDN + im
+}
 
 export type CartLine = Product & { q: number }
 
@@ -65,6 +69,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<string | null>(null)
   const [myOrders, setMyOrders] = useState<MyOrder[]>(() => load('tk-orders', [] as MyOrder[]))
   const [sheetP, setSheetP] = useState<Product | null>(null)
+  const [products, setProducts] = useState<Product[]>(() => load<Product[]>('tk-menu-v2', PRODUCTS))
   const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => { localStorage.setItem('tk-lang', JSON.stringify(lang)) }, [lang])
@@ -85,6 +90,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const saveMyOrder = useCallback((o: MyOrder) => setMyOrders(a => [o, ...a].slice(0, 30)), [])
   const openP = useCallback((p: Product) => setSheetP(p), [])
   const closeP = useCallback(() => setSheetP(null), [])
+
+  useEffect(() => {
+    let dead = false
+    fetch('/api/menu').then(r => r.ok ? r.json() : null).then(j => {
+      if (dead || !j?.ok || !Array.isArray(j.items) || !j.items.length) return
+      setProducts(j.items)
+      try { localStorage.setItem('tk-menu-v2', JSON.stringify(j.items)) } catch {}
+    }).catch(() => {})
+    return () => { dead = true }
+  }, [])
 
   const initTg = useCallback(() => {
     const u = tgUser()
@@ -107,12 +122,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<Store>(() => {
     const lines: CartLine[] = Object.entries(cartMap)
-      .map(([id, q]) => { const p = PRODUCTS.find(x => x.id === id); return p ? { ...p, q } : null })
+      .map(([id, q]) => { const p = products.find(x => x.id === id); return p ? { ...p, q } : null })
       .filter(Boolean) as CartLine[]
     const count = lines.reduce((s, l) => s + l.q, 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products: PRODUCTS, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, sheetP, openP, closeP, role }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, openP, closeP])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, sheetP, openP, closeP, role }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, products, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, openP, closeP])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

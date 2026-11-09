@@ -117,7 +117,9 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/95 grid place-items-center shadow-sm active:scale-90 transition-transform">
           <svg width="16" height="16" viewBox="0 0 24 24" fill={fav ? '#E23B52' : 'none'} stroke={fav ? '#E23B52' : '#8A93B8'} strokeWidth="2"><path d="M12 21C7 16.6 3 13.4 3 9.3 3 6.4 5.2 4 8 4c1.6 0 3.1.8 4 2.1C12.9 4.8 14.4 4 16 4c2.8 0 5 2.4 5 5.3 0 4.1-4 7.3-9 11.7z" /></svg>
         </button>
-        {p.hit && <span className="absolute top-2 left-2 bg-navy text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg">{t.hit}</span>}
+        {p.sale_active && (p.old_price ?? 0) > p.price ? (
+          <span className="absolute top-2 left-2 bg-red-600 text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg shadow">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
+        ) : p.hit ? <span className="absolute top-2 left-2 bg-navy text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg">{t.hit}</span> : null}
         <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
           className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-navy text-white grid place-items-center shadow-[0_6px_14px_-4px_rgba(10,33,148,.55)] active:scale-85 transition-transform">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></button>
@@ -125,7 +127,10 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
       <div className="p-2.5">
         <div className="text-[13.5px] font-bold leading-snug line-clamp-2 min-h-[36px]">{pName(p, lang)}</div>
         <div className="text-[11px] font-semibold text-[#8A93B8] mt-0.5 min-h-[15px]">{p.pcs ? `${p.pcs} ${t.pcs}` : ''}</div>
-        <div className="mt-1.5 text-[15px] font-extrabold tracking-tight">{fmt(p.price)} <span className="text-[11px] font-bold text-[#8A93B8]">UZS</span></div>
+        <div className="mt-1.5 text-[15px] font-extrabold tracking-tight flex items-baseline gap-1.5">
+          {fmt(p.price)} <span className="text-[11px] font-bold text-[#8A93B8]">UZS</span>
+          {(p.old_price ?? 0) > p.price && <span className="text-[11px] font-bold text-[#8A93B8] line-through">{fmt(p.old_price)}</span>}
+        </div>
       </div>
     </article>
   )
@@ -231,7 +236,10 @@ export function ProductSheet() {
         </div>
         <div className="mt-3 flex items-start justify-between gap-3">
           <div className="text-[19px] font-extrabold leading-tight flex-1">{pName(p, lang)}</div>
-          <div className="text-[18px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[12px] text-[#8A93B8]"> UZS</span></div>
+          <div className="text-right">
+            {(p.old_price ?? 0) > p.price && <div className="text-[12px] font-bold text-[#8A93B8] line-through">{fmt(p.old_price)} UZS</div>}
+            <div className="text-[18px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[12px] text-[#8A93B8]"> UZS</span></div>
+          </div>
         </div>
         {p.weight ? (
           <div className="mt-2 flex items-center gap-1.5 bg-white border border-navy-line rounded-xl px-3 py-2 w-fit">

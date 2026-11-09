@@ -13,6 +13,7 @@ export default function Home() {
   const nav = useNavigate()
   const [q, setQ] = React.useState('')
   const hits = products.filter(p => p.hit)
+  const sales = products.filter(p => (p as any).sale_active && ((p as any).old_price ?? 0) > p.price)
   const fav = products.filter(p => favs.includes(p.id))
   const found = q.trim() ? products.filter(p => pName(p, lang).toLowerCase().includes(q.trim().toLowerCase())) : null
 
@@ -44,6 +45,19 @@ export default function Home() {
               </button>
             ))}
           </div>
+
+          {sales.length > 0 && (
+            <section className="px-4 mt-4">
+              <div className="flex items-center gap-2 mb-2.5 px-1">
+                <span className="text-[16px]">🔥</span>
+                <h2 className="text-[15.5px] font-extrabold">{t.aSaleHome}</h2>
+                <span className="text-[10.5px] font-extrabold bg-red-600 text-white rounded-lg px-2 py-0.5">{sales.length}</span>
+              </div>
+              <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
+                {sales.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
+              </div>
+            </section>
+          )}
 
           <section className="px-4 mt-4">
             <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-[0_12px_28px_-12px_rgba(10,33,148,.5)]">

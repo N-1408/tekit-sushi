@@ -8,6 +8,12 @@ import Checkout from './screens/Checkout'
 import Orders from './screens/Orders'
 import Profile from './screens/Profile'
 import Admin from './screens/Admin'
+import AdminDash from './screens/admin/AdminDash'
+import AdminOrders from './screens/admin/AdminOrders'
+import AdminMenu from './screens/admin/AdminMenu'
+import AdminItemForm from './screens/admin/AdminItemForm'
+import AdminCats from './screens/admin/AdminCats'
+import AdminPromos from './screens/admin/AdminPromos'
 import { TabBar, ProductSheet } from './components/ui'
 import { useStore } from './lib/store'
 
@@ -26,6 +32,14 @@ export default function App() {
         <Route path="/orders" element={<Orders />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/admin" element={<Admin />} />
+        <Route path="/admin/dashboard" element={<AdminDash />} />
+        <Route path="/admin/orders" element={<AdminOrders />} />
+        <Route path="/admin/menu" element={<AdminMenu />} />
+        <Route path="/admin/menu/new" element={<AdminItemForm />} />
+        <Route path="/admin/menu/edit/:id" element={<AdminItemForm />} />
+        <Route path="/admin/menu/:cat" element={<AdminMenu />} />
+        <Route path="/admin/cats" element={<AdminCats />} />
+        <Route path="/admin/promos" element={<AdminPromos />} />
       </Routes>
       <TabBar />
       <ProductSheet />
