@@ -3,14 +3,13 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore, pImg } from '../../lib/store'
 import { fmt } from '../../lib/money'
 import { AdminTopBar, Btn, Toggle, useAdmin } from './common'
-import { AdminGate } from './common'
 import { haptic } from '../../lib/tg'
 
 type Item = any
 type Cat = any
 
 export default function AdminMenu() {
-  return <AdminGate><Body /></AdminGate>
+  return <Body />
 }
 
 function Body() {

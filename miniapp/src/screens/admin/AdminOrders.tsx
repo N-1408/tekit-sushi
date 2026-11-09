@@ -2,7 +2,6 @@ import React from 'react'
 import { useStore } from '../../lib/store'
 import { fmt } from '../../lib/money'
 import { AdminTopBar, Btn, Modal, useAdmin } from './common'
-import { AdminGate } from './common'
 import { fmtDT, beepNewOrder } from '../../lib/admin'
 import { haptic } from '../../lib/tg'
 
@@ -22,7 +21,7 @@ const NEXT: Record<string, string[]> = {
 type O = any
 
 export default function AdminOrders() {
-  return <AdminGate><Body /></AdminGate>
+  return <Body />
 }
 
 function Body() {
@@ -107,7 +106,7 @@ function Body() {
 
   return (
     <div className="pb-28">
-      <AdminTopBar title={t.aOrdersM} />
+      <AdminTopBar title={t.aTabO} />
       <div className="px-4 mt-3">
         <input value={q} onChange={e => setQ(e.target.value)} placeholder={t.aSearchO}
           className="w-full bg-white border border-navy-line rounded-2xl py-2.5 px-4 text-[13.5px] font-medium outline-none focus:border-navy placeholder:text-[#A2A9C6]" />

@@ -3,7 +3,6 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../../lib/store'
 import { fmt } from '../../lib/money'
 import { AdminTopBar, Btn, Field, Toggle, inputCls, Modal, useAdmin } from './common'
-import { AdminGate } from './common'
 import { pImg } from '../../lib/store'
 import { haptic } from '../../lib/tg'
 
@@ -18,7 +17,7 @@ const blank = {
 }
 
 export default function AdminItemForm() {
-  return <AdminGate><Body /></AdminGate>
+  return <Body />
 }
 
 function Body() {
@@ -86,7 +85,7 @@ function Body() {
 
   return (
     <div className="pb-32">
-      <AdminTopBar title={isNew ? t.aAddItem : t.aEditItem} />
+      <AdminTopBar title={isNew ? t.aAddItem : t.aEditItem} back />
       <div className="px-4 mt-4 space-y-3.5">
         <div className="bg-white border border-navy-line rounded-[20px] p-4 space-y-3">
           <div className="flex gap-3">

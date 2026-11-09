@@ -6,7 +6,7 @@ import { AdminGate, useAdmin } from './common'
 import type { AdminStat } from '../../lib/admin'
 
 export default function AdminDash() {
-  return <AdminGate><Body /></AdminGate>
+  return <Body />
 }
 
 function Body() {
@@ -36,7 +36,7 @@ function Body() {
 
   return (
     <div className="pb-28">
-      <AdminTopBar title={t.aDash} />
+      <AdminTopBar title={t.aTabD} />
       <div className="px-4 mt-4 flex gap-2">
         {([1, 7, 30] as const).map(r => (
           <button key={r} onClick={() => setRange(r)}

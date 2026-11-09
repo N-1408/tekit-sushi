@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { useStore } from '../../lib/store'
 import { tgUser, haptic, useNativeBack } from '../../lib/tg'
@@ -16,6 +17,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
   const { role, showToast } = useStore()
   const uid = tgUser()?.id
   const [key, setKey] = React.useState(() => { try { return localStorage.getItem('tk-admin') || '' } catch { return '' } })
+  const [wasOk] = React.useState(() => { try { return localStorage.getItem('tk-admin-ok') === '1' } catch { return false } })
   const [input, setInput] = React.useState('')
   const [err, setErr] = React.useState('')
   const { t } = useStore()
@@ -25,13 +27,14 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
     if (!k) return false
     try {
       const r = await fetch('/api/admin?action=promos', { headers: { 'X-Admin-Key': k } })
-      if (r.ok) { try { localStorage.setItem('tk-admin', k) } catch {}; return true }
+      if (r.ok) { try { localStorage.setItem('tk-admin', k); localStorage.setItem('tk-admin-ok', '1') } catch {}; return true }
       return false
     } catch { return false }
   }, [])
 
   React.useEffect(() => {
-    if (roleOk || !key) { setErr(''); return }
+    if (roleOk) { try { localStorage.setItem('tk-admin-ok', '1') } catch {} ; setErr(''); return }
+    if (!key) { setErr(''); return }
     verify(key).then(ok => { if (!ok) { try { localStorage.removeItem('tk-admin') } catch {}; setKey('') } })
   }, [roleOk, key, verify])
 
@@ -41,7 +44,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
     refreshRole: () => {},
   }
 
-  if (!roleOk && !key) {
+  if (!roleOk && !key && !wasOk) {
     return (
       <div className="pb-28">
         <div className="px-4 mt-8">
@@ -61,16 +64,12 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
   return <ACtx.Provider value={ctx}>{children}</ACtx.Provider>
 }
 
-export function AdminTopBar({ title, right }: { title: string; right?: React.ReactNode }) {
-  const { t } = useStore()
-  useNativeBack(true)
+export function AdminTopBar({ title, right, back }: { title: string; right?: React.ReactNode; back?: boolean }) {
+  useNativeBack(!!back)
   return (
     <header className="sticky top-0 z-30 bg-paper border-b border-navy-line"
       style={{ paddingTop: 'calc(10px + var(--sat))' }}>
       <div className="flex items-center gap-2.5 px-4 pb-2.5">
-        <button onClick={() => history.back()} className="press w-9 h-9 rounded-full bg-white border border-navy-line grid place-items-center text-navy active:scale-90 transition-transform">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
-        </button>
         <div className="text-[16.5px] font-extrabold flex-1 truncate">{title}</div>
         {right}
       </div>
@@ -118,7 +117,9 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
   return createPortal(
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-navy-deep/45 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-32px)] max-w-[420px] bg-paper rounded-[24px] p-5 shadow-2xl anim-pop">
+      <div className="anim-sheet absolute inset-x-0 bottom-0 bg-paper rounded-t-[26px] px-5 pt-3 shadow-[0_-18px_40px_-20px_rgba(10,33,148,.35)]"
+        style={{ paddingBottom: 'calc(20px + var(--sab))' }}>
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[#D8DCEA]" />
         <div className="text-[17px] font-extrabold">{title}</div>
         <div className="mt-3">{children}</div>
       </div>
@@ -132,5 +133,69 @@ export function StatTile({ label, value, accent, sub }: { label: string; value: 
       <div className="mt-1.5 text-[21px] font-extrabold tracking-tight leading-none">{value}</div>
       {sub && <div className={`mt-1 text-[11.5px] font-semibold ${accent ? 'text-white/75' : 'text-[#8A93B8]'}`}>{sub}</div>}
     </div>
+  )
+}
+
+
+const TAB_ICON: Record<string, JSX.Element> = {
+  orders: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" /><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M8 11h8M8 15h5" /></svg>,
+  menu: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></svg>,
+  promos: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20.6 9.3 12 2 3.4 9.3a2 2 0 0 0-.7 1.5V19a2 2 0 0 0 2 2h14.6a2 2 0 0 0 2-2v-8.2a2 2 0 0 0-.7-1.5z" /><path d="M12 2v19" /><path d="M2.7 10h18.6" /></svg>,
+  dash: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M22 20H2" /></svg>,
+}
+
+export function AdminShell({ children }: { children: React.ReactNode }) {
+  return (
+    <AdminGate>
+      {children}
+      <AdminTabBar />
+    </AdminGate>
+  )
+}
+
+function AdminTabBar() {
+  const nav = useNavigate()
+  const loc = useLocation()
+  const { t } = useStore()
+  const a = useAdmin()
+  const [pending, setPending] = React.useState<number | null>(null)
+
+  React.useEffect(() => {
+    let live = true
+    const tick = () => fetch('/api/admin?action=stats&days=1', { headers: a.h() })
+      .then(r => r.ok ? r.json() : null).then(j => { if (live && j?.ok) setPending(j.pending ?? 0) }).catch(() => {})
+    tick()
+    const iv = setInterval(tick, 30000)
+    return () => { live = false; clearInterval(iv) }
+  }, [])
+
+  const tabs = [
+    { id: 'orders', to: '/admin', label: t.aTabO, icon: 'orders' },
+    { id: 'menu', to: '/admin/menu', label: t.aTabM, icon: 'menu' },
+    { id: 'promos', to: '/admin/promos', label: t.aTabP, icon: 'promos' },
+    { id: 'dash', to: '/admin/dash', label: t.aTabD, icon: 'dash' },
+  ]
+  const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
+  return (
+    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line"
+      style={{ paddingBottom: 'calc(8px + var(--sab))' }}>
+      <div className="flex">
+        {tabs.map(tb => {
+          const act = on(tb.to)
+          return (
+            <button key={tb.id} onClick={() => { if (!act) { haptic(); nav(tb.to) } }}
+              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${act ? 'text-navy' : 'text-[#A2A9C6]'}`}>
+              <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${act ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
+                {TAB_ICON[tb.id]}
+                {tb.id === 'orders' && !!pending && (
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-red-600 text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-white">{pending}</span>
+                )}
+              </span>
+              {tb.label}
+            </button>
+          )
+        })}
+      </div>
+    </nav>
   )
 }

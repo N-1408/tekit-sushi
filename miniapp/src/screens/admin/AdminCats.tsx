@@ -1,7 +1,6 @@
 import React from 'react'
 import { useStore } from '../../lib/store'
 import { AdminTopBar, Btn, Field, Toggle, inputCls, Modal, useAdmin } from './common'
-import { AdminGate } from './common'
 import { haptic } from '../../lib/tg'
 
 type Cat = any
@@ -9,7 +8,7 @@ type Cat = any
 const blank = { slug: '', emoji: '🍽', title_uz: '', title_ru: '', title_en: '', active: true, sale_active: false, sale_percent: 0 }
 
 export default function AdminCats() {
-  return <AdminGate><Body /></AdminGate>
+  return <Body />
 }
 
 function Body() {
@@ -62,7 +61,7 @@ function Body() {
 
   return (
     <div className="pb-28">
-      <AdminTopBar title={t.aCatsM} right={
+      <AdminTopBar title={t.aCatsM} back right={
         <button onClick={openNew} className="press h-9 rounded-full bg-navy text-white px-3.5 text-[12.5px] font-extrabold grid place-items-center active:scale-95 transition-transform">+ {t.aAddCat}</button>
       } />
       <div className="px-4 mt-3 space-y-2">

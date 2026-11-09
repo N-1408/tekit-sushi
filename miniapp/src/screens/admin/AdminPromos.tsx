@@ -1,11 +1,10 @@
 import React from 'react'
 import { useStore } from '../../lib/store'
 import { AdminTopBar, Btn, Field, Toggle, inputCls, useAdmin } from './common'
-import { AdminGate } from './common'
 import { haptic } from '../../lib/tg'
 
 export default function AdminPromos() {
-  return <AdminGate><Body /></AdminGate>
+  return <Body />
 }
 
 function Body() {
@@ -54,7 +53,7 @@ function Body() {
 
   return (
     <div className="pb-28">
-      <AdminTopBar title={t.aPromosM} />
+      <AdminTopBar title={t.aTabP} />
       <div className="px-4 mt-4">
         <div className="bg-white border border-navy-line rounded-[20px] p-4">
           <div className="grid grid-cols-[1fr_88px] gap-2.5">

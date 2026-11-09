@@ -42,7 +42,7 @@ export const T = {
     aWeightF: 'Vazn', aPcsF: 'Dona', aImageF: 'Rasm havolasi', aCategoryF: 'Kategoriya', aEmojiF: 'Emoji',
     aSaleA: 'Aksiya', aSaleHint: 'Narx ustidan chegirma', aSalePct: 'Chegirma foizi', aSaleFixed: 'Yoki yangi narx', aSaleHintAll: 'Butun kategoriyaga ta\u02bcssir qiladi',
     aCatSale: 'Kategoriya aksiyasi', aAppliedAll: 'Barcha mahsulotga qo\u02bbllanadi', aCatItems: 'mahsulot', aEditCat: 'Kategoriyani tahrirlash',
-    aSaleHome: 'Aksiya',
+    aSaleHome: 'Aksiya', aTabO: 'Buyurtma', aTabM: 'Menyu', aTabP: 'Promokod', aTabD: 'Tahlil',
     aNewOrderA: 'Yangi buyurtma!', aSavedA: 'Saqlandi', aDeletedA: 'O\u02bbchirildi', aCloseX: 'Bekor', aCopy: 'Nusxa olish',
   },
   ru: {
@@ -85,7 +85,7 @@ export const T = {
     aWeightF: 'Вес', aPcsF: 'Шт', aImageF: 'Ссылка на фото', aCategoryF: 'Категория', aEmojiF: 'Emoji',
     aSaleA: 'Акция', aSaleHint: 'Скидка на цену', aSalePct: 'Процент скидки', aSaleFixed: 'Или новая цена', aSaleHintAll: 'Влияет на всю категорию',
     aCatSale: 'Акция категории', aAppliedAll: 'Применяется ко всем блюдам', aCatItems: 'блюд', aEditCat: 'Редактировать категорию',
-    aSaleHome: 'Акции',
+    aSaleHome: 'Акции', aTabO: 'Заказы', aTabM: 'Меню', aTabP: 'Промокоды', aTabD: 'Аналитика',
     aNewOrderA: 'Новый заказ!', aSavedA: 'Сохранено', aDeletedA: 'Удалено', aCloseX: 'Отмена', aCopy: 'Копировать',
   },
   en: {
@@ -128,7 +128,7 @@ export const T = {
     aWeightF: 'Weight', aPcsF: 'Pieces', aImageF: 'Image URL', aCategoryF: 'Category', aEmojiF: 'Emoji',
     aSaleA: 'Promo', aSaleHint: 'Discount on price', aSalePct: 'Discount %', aSaleFixed: 'Or new price', aSaleHintAll: 'Affects the whole category',
     aCatSale: 'Category promo', aAppliedAll: 'Applied to all items', aCatItems: 'items', aEditCat: 'Edit category',
-    aSaleHome: 'Promos',
+    aSaleHome: 'Promos', aTabO: 'Orders', aTabM: 'Menu', aTabP: 'Promos', aTabD: 'Analytics',
     aNewOrderA: 'New order!', aSavedA: 'Saved', aDeletedA: 'Deleted', aCloseX: 'Cancel', aCopy: 'Copy',
   },
 } as const
