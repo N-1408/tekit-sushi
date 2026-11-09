@@ -22,6 +22,7 @@ function Body() {
   const [busy, setBusy] = React.useState(false)
 
   const load = React.useCallback(() => {
+    if (!a.ready) return
     fetch('/api/admin?action=menu', { headers: a.h() })
       .then(r => r.ok ? r.json() : null).then(j => {
         if (!j?.ok) return
@@ -31,7 +32,7 @@ function Body() {
         setCounts(m)
       }).catch(() => {})
   }, [])
-  React.useEffect(() => { load() }, [load])
+  React.useEffect(() => { load() }, [load, a.ready])
 
   const set = (k: string, v: any) => setF((s: any) => ({ ...s, [k]: v }))
   function openEdit(c: Cat) { setEdit(c); setIsNew(false); setF({ ...blank, ...c }) }

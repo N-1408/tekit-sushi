@@ -17,13 +17,14 @@ function Body() {
   const [loaded, setLoaded] = React.useState(false)
 
   const load = React.useCallback(() => {
+    if (!a.ready) return
     fetch('/api/admin?action=promos', { headers: a.h() })
       .then(r => r.ok ? r.json() : null).then(j => {
         if (j?.ok) { setPromos(j.promos || []); setLoaded(true) }
         else if (r.status === 401) setLoaded(true)
       }).catch(() => setLoaded(true))
   }, [])
-  React.useEffect(() => { load() }, [load])
+  React.useEffect(() => { load() }, [load, a.ready])
 
   async function add() {
     if (busy || !code.trim()) return

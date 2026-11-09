@@ -17,6 +17,7 @@ function Body() {
   const [err, setErr] = React.useState('')
 
   React.useEffect(() => {
+    if (!a.ready) return
     let dead = false
     setSt(null)
     fetch(`/api/admin?action=stats&days=${range}`, { headers: a.h() })
@@ -25,7 +26,7 @@ function Body() {
         if (j?.ok) setSt(j); else setErr('x')
       }).catch(() => { if (!dead) setErr('x') })
     return () => { dead = true }
-  }, [range])
+  }, [range, a.ready])
 
   const byS: Record<string, number> = {}
   for (const r of st?.byStatus || []) byS[r.status] = r.n

@@ -24,6 +24,7 @@ function Body() {
   const [loaded, setLoaded] = React.useState(false)
 
   const load = React.useCallback(() => {
+    if (!a.ready) return
     fetch('/api/admin?action=menu', { headers: a.h() })
       .then(r => r.ok ? r.json() : null).then(j => {
         if (j?.ok) { setItems(j.items || []); setCats(j.cats || []); setErr('') }
@@ -31,7 +32,7 @@ function Body() {
         setLoaded(true)
       }).catch(() => { setErr('x'); setLoaded(true) })
   }, [])
-  React.useEffect(() => { load() }, [load])
+  React.useEffect(() => { load() }, [load, a.ready])
 
   const catsWith = cats.filter(c => c.active || (items.filter(i => i.cat === c.slug).length > 0))
   const cur = catParam && cats.some(c => c.slug === catParam) ? catParam : catsWith[0]?.slug

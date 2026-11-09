@@ -13,7 +13,7 @@ import AdminMenu from './screens/admin/AdminMenu'
 import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
-import { AdminShell } from './screens/admin/common'
+import { AdminShell, AdminGate } from './screens/admin/common'
 import { TabBar, ProductSheet } from './components/ui'
 import { useStore } from './lib/store'
 
@@ -39,9 +39,9 @@ export default function App() {
         <Route path="/admin/dash" element={<AdminShell><AdminDash /></AdminShell>} />
         <Route path="/admin/menu" element={<AdminShell><AdminMenu /></AdminShell>} />
         <Route path="/admin/menu/:cat" element={<AdminShell><AdminMenu /></AdminShell>} />
-        <Route path="/admin/menu/new" element={<AdminItemForm />} />
-        <Route path="/admin/menu/edit/:id" element={<AdminItemForm />} />
-        <Route path="/admin/cats" element={<AdminCats />} />
+        <Route path="/admin/menu/new" element={<AdminGate><AdminItemForm /></AdminGate>} />
+        <Route path="/admin/menu/edit/:id" element={<AdminGate><AdminItemForm /></AdminGate>} />
+        <Route path="/admin/cats" element={<AdminGate><AdminCats /></AdminGate>} />
         <Route path="/admin/promos" element={<AdminShell><AdminPromos /></AdminShell>} />
       </Routes>
       {!isAdmin && <TabBar />}

@@ -34,6 +34,7 @@ function Body() {
   const [imgPreview, setImgPreview] = React.useState('')
 
   React.useEffect(() => {
+    if (!a.ready) return
     fetch('/api/admin?action=menu', { headers: a.h() })
       .then(r => r.ok ? r.json() : null).then(j => {
         if (!j?.ok) return
@@ -44,7 +45,7 @@ function Body() {
         }
         setLoaded(true)
       }).catch(() => setLoaded(true))
-  }, [id])
+  }, [id, a.ready])
 
   const set = (k: string, v: any) => setF((s: any) => ({ ...s, [k]: v }))
 

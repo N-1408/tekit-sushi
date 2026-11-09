@@ -45,6 +45,7 @@ function Body() {
   }
 
   const load = React.useCallback(async () => {
+    if (!a.ready) return
     const myMax = maxIdRef.current
     try {
       const r = await fetch('/api/admin?action=orders', { headers: a.h() })
@@ -68,10 +69,11 @@ function Body() {
   }, [])
 
   React.useEffect(() => {
+    if (!a.ready) return
     load()
     const iv = setInterval(load, 10000)
     return () => clearInterval(iv)
-  }, [load])
+  }, [load, a.ready])
 
   async function setStatus(id: number, status: string, note?: string) {
     setBusy(true)

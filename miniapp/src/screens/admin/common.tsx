@@ -8,16 +8,18 @@ import { authHeaders } from '../../lib/admin'
 export type AdminCtx = {
   key: string; roleOk: boolean; uid?: number
   h: () => Record<string, string>
+  ready: boolean
   refreshRole: () => void
 }
 const ACtx = React.createContext<AdminCtx>(null as any)
 export const useAdmin = () => React.useContext(ACtx)
 
-export function AdminGate({ children }: { children: React.ReactNode }) {
+export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?: boolean }) {
   const { role, showToast } = useStore()
   const uid = tgUser()?.id
   const [key, setKey] = React.useState(() => { try { return localStorage.getItem('tk-admin') || '' } catch { return '' } })
   const [wasOk] = React.useState(() => { try { return localStorage.getItem('tk-admin-ok') === '1' } catch { return false } })
+  const { roleReady } = useStore()
   const [input, setInput] = React.useState('')
   const [err, setErr] = React.useState('')
   const { t } = useStore()
@@ -41,10 +43,12 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
   const ctx: AdminCtx = {
     key, roleOk, uid,
     h: () => authHeaders(key, role, uid),
+    ready: !!key || roleOk,
     refreshRole: () => {},
   }
 
-  if (!roleOk && !key && !wasOk) {
+  const authed = !!key || roleOk || (wasOk && !roleReady)
+  if (!authed) {
     return (
       <div className="pb-28">
         <div className="px-4 mt-8">
@@ -61,7 +65,7 @@ export function AdminGate({ children }: { children: React.ReactNode }) {
       </div>
     )
   }
-  return <ACtx.Provider value={ctx}>{children}</ACtx.Provider>
+  return <ACtx.Provider value={ctx}>{children}{tabs && <AdminTabBar />}</ACtx.Provider>
 }
 
 export function AdminTopBar({ title, right, back }: { title: string; right?: React.ReactNode; back?: boolean }) {
@@ -145,12 +149,7 @@ const TAB_ICON: Record<string, JSX.Element> = {
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  return (
-    <AdminGate>
-      {children}
-      <AdminTabBar />
-    </AdminGate>
-  )
+  return <AdminGate tabs>{children}</AdminGate>
 }
 
 function AdminTabBar() {
@@ -161,6 +160,7 @@ function AdminTabBar() {
   const [pending, setPending] = React.useState<number | null>(null)
 
   React.useEffect(() => {
+    if (!a.ready) return
     let live = true
     const tick = () => fetch('/api/admin?action=stats&days=1', { headers: a.h() })
       .then(r => r.ok ? r.json() : null).then(j => { if (live && j?.ok) setPending(j.pending ?? 0) }).catch(() => {})
