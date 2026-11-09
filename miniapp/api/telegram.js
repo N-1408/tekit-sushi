@@ -30,6 +30,10 @@ const T = {
     menuBtn: '🍱 Menyuni ochish',
     gotContact: (n, p) => `✅ Rahmat, <b>${n}</b>! Raqamingiz: <b>${p}</b>\n\nEndi eng qiziq qism — taom tanlash! 👇`,
     noContact: "Mayli, raqamsiz ham buyurtma berasiz 🙂 Menyu tayyor!",
+    adminPrompt: '🔐 Admin parolini /admin <parol> shaklida yuboring. Parolni yozgan xabaringiz darhol o\u02bbchiriladi.',
+    adminOk: '🔓 Siz admin sifatida kirdingiz! Pastdagi tugma orqali panelni oching.',
+    adminErr: '❌ Parol xato.',
+    adminBtn: '🔓 Admin panel',
   },
   ru: {
     hello: (n) => `👋 Здравствуйте, <b>${n}</b>!\n\nДобро пожаловать в <b>Tekit Sushi</b>!\n\nСначала выберите язык 👇`,
@@ -49,6 +53,10 @@ const T = {
     menuBtn: '🍱 Открыть меню',
     gotContact: (n, p) => `✅ Спасибо, <b>${n}</b>! Ваш номер: <b>${p}</b>\n\nТеперь самое вкусное — выбор блюд! 👇`,
     noContact: 'Хорошо, закажем и без номера 🙂 Меню готово!',
+    adminPrompt: '🔐 Отправьте пароль админа в формате /admin <пароль>. Ваше сообщение с паролём сразу удалится.',
+    adminOk: '🔓 Вы вошли как администратор! Откройте панель кнопкой ниже.',
+    adminErr: '❌ Неверный пароль.',
+    adminBtn: '🔓 Админ панель',
   },
   en: {
     hello: (n) => `👋 Hello, <b>${n}</b>!\n\nWelcome to <b>Tekit Sushi</b>!\n\nFirst, pick your language 👇`,
@@ -68,6 +76,10 @@ const T = {
     menuBtn: '🍱 Open the menu',
     gotContact: (n, p) => `✅ Thanks, <b>${n}</b>! Number: <b>${p}</b>\n\nNow the tasty part — picking dishes! 👇`,
     noContact: "No worries, you can order without a number 🙂 Menu's ready!",
+    adminPrompt: '🔐 Send the admin password as /admin <password>. Your message with the password is deleted right away.',
+    adminOk: '🔓 You are in as admin! Open the panel with the button below.',
+    adminErr: '❌ Wrong password.',
+    adminBtn: '🔓 Admin panel',
   },
 };
 const t = (u) => T[u?.lang] || T.uz;
@@ -79,6 +91,12 @@ const langKeyboard = () => ({ inline_keyboard: [
 ]});
 const contactKeyboard = (u) => ({ keyboard: [[{ text: u.contactBtn, request_contact: true }], [{ text: u.skip }]], resize_keyboard: true, one_time_keyboard: true });
 const menuKeyboard = (u) => ({ inline_keyboard: [[{ text: u.menuBtn, web_app: { url: WEBAPP_URL } }]] });
+
+const ensureRoleCol = (() => { let p = null; return () => { if (!p && getPool()) { p = getPool().query('ALTER TABLE bot_users ADD COLUMN IF NOT EXISTS role text').catch(() => {}); } return p; }; })();
+const del = (chat_id, message_id, delay = 0) => {
+  const run = () => api('deleteMessage', { chat_id, message_id }).catch(() => {});
+  delay ? setTimeout(run, delay).unref?.() : run();
+};
 
 const api = async (method, body) => {
   try {
@@ -126,6 +144,29 @@ async function handleUpdate(u) {
     if (m.text && (m.text === '/menu' || m.text.startsWith('/menu '))) {
       const tr = t(await getUser(from.id));
       return api('sendMessage', { chat_id: chat.id, text: tr.welcome(from.first_name ?? 'Siz'), parse_mode: 'HTML', reply_markup: menuKeyboard(tr) });
+    }
+    if (m.text && m.text.startsWith('/admin')) {
+      del(chat.id, m.message_id);
+      const parts = m.text.trim().split(/\s+/);
+      const pass = parts.slice(1).join(' ');
+      if (!pass) {
+        const tr = t(await getUser(from.id));
+        const r = await api('sendMessage', { chat_id: chat.id, text: tr.adminPrompt });
+        if (r?.result?.message_id) del(chat.id, r.result.message_id, 30000);
+        return;
+      }
+      const tr = t(await getUser(from.id));
+      if (process.env.ADMIN_PASSWORD && pass === process.env.ADMIN_PASSWORD) {
+        await ensureRoleCol();
+        await upsertUser(from.id, from.first_name || 'Siz', from.username);
+        const p = getPool();
+        if (p) { try { await p.query(`UPDATE bot_users SET role='admin' WHERE tg_id=$1`, [from.id]); } catch {} }
+        const adminUrl = (process.env.WEBAPP_URL || 'https://tekit-sushi-miniapp.vercel.app/').replace(/\/?$/, '/') + 'admin';
+        return api('sendMessage', { chat_id: chat.id, text: tr.adminOk, reply_markup: { inline_keyboard: [[{ text: tr.adminBtn, web_app: { url: adminUrl } }]] } });
+      }
+      const r = await api('sendMessage', { chat_id: chat.id, text: tr.adminErr });
+      if (r?.result?.message_id) del(chat.id, r.result.message_id, 15000);
+      return;
     }
     if (m.text) {
       const skips = Object.values(T).map((l) => l.skip);

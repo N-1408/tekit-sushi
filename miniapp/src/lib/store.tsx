@@ -50,6 +50,7 @@ export type Store = {
   myOrders: MyOrder[]; saveMyOrder: (o: MyOrder) => void
   initTg: () => void
   sheetP: Product | null; openP: (p: Product) => void; closeP: () => void
+  role: string | null
 }
 
 const Ctx = createContext<Store>(null as any)
@@ -64,6 +65,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [toast, setToast] = useState<string | null>(null)
   const [myOrders, setMyOrders] = useState<MyOrder[]>(() => load('tk-orders', [] as MyOrder[]))
   const [sheetP, setSheetP] = useState<Product | null>(null)
+  const [role, setRole] = useState<string | null>(null)
 
   useEffect(() => { localStorage.setItem('tk-lang', JSON.stringify(lang)) }, [lang])
   useEffect(() => { localStorage.setItem('tk-cart', JSON.stringify(cartMap)) }, [cartMap])
@@ -87,6 +89,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const initTg = useCallback(() => {
     const u = tgUser()
     if (!u) return
+    fetch(`/api/me?tg_user_id=${u.id}`).then(r => r.ok ? r.json() : null).then(j => { setRole(j?.role || null) }).catch(() => {})
     fetch(`/api/orders?tg_user_id=${u.id}`).then(r => r.ok ? r.json() : null).then(j => {
       if (!j || !j.orders) return
       const mapped: MyOrder[] = (j.orders as any[]).map(o => ({
@@ -108,8 +111,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .filter(Boolean) as CartLine[]
     const count = lines.reduce((s, l) => s + l.q, 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products: PRODUCTS, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, sheetP, openP, closeP }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, openP, closeP])
+    return { lang, setLang, t: T[lang] as Trans, products: PRODUCTS, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, sheetP, openP, closeP, role }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, openP, closeP])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

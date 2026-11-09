@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
+import { tgUser } from '../lib/tg'
 import { fmt } from '../lib/money'
 import { TopBar, BigButton } from '../components/ui'
 
@@ -15,8 +16,10 @@ const ST_COLOR: Record<string, string> = {
 }
 
 export default function Admin() {
-  const { t } = useStore()
+  const { t, role } = useStore()
   const nav = useNavigate()
+  const uid = tgUser()?.id
+  const roleOk = !!uid && role === 'admin'
   const [key, setKey] = React.useState(localStorage.getItem('tk-admin') || '')
   const [input, setInput] = React.useState('')
   const [orders, setOrders] = React.useState<AOrder[]>([])
@@ -26,16 +29,18 @@ export default function Admin() {
 
   const load = React.useCallback(async () => {
     try {
-      const r = await fetch('/api/admin?action=orders', { headers: { 'X-Admin-Key': key } })
+      const r = await fetch('/api/admin?action=orders', { headers: authH() })
       if (r.status === 401) { setErr('auth'); return }
       const j = await r.json()
       setOrders((j.orders || []).map((o: any) => ({ ...o, items: typeof o.items === 'string' ? JSON.parse(o.items) : o.items })))
       setErr('')
     } catch { setErr('fetch') }
-  }, [key])
+  }, [key, roleOk, uid])
+
+  const authH = (): Record<string, string> => roleOk ? { 'X-Tg-Id': String(uid) } : { 'X-Admin-Key': key }
 
   React.useEffect(() => {
-    if (!key) return
+    if (!key && !roleOk) return
     load()
     const iv = setInterval(load, 15000)
     return () => clearInterval(iv)
@@ -44,7 +49,7 @@ export default function Admin() {
   async function setStatus(id: number, status: string) {
     setBusy(true)
     try {
-      const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Key': key }, body: JSON.stringify({ action: 'status', id, status }) })
+      const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authH() }, body: JSON.stringify({ action: 'status', id, status }) }).then(r => r)
       if (r.ok) { setOrders(os => os.map(o => o.id === id ? { ...o, status } : o)); navigator.vibrate?.(15) }
       else if (r.status === 401) setErr('auth')
     } catch { setErr('fetch') }
@@ -57,7 +62,7 @@ export default function Admin() {
   return (
     <div className="pb-28">
       <TopBar title={t.admin} right={<div />} />
-      {!key || err === 'auth' ? (
+      {(!roleOk && (!key || err === 'auth')) ? (
         <div className="px-4 mt-8">
           <div className="tekit-pattern w-20 h-20 rounded-[22px] mx-auto grid place-items-center text-[36px] shadow-lg">🔐</div>
           <p className="mt-4 text-center text-[14px] font-semibold text-[#4A5270]">{t.adminPass}</p>

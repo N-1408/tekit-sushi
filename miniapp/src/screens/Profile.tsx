@@ -1,4 +1,5 @@
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import type { Lang } from '../lib/i18n'
 import { TopBar, Sheet } from '../components/ui'
@@ -11,7 +12,8 @@ const ROW_ICON: Record<string, React.ReactNode> = {
 }
 
 export default function Profile() {
-  const { t, lang, setLang, myOrders, favs } = useStore()
+  const { t, lang, setLang, myOrders, favs, role } = useStore()
+  const nav = useNavigate()
   const [sheet, setSheet] = React.useState<null | 'branches' | 'contacts' | 'delivery' | 'about'>(null)
 
   const rows = [
@@ -49,10 +51,10 @@ export default function Profile() {
               <span className="text-[13.5px] font-semibold text-[#4A5270]">{t.ctTg}</span>
               <span className="text-[13.5px] font-extrabold text-navy">{t.ctTgVal}</span>
             </a>
-            <div className="flex items-center justify-between py-3.5">
+            <a href="tel:+998951550549" className="flex items-center justify-between py-3.5">
               <span className="text-[13.5px] font-semibold text-[#4A5270]">{t.ctPhone}</span>
-              <span className="text-[13.5px] font-bold text-[#A2A9C6]">{t.ctSoon}</span>
-            </div>
+              <span className="text-[13.5px] font-extrabold text-navy">{t.ctPhoneVal}</span>
+            </a>
           </div>
         )
       case 'delivery':
@@ -98,6 +100,17 @@ export default function Profile() {
             </React.Fragment>
           ))}
         </div>
+
+        {role === 'admin' && (
+          <button onClick={() => nav('/admin')}
+            className="mt-3 w-full bg-white border border-navy-line rounded-[18px] px-4 py-3.5 flex items-center gap-3.5 active:bg-navy-soft transition-colors">
+            <span className="text-[#8A93B8]">
+              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2.5" /><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" /></svg>
+            </span>
+            <span className="text-[14.5px] font-bold flex-1 text-left">{t.admin}</span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A2A9C6" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 5 7 7-7 7" /></svg>
+          </button>
+        )}
 
         <div className="mt-4 bg-white border border-navy-line rounded-[18px] p-1">
           {(['uz', 'ru', 'en'] as Lang[]).map(l => (

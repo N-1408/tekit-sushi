@@ -28,7 +28,7 @@ export const T = {
     dpDelivery: 'Yetkazib berish', dpFree: 'Bepul · Toshkent bo\u02bbylab', dpTime: 'Yetkazish vaqti', dpTimeVal: '30\u201345 daqiqa',
     dpPay: 'To\u02bblov', dpPayVal: 'Naqd yoki kartaga o\u02bbtkazish', dpSoon: 'Payme / Click tez orada qo\u02bbshiladi',
     branchName: 'Tekit Sushi · Toshkent', branchSoon: 'Aniq manzil tez orada qo\u02bbshiladi',
-    ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Telefon', ctSoon: 'Tez orada qo\u02bbshiladi',
+    ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Telefon', ctPhoneVal: '+998 95 155 05 49',
   },
   ru: {
     brand: 'Tekit Sushi', tagline: 'Японская кухня · Ташкент',
@@ -56,7 +56,7 @@ export const T = {
     dpDelivery: 'Доставка', dpFree: 'Бесплатно · по Ташкенту', dpTime: 'Время доставки', dpTimeVal: '30–45 минут',
     dpPay: 'Оплата', dpPayVal: 'Наличные или перевод на карту', dpSoon: 'Payme / Click скоро',
     branchName: 'Tekit Sushi · Ташкент', branchSoon: 'Точный адрес скоро добавим',
-    ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Телефон', ctSoon: 'Скоро',
+    ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Телефон', ctPhoneVal: '+998 95 155 05 49',
   },
   en: {
     brand: 'Tekit Sushi', tagline: 'Japanese food · Tashkent',
@@ -84,7 +84,7 @@ export const T = {
     dpDelivery: 'Delivery', dpFree: 'Free · across Tashkent', dpTime: 'Delivery time', dpTimeVal: '30–45 minutes',
     dpPay: 'Payment', dpPayVal: 'Cash or card transfer', dpSoon: 'Payme / Click coming soon',
     branchName: 'Tekit Sushi · Tashkent', branchSoon: 'Exact address coming soon',
-    ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Phone', ctSoon: 'Coming soon',
+    ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Phone', ctPhoneVal: '+998 95 155 05 49',
   },
 } as const
 

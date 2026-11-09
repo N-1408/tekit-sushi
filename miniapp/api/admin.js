@@ -4,9 +4,15 @@ function getPool() {
   if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
   return pool;
 }
-function check(req) {
+async function check(req) {
   const key = req.headers['x-admin-key'] || '';
-  return key && key === process.env.ADMIN_PASSWORD;
+  if (key && key === process.env.ADMIN_PASSWORD) return true;
+  const tgId = Number(req.headers['x-tg-id'] || 0);
+  if (!tgId) return false;
+  try {
+    const r = await getPool().query('SELECT role FROM bot_users WHERE tg_id=$1', [tgId]);
+    return r.rows[0]?.role === 'admin';
+  } catch { return false; }
 }
 export default async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -28,7 +34,7 @@ export default async (req, res) => {
   }
 
   if (req.method === 'GET') {
-    if (!check(req)) return res.status(401).json({ ok: false, error: 'auth' });
+    if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
     try {
       await ensureSchema();
       const r = await getPool().query(
@@ -42,7 +48,7 @@ export default async (req, res) => {
   }
 
   if (req.method === 'POST') {
-    if (!check(req)) return res.status(401).json({ ok: false, error: 'auth' });
+    if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
     try {
       const b = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       if (b.action === 'status') {
