@@ -8,7 +8,7 @@ import { TopBar, BigButton } from '../components/ui'
 const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{label}</div>{children}</div>
 
 export default function Checkout() {
-  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser } = useStore()
+  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser, saveMyOrder, refreshOrders } = useStore()
   const nav = useNavigate()
   const sum = cart.filter(l => l.q > 0).reduce((s, l) => s + l.q * l.price, 0)
   const last = myOrders[0]
@@ -25,7 +25,23 @@ export default function Checkout() {
   const [promoPct, setPromoPct] = React.useState(0)
   const [promoMsg, setPromoMsg] = React.useState('')
   const [promoBusy, setPromoBusy] = React.useState(false)
+  const [locBusy, setLocBusy] = React.useState(false)
+  const [locMsg, setLocMsg] = React.useState('')
   const discount = promoPct > 0 ? Math.round(sum * promoPct / 100) : 0
+
+  async function detectLoc() {
+    setLocBusy(true); setLocMsg('')
+    const { requestLocation } = await import('../lib/tg')
+    const loc = await requestLocation()
+    if (!loc) { setLocBusy(false); setLocMsg(t.obLocFail); return }
+    try {
+      const r = await fetch(`/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
+      const j = r.ok ? await r.json() : null
+      if (j?.ok && j.addr) { setAddr(j.addr); setLocMsg(t.obLocOk) }
+      else setLocMsg(t.obLocFail)
+    } catch { setLocMsg(t.obLocFail) }
+    setLocBusy(false)
+  }
 
   async function applyPromo() {
     const c = promoCode.trim().toUpperCase()
@@ -44,19 +60,22 @@ export default function Checkout() {
   async function submit() {
     setBusy(true); setErr('')
     try {
+      const items = cart.filter(l => l.q > 0).map(l => ({ id: l.id, slug: l.slug, title: pName(l, lang), q: l.q, price: l.price }))
       const r = await fetch('/api/order', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name, phone, mode, addr: mode === 'delivery' ? addr : '', pay, note,
           promo: promoPct > 0 ? promoCode : '',
           total: sum, lang, tg_user_id: (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id ?? null,
-          items: cart.filter(l => l.q > 0).map(l => ({ id: l.id, slug: l.slug, title: pName(l, lang), q: l.q, price: l.price })),
+          items,
         }),
       })
       if (!r.ok) throw new Error()
       const j = await r.json()
       setDone({ oid: j.order_id })
+      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum, mode, pay, addr: mode === 'delivery' ? addr : '', name, phone })
       clearCart()
+      setTimeout(refreshOrders, 2500)
       saveUser({ name: name.trim() || user?.name || '', phone: phone.trim() || user?.phone || '', addr: mode === 'delivery' && addr.trim() ? addr.trim() : (user?.addr ?? '') })
     } catch { setErr(t.orderFail) }
     setBusy(false)
@@ -92,6 +111,14 @@ export default function Checkout() {
             {mode === 'delivery' && (
               <Line label={t.address}>
                 <textarea className={input + ' min-h-[72px] resize-none'} value={addr} onChange={e => setAddr(e.target.value)} placeholder={t.addressPh} />
+                <button onClick={detectLoc} disabled={locBusy}
+                  className="press mt-2 w-full py-2.5 rounded-xl bg-navy-soft text-navy text-[12.5px] font-bold flex items-center justify-center gap-2 disabled:opacity-60">
+                  {locBusy ? <span className="w-3.5 h-3.5 border-2 border-navy/30 border-t-navy rounded-full animate-spin" /> : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" /></svg>
+                  )}
+                  {locBusy ? t.obLocDetecting : t.obLocBtn}
+                </button>
+                {locMsg && <div className={`text-[11.5px] font-bold mt-1.5 ${locMsg === t.obLocOk ? 'text-emerald-600' : 'text-amber-600'}`}>{locMsg}</div>}
               </Line>
             )}
 

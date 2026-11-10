@@ -60,6 +60,7 @@ export type Store = {
   roleReady: boolean
   user: User | null
   saveUser: (p: Partial<User>) => void
+  refreshOrders: () => void
   ob: boolean
   openOb: () => void
   closeOb: () => void
@@ -102,6 +103,24 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const saveMyOrder = useCallback((o: MyOrder) => setMyOrders(a => [o, ...a].slice(0, 30)), [])
   const openP = useCallback((p: Product) => setSheetP(p), [])
   const saveUser = useCallback((p: Partial<User>) => setUser(u => ({ ...(u || {}), ...p } as User)), [])
+  const refreshOrders = useCallback(() => {
+    const u = tgUser()
+    if (!u) return
+    fetch(`/api/orders?tg_user_id=${u.id}`).then(r => r.ok ? r.json() : null).then(j => {
+      if (!j || !j.orders) return
+      const mapped: MyOrder[] = (j.orders as any[]).map(o => ({
+        oid: o.id, at: o.created_at, status: o.status || 'new',
+        items: typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []),
+        sum: Number(o.total) || 0, mode: o.delivery_type || 'delivery', pay: o.payment || 'cash',
+        addr: o.address || '', name: o.name || '', phone: o.phone || '',
+      }))
+      setMyOrders(prev => {
+        const ids = new Set(mapped.map(x => x.oid))
+        const localOnly = prev.filter(x => !ids.has(x.oid))
+        return [...mapped, ...localOnly].slice(0, 30)
+      })
+    }).catch(() => {})
+  }, [])
   const openOb = useCallback(() => setOb(true), [])
   const closeOb = useCallback(() => setOb(false), [])
   const closeP = useCallback(() => setSheetP(null), [])
@@ -120,20 +139,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const u = tgUser()
     if (!u) return
     fetch(`/api/me?tg_user_id=${u.id}`).then(r => r.ok ? r.json() : null).then(j => { setRole(j?.role || null); setRoleReady(true) }).catch(() => { setRoleReady(true) })
-    fetch(`/api/orders?tg_user_id=${u.id}`).then(r => r.ok ? r.json() : null).then(j => {
-      if (!j || !j.orders) return
-      const mapped: MyOrder[] = (j.orders as any[]).map(o => ({
-        oid: o.id, at: o.created_at, status: o.status || 'new',
-        items: typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []),
-        sum: Number(o.total) || 0, mode: o.delivery_type || 'delivery', pay: o.payment || 'cash',
-        addr: o.address || '', name: o.name || '', phone: o.phone || '',
-      }))
-      setMyOrders(prev => {
-        const have = new Set(prev.map(x => x.oid))
-        return [...mapped.filter(x => !have.has(x.oid)), ...prev].slice(0, 30)
-      })
-    }).catch(() => {})
-  }, [])
+    refreshOrders()
+  }, [refreshOrders])
 
   const value = useMemo<Store>(() => {
     const lines: CartLine[] = Object.entries(cartMap)
@@ -141,8 +148,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .filter(Boolean) as CartLine[]
     const count = lines.reduce((s, l) => s + l.q, 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, openP, closeP, saveUser, openOb, closeOb])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }
