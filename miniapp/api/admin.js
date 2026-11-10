@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { createDelivery } from './delivery.js';
-import { notifyUser } from './notify.js';
+import { createDelivery } from './_delivery.js';
+import { notifyUser } from './_notify.js';
 import { tgUserFrom, cors, failGuard, recordFail } from './_verify.js';
 let pool;
 function getPool() {

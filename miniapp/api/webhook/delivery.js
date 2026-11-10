@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { cors } from '../_verify.js';
-import { checkDeliveryWebhookSecret } from '../delivery.js';
+import { checkDeliveryWebhookSecret } from '../_delivery.js';
 
 let pool;
 function getPool() {
@@ -24,6 +24,12 @@ export default async (req, res) => {
     if (['assigned', 'picked_up', 'en_route', 'delivering'].includes(st)) ours = 'delivering';
     else if (['delivered', 'completed', 'done'].includes(st)) ours = 'done';
     else if (['cancelled', 'failed', 'returned'].includes(st)) ours = 'cancelled';
+    // yakunlangan buyurtmani eskirgan callback bilan qayta ochmaymiz
+    const q = await getPool().query(`SELECT status FROM orders WHERE id=$1`, [String(orderId)]);
+    if (!q.rows.length) return res.status(404).json({ ok: false, error: 'Buyurtma topilmadi' });
+    if (['done', 'cancelled'].includes(q.rows[0].status) && ours !== q.rows[0].status) {
+      return res.status(200).json({ ok: true, already: true });
+    }
     await getPool().query(
       `UPDATE orders SET delivery_status=$1, status_note=$2, status=COALESCE($3, status), status_at=now() WHERE id=$4`,
       [st, b.note || b.reason || null, ours, String(orderId)]

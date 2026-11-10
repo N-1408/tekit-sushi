@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { cors, rateLimit } from './_verify.js';
-import { createDelivery } from './delivery.js';
-import { notifyUser } from './notify.js';
+import { createDelivery } from './_delivery.js';
+import { notifyUser } from './_notify.js';
 
 let pool;
 function getPool() {
