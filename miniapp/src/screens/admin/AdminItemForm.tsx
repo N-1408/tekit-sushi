@@ -32,6 +32,29 @@ function Body() {
   const [loaded, setLoaded] = React.useState(!id)
   const [delOpen, setDelOpen] = React.useState(false)
   const [imgPreview, setImgPreview] = React.useState('')
+  const fileRef = React.useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = React.useState(false)
+
+  const pickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    try {
+      setUploading(true)
+      const bmp = await createImageBitmap(file)
+      const scale = Math.min(1, 1000 / Math.max(bmp.width, bmp.height))
+      const w = Math.round(bmp.width * scale), hh = Math.round(bmp.height * scale)
+      const c = document.createElement('canvas'); c.width = w; c.height = hh
+      ;(c.getContext('2d') as any).drawImage(bmp, 0, 0, w, hh)
+      const dataUrl = c.toDataURL('image/jpeg', 0.85)
+      setImgPreview(dataUrl)
+      const r = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() }, body: JSON.stringify({ data: dataUrl }) })
+      const j = await r.json()
+      if (!j.ok) throw new Error('up')
+      set('img', j.id)
+      showToast(t.aUpOk)
+    } catch { showToast(t.aUpErr); setImgPreview('') }
+    finally { setUploading(false); if (fileRef.current) fileRef.current.value = '' }
+  }
 
   React.useEffect(() => {
     if (!a.data) return
@@ -92,6 +115,10 @@ function Body() {
             <div className="flex-1">
               <Field label={t.aImageF}>
                 <input value={f.img} onChange={e => { set('img', e.target.value); setImgPreview(/^https?:/i.test(e.target.value) ? e.target.value : '') }} placeholder="https://... yoki UUID" className={inputCls} />
+                <label className="mt-2 flex items-center justify-center h-9 rounded-xl border border-navy-line bg-navy-soft text-navy text-[13px] font-medium cursor-pointer active:opacity-70">
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickFile} />
+                  {uploading ? t.aUploading : t.aUpImg}
+                </label>
               </Field>
             </div>
           </div>

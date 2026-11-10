@@ -33,7 +33,9 @@ export const pDesc = (p: Product | CartLine, l: Lang) => (p as any)['d_' + l] ||
 export const pName = (p: Product | CartLine, l: Lang) => (p as any)['t_' + l] || (p as any).t_uz
 export const pImg = (p: Product | CartLine) => {
   const im = String((p as any).img || '')
-  return /^https?:/i.test(im) ? im : CDN + im
+  if (/^https?:/i.test(im)) return im
+  if (/^up_/i.test(im)) return `/api/img?id=${im}`
+  return CDN + im
 }
 
 export type CartLine = Product & { q: number }
