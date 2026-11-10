@@ -1,7 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore, pName, pImg, CATS } from '../lib/store'
-import { TopBar, ProductCard } from '../components/ui'
+import { TopBar, ProductCard, QtyPill } from '../components/ui'
 import { haptic } from '../lib/tg'
 
 const CAT_ICON: Record<string, string> = {
@@ -10,6 +10,7 @@ const CAT_ICON: Record<string, string> = {
 
 export default function Home() {
   const { t, lang, products, favs, showToast, toggleFav, openP } = useStore()
+  const { add } = useStore()
   const nav = useNavigate()
   const [q, setQ] = React.useState('')
   const hits = products.filter(p => p.hit)
@@ -54,8 +55,8 @@ export default function Home() {
                 <h2 className="text-[15.5px] font-extrabold">{t.aSaleHome}</h2>
                 <span className="text-[10.5px] font-extrabold bg-red-600 text-white rounded-lg px-2 py-0.5">{sales.length}</span>
               </div>
-              <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-                {sales.map((p, i) => <div key={p.id} className="w-[160px] shrink-0 lg:w-[196px]"><ProductCard p={p} i={i} /></div>)}
+              <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1 lg:grid lg:grid-cols-4 xl:grid-cols-5 lg:gap-4 lg:overflow-visible">
+                {sales.map((p, i) => <div key={p.id} className="w-[160px] shrink-0 lg:w-auto"><ProductCard p={p} i={i} /></div>)}
               </div>
             </section>
           )}
@@ -73,18 +74,19 @@ export default function Home() {
           {fav.length > 0 && (
             <section className="mt-5">
               <h2 className="px-4 text-[17px] font-extrabold">{t.favTitle}</h2>
-              <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-2.5 pb-1">
+              <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-2.5 pb-1 lg:grid lg:grid-cols-4 xl:grid-cols-5 lg:gap-4 lg:overflow-visible">
                 {fav.map(p => {
                   const on = favs.includes(p.id)
                   return (
                     <article key={p.id} onClick={() => { haptic(); openP(p) }}
-                      className="press shrink-0 w-[136px] lg:w-[176px] bg-white border border-navy-line rounded-[18px] overflow-hidden cursor-pointer active:scale-95 transition-transform">
+                      className="press shrink-0 w-[136px] lg:w-auto bg-white border border-navy-line rounded-[18px] overflow-hidden cursor-pointer active:scale-95 transition-transform">
                       <div className="relative">
                         <img src={pImg(p)} alt="" loading="lazy" decoding="async" className="w-full aspect-square object-cover bg-navy-soft" />
                         <button onClick={e => { e.stopPropagation(); toggleFav(p.id); haptic() }}
                           className="absolute top-1 right-1 z-10 w-8 h-8 rounded-full bg-white/95 grid place-items-center shadow-sm active:scale-90 transition-transform touch-manipulation">
                           <svg width="14" height="14" viewBox="0 0 24 24" fill={on ? '#E23B52' : 'none'} stroke={on ? '#E23B52' : '#8A93B8'} strokeWidth="2"><path d="M12 21C7 16.6 3 13.4 3 9.3 3 6.4 5.2 4 8 4c1.6 0 3.1.8 4 2.1C12.9 4.8 14.4 4 16 4c2.8 0 5 2.4 5 5.3 0 4.1-4 7.3-9 11.7z" /></svg>
                         </button>
+                        <QtyPill p={p} small />
                       </div>
                       <div className="p-2 text-[12px] font-bold truncate">{pName(p, lang)}</div>
                     </article>
@@ -110,8 +112,8 @@ export default function Home() {
                   <h2 className="px-4 text-[17px] font-extrabold">{t.catNames[cid]}</h2>
                   <button onClick={() => { haptic(); nav(`/cat/${cid}`) }} className="text-[12px] font-bold text-navy active:opacity-60">{t.all} →</button>
                 </div>
-                <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-2.5 pb-1">
-                  {list.map((p, i) => <div key={p.id} className="w-[152px] shrink-0 lg:w-[196px]"><ProductCard p={p} i={i} /></div>)}
+                <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-2.5 pb-1 lg:grid lg:grid-cols-4 xl:grid-cols-5 lg:gap-4 lg:overflow-visible">
+                  {list.map((p, i) => <div key={p.id} className="w-[152px] shrink-0 lg:w-auto"><ProductCard p={p} i={i} /></div>)}
                 </div>
               </section>
             )

@@ -17,7 +17,8 @@ export default function Product() {
   return (
     <div className="pb-32">
       <TopBar title={pName(p, lang)} />
-      <div className="relative">
+      <div className="lg:max-w-[1240px] lg:mx-auto lg:grid lg:grid-cols-2 lg:gap-10 lg:items-start lg:px-8 lg:pt-6">
+      <div className="relative lg:rounded-[26px] lg:overflow-hidden">
         <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover bg-navy-soft" />
         <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
           className="absolute top-3 right-4 w-10 h-10 rounded-full bg-white grid place-items-center shadow-md active:scale-90 transition-transform">
@@ -25,7 +26,7 @@ export default function Product() {
         </button>
         {p.pcs ? <span className="absolute bottom-3 left-4 bg-white/95 text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
       </div>
-      <div className="px-4 mt-4">
+      <div className="px-4 mt-4 lg:px-0 lg:mt-0">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-[21px] font-extrabold leading-tight flex-1">{pName(p, lang)}</h1>
           <div className="text-[20px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[12px] text-[#8A93B8]"> UZS</span></div>
@@ -39,9 +40,10 @@ export default function Product() {
         <p className="mt-3 text-[14px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
       </div>
 
-      <div className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line px-4 pt-3"
+      </div>
+      <div className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line px-4 pt-3 lg:left-[220px]"
         style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
-        <div className="flex gap-2.5 items-center">
+        <div className="flex gap-2.5 items-center lg:max-w-[1240px] lg:mx-auto">
           <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
           <button onClick={() => { add(p.id, q); haptic('medium'); showToast(t.added); nav(-1) }}
             className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform">

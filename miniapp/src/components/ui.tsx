@@ -104,8 +104,30 @@ export function TabBar() {
   )
 }
 
+export function QtyPill({ p, small }: { p: { id: string }; small?: boolean }) {
+  const { cart, add, setQty } = useStore()
+  const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
+  const sW = small ? 'w-6 h-6' : 'w-7 h-7'
+  return (
+    <div onClick={e => e.stopPropagation()}
+      className={small
+        ? 'absolute bottom-1.5 right-1.5 flex items-center gap-0.5 bg-white rounded-full p-0.5 shadow-[0_6px_14px_-4px_rgba(10,33,148,.45)]'
+        : 'absolute bottom-2 right-2 flex items-center gap-0.5 bg-white rounded-full p-1 shadow-[0_6px_14px_-4px_rgba(10,33,148,.45)]'}>
+      <button onClick={() => { setQty(p.id, q - 1); haptic('light') }}
+        className={`press ${sW} rounded-full bg-navy-soft text-navy grid place-items-center active:scale-90 transition-transform`}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
+      </button>
+      <span className={`text-[12px] font-extrabold text-navy ${small ? 'w-3.5' : 'w-4'} text-center`}>{q}</span>
+      <button onClick={() => { add(p.id); haptic('medium') }}
+        className={`press ${sW} rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform`}>
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+      </button>
+    </div>
+  )
+}
+
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const { lang, add, favs, toggleFav, showToast, t, openP } = useStore()
+  const { cart, add, lang, favs, toggleFav, showToast, t, openP } = useStore()
   const fav = favs.includes(p.id)
   return (
     <article onClick={() => { haptic(); openP(p) }}
@@ -120,9 +142,14 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
         {p.sale_active && (p.old_price ?? 0) > p.price ? (
           <span className="absolute top-2 left-2 bg-red-600 text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg shadow">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
         ) : p.hit ? <span className="absolute top-2 left-2 bg-navy text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg">{t.hit}</span> : null}
-        <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
-          className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-navy text-white grid place-items-center shadow-[0_6px_14px_-4px_rgba(10,33,148,.55)] active:scale-85 transition-transform">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></button>
+        {(() => {
+          const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
+          return q > 0 ? <QtyPill p={p} /> : (
+            <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
+              className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-navy text-white grid place-items-center shadow-[0_6px_14px_-4px_rgba(10,33,148,.55)] active:scale-85 transition-transform">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg></button>
+          )
+        })()}
       </div>
       <div className="p-2.5">
         <div className="text-[13.5px] font-bold leading-snug line-clamp-2 min-h-[36px]">{pName(p, lang)}</div>
@@ -199,7 +226,7 @@ export function Sheet({ open, onClose, title, children, foot }: {
       <div className="absolute inset-0 bg-navy-deep/45 backdrop-blur-[2px]" onClick={onClose}
         style={{ opacity: Math.max(0, 1 - dy / 420), transition: drag ? 'none' : 'opacity .3s' }} />
       <div
-        className={`${!entered && !moving ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[82dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none`}
+        className={`${!entered && !moving ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[82dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none lg:top-0 lg:animate-none lg:h-fit lg:w-[480px] lg:mx-auto lg:rounded-[26px] lg:shadow-[0_24px_60px_rgba(10,15,50,.3)]`}
         style={{ transform: `translateY(${dy}px)`, transition: drag ? 'none' : 'transform .32s cubic-bezier(.32,.72,0,1)' }}
       >
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}

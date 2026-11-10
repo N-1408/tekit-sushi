@@ -21,7 +21,8 @@ export default function Cart() {
         </div>
       ) : (
         <>
-          <div className="px-4 mt-4 space-y-2.5">
+          <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:gap-8 lg:items-start">
+          <div className="px-4 mt-4 space-y-2.5 lg:flex-1 lg:min-w-0 lg:px-0">
             {lines.map(l => (
               <div key={l.id} className="flex gap-3 bg-white border border-navy-line rounded-[18px] p-2.5">
                 <img src={pImg(l)} alt="" className="w-[68px] h-[68px] rounded-xl object-cover bg-navy-soft cursor-pointer"
@@ -40,15 +41,18 @@ export default function Cart() {
               </div>
             ))}
           </div>
-          <div className="mx-4 mt-4 bg-white border border-navy-line rounded-[18px] p-4">
+          <div className="lg:w-[380px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4">
+          <div className="mx-4 mt-4 bg-white border border-navy-line rounded-[18px] p-4 lg:mx-0 lg:mt-0">
             <div className="flex justify-between text-[13.5px] font-semibold text-[#4A5270]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
             <div className="flex justify-between text-[13.5px] font-semibold text-[#4A5270] mt-2"><span>{t.delivery}</span><span className="text-emerald-600 font-bold">{t.free}</span></div>
             <div className="h-px bg-navy-line my-3" />
             <div className="flex justify-between text-[16px] font-extrabold"><span>{t.total}</span><span>{fmt(sum)} UZS</span></div>
           </div>
-          <div className="px-4 mt-4 flex flex-col gap-2.5">
+          <div className="px-4 mt-4 flex flex-col gap-2.5 lg:px-0">
             <BigButton onClick={() => { haptic(); nav('/checkout') }}>{t.checkout} · {fmt(sum)}</BigButton>
             <button onClick={clearCart} className="text-[13px] font-bold text-[#8A93B8] py-2 active:text-red-500">{t.clearCart}</button>
+          </div>
+          </div>
           </div>
         </>
       )}

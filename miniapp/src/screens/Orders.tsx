@@ -137,7 +137,7 @@ export default function Orders() {
         </div>
       ) : (
         <>
-          <div className="px-4 mt-4 flex gap-2">
+          <div className="px-4 mt-4 flex gap-2 lg:max-w-[1240px] lg:mx-auto">
             <button className={chip(tab === 'active')} onClick={() => setTab('active')}>
               {t.active} · {act.length}
             </button>
@@ -151,7 +151,7 @@ export default function Orders() {
                 sub={tab === 'active' ? t.noActiveSub : t.noArchiveSub} />
             </div>
           ) : (
-            <div className="px-4 mt-4 space-y-3 anim-up">
+            <div className="px-4 mt-4 space-y-3 anim-up lg:max-w-[1240px] lg:mx-auto lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
               {list.map(o => (tab === 'active' ? <ActiveCard key={o.oid} o={o} /> : <ArchiveCard key={o.oid} o={o} />))}
             </div>
           )}

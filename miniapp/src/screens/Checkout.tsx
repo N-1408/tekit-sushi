@@ -88,7 +88,7 @@ export default function Checkout() {
     <div className="pb-28">
       <TopBar title={t.checkout} />
       {done ? (
-        <div className="px-4 pt-16 text-center">
+        <div className="px-4 pt-16 text-center lg:max-w-[560px] lg:mx-auto">
           <div className="tekit-pattern w-24 h-24 rounded-[26px] mx-auto grid place-items-center text-[42px] shadow-lg">✅</div>
           <h2 className="mt-4 text-[20px] font-extrabold">{t.orderPlaced}</h2>
           <p className="mt-1.5 text-[13.5px] text-[#8A93B8] font-medium">{t.orderPlacedSub}</p>
@@ -97,7 +97,8 @@ export default function Checkout() {
         </div>
       ) : (
         <>
-          <div className="px-4 mt-4 space-y-3.5">
+          <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:gap-8 lg:items-start">
+          <div className="px-4 mt-4 space-y-3.5 lg:flex-1 lg:min-w-0 lg:px-0">
             <Line label={t.yourName}><input className={input} value={name} onChange={e => setName(e.target.value)} placeholder="Nurmuhammad" /></Line>
             <Line label={t.phone}><input className={input} type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+998 90 123 45 67" /></Line>
 
@@ -140,6 +141,8 @@ export default function Checkout() {
             </Line>
             <Line label={t.comment}><input className={input} value={note} onChange={e => setNote(e.target.value)} placeholder="…" /></Line>
 
+          </div>
+            <div className="lg:w-[400px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4 lg:mt-4">
             <div className="bg-white border border-navy-line rounded-[18px] p-4">
               <div className="flex justify-between text-[13.5px] font-semibold text-[#4A5270]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
               <div className="flex justify-between text-[13.5px] font-semibold text-[#4A5270] mt-2"><span>{t.delivery}</span><span className="text-emerald-600 font-bold">{t.free}</span></div>
@@ -149,9 +152,10 @@ export default function Checkout() {
             </div>
 
             {err && <div className="text-[13px] font-bold text-red-500 text-center">{err}</div>}
-          </div>
-          <div className="px-4 mt-5">
+          <div className="px-4 mt-5 lg:px-0">
             <BigButton disabled={!valid || busy} onClick={submit}>{busy ? '…' : `${t.confirmOrder} · ${fmt(sum - discount)}`}</BigButton>
+          </div>
+          </div>
           </div>
         </>
       )}
