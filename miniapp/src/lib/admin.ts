@@ -16,9 +16,12 @@ export type AdminStat = {
   menuCount: number
 }
 
+import { TGA } from './tg'
+
 export function authHeaders(key: string, role: string | null, uid?: number): Record<string, string> {
-  if (uid && role === 'admin') return { 'X-Tg-Id': String(uid) }
-  return { 'X-Admin-Key': key }
+  const h: Record<string, string> = uid && role === 'admin' ? { 'X-Tg-Id': String(uid) } : { 'X-Admin-Key': key }
+  try { if (TGA?.initData) h['X-Init-Data'] = TGA.initData } catch {}
+  return h
 }
 
 const TZ = 'Asia/Tashkent'

@@ -1,4 +1,5 @@
 import pg from 'pg';
+import { tgUserFrom, cors } from './_verify.js';
 let pool = null;
 function getPool() {
   if (!pool && process.env.DATABASE_URL) {
@@ -7,10 +8,12 @@ function getPool() {
   return pool;
 }
 export default async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  cors(res);
+  if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') return res.status(405).json({ ok: false });
-  const id = Number(req.query.tg_user_id || 0);
-  if (!id) return res.status(400).json({ ok: false, error: 'tg_user_id' });
+  const u = tgUserFrom(req);
+  if (!u) return res.status(401).json({ ok: false });
+  const id = u.id;
   const p = getPool();
   if (!p) return res.status(503).json({ ok: false });
   try {

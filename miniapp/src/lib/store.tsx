@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState, useCall
 import menu from '../data/menu.json'
 import { T, type Lang, type Trans } from './i18n'
 export type { Lang } from './i18n'
-import { tgUser, haptic } from './tg'
+import { tgUser, haptic, TGA } from './tg'
 
 export type Product = {
   id: string; slug: string; cat: string; price: number; img: string
@@ -106,7 +106,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const refreshOrders = useCallback(() => {
     const u = tgUser()
     if (!u) return
-    fetch(`/api/orders?tg_user_id=${u.id}`).then(r => r.ok ? r.json() : null).then(j => {
+    fetch('/api/orders', { headers: { 'X-Init-Data': TGA?.initData || '' } }).then(r => r.ok ? r.json() : null).then(j => {
       if (!j || !j.orders) return
       const mapped: MyOrder[] = (j.orders as any[]).map(o => ({
         oid: o.id, at: o.created_at, status: o.status || 'new',
@@ -138,7 +138,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const initTg = useCallback(() => {
     const u = tgUser()
     if (!u) return
-    fetch(`/api/me?tg_user_id=${u.id}`).then(r => r.ok ? r.json() : null).then(j => { setRole(j?.role || null); setRoleReady(true) }).catch(() => { setRoleReady(true) })
+    fetch('/api/me', { headers: { 'X-Init-Data': TGA?.initData || '' } }).then(r => r.ok ? r.json() : null).then(j => { setRole(j?.role || null); setRoleReady(true) }).catch(() => { setRoleReady(true) })
     refreshOrders()
   }, [refreshOrders])
 

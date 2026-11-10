@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { cors, rateLimit } from './_verify.js';
 
 let pool;
 function getPool() {
@@ -38,11 +39,10 @@ function ensureSchema() {
 }
 
 export default async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  cors(res, 'POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });
+  if (!rateLimit(req, 'order', 5, 10 * 60 * 1000)) return res.status(429).json({ ok: false, error: 'Juda ko\u02bbp urinish' });
 
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ ok: false, error: 'DB sozlanmagan' });
@@ -54,9 +54,27 @@ export default async (req, res) => {
     if (!o || !o.items || !o.name || !o.phone) {
       return res.status(400).json({ ok: false, error: 'Kerakli maydonlar yetishmaydi' });
     }
+    if (!Array.isArray(o.items) || o.items.length === 0 || o.items.length > 60) {
+      return res.status(400).json({ ok: false, error: 'Buyurtma tarkibi noto\u02bbg\u02bbri' });
+    }
+    const cleanItems = o.items
+      .filter(i => i && typeof i.id === 'string' && Number(i.q) > 0)
+      .map(i => ({ id: String(i.id).slice(0, 40), q: Math.min(50, Math.round(Number(i.q))) }));
+    if (!cleanItems.length) return res.status(400).json({ ok: false, error: 'Buyurtma tarkibi noto\u02bbg\u02bbri' });
+    // Summani serverda menyudan hisoblaymiz, mijoz yuborgan summagi ishonmaymiz
+    let serverSum = null;
+    try {
+      const ids = cleanItems.map(i => i.id);
+      const pr = await getPool().query('SELECT id, price FROM menu_items WHERE id = ANY($1)', [ids]);
+      const priceById = new Map(pr.rows.map(r => [r.id, Number(r.price)]));
+      if (cleanItems.every(i => priceById.has(i.id))) {
+        serverSum = cleanItems.reduce((s, i) => s + (priceById.get(i.id) || 0) * i.q, 0);
+      }
+    } catch (e) { console.error('price lookup', e?.message); }
     // promokodni server tomonda tekshiramiz (client total ishonchsiz)
     let promoCode = null, discount = 0;
-    const total = Number(o.total) || 0;
+    let total = Number(o.total) || 0;
+    if (serverSum != null) total = serverSum;
     const code = String(o.promo || '').trim().toUpperCase();
     if (code && total > 0) {
       try {

@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { cors } from './_verify.js';
 
 let pool;
 function getPool() {
@@ -17,7 +18,7 @@ function ensureSchema() {
 }
 
 export default async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  cors(res);
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (!process.env.DATABASE_URL) return res.status(503).json({ ok: false, error: 'DB sozlanmagan' });

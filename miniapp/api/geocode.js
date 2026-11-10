@@ -1,3 +1,4 @@
+import { cors } from './_verify.js';
 const HEADERS = {
   'User-Agent': 'TekitSushiMiniApp/1.0 (contact: gigand.group@gmail.com)',
   'Accept-Language': 'uz,ru,en',
@@ -18,7 +19,7 @@ export default async function handler(req, res) {
     const area = a.city_district || a.suburb || a.neighbourhood || a.quarter || ''
     const city = a.city || a.town || a.village || a.municipality || ''
     const parts = [area, road, city].filter(Boolean)
-    res.setHeader('Access-Control-Allow-Origin', '*')
+    cors(res, 'GET, OPTIONS')
     res.setHeader('Cache-Control', 'public, max-age=600')
     return res.status(200).json({ ok: parts.length > 0, addr: parts.join(', ') })
   } catch {

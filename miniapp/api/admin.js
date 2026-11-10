@@ -1,4 +1,5 @@
 import { Pool } from 'pg';
+import { tgUserFrom, cors, failGuard, recordFail } from './_verify.js';
 let pool;
 function getPool() {
   if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
@@ -6,11 +7,16 @@ function getPool() {
 }
 async function check(req) {
   const key = req.headers['x-admin-key'] || '';
-  if (key && key === process.env.ADMIN_PASSWORD) return true;
-  const tgId = Number(req.headers['x-tg-id'] || 0);
-  if (!tgId) return false;
+  if (key) {
+    if (failGuard(req, 'pw')) return false;
+    if (key === process.env.ADMIN_PASSWORD) return true;
+    recordFail(req, 'pw');
+    return false;
+  }
+  const u = tgUserFrom(req);
+  if (!u) return false;
   try {
-    const r = await getPool().query('SELECT role FROM bot_users WHERE tg_id=$1', [tgId]);
+    const r = await getPool().query('SELECT role FROM bot_users WHERE tg_id=$1', [u.id]);
     return r.rows[0]?.role === 'admin';
   } catch { return false; }
 }
@@ -145,9 +151,7 @@ async function buildStats(P, days) {
 }
 
 export default async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Admin-Key, X-Tg-Id');
+  cors(res, 'GET, POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (!process.env.ADMIN_PASSWORD) return res.status(503).json({ ok: false, error: 'ADMIN_PASSWORD sozlanmagan' });
 

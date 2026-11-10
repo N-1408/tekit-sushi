@@ -1,5 +1,6 @@
 import { Pool } from 'pg';
-import { MENU_SEED } from './menuSeed.js';
+import { MENU_SEED } from './_menuSeed.js';
+import { cors } from './_verify.js';
 
 let pool;
 function getPool() {
@@ -75,7 +76,7 @@ function effPrice(it, catPct) {
 }
 
 export default async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  cors(res);
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') return res.status(405).json({ ok: false, error: 'GET only' });

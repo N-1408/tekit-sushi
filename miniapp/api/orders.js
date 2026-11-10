@@ -1,15 +1,17 @@
 import { Pool } from 'pg';
+import { tgUserFrom, cors } from './_verify.js';
 let pool;
 function getPool() {
   if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
   return pool;
 }
 export default async (req, res) => {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  cors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') return res.status(405).json({ ok: false });
-  const tg = (req.query.tg_user_id || '').toString().trim();
-  if (!tg || !/^\d+$/.test(tg)) return res.status(400).json({ ok: false, error: 'tg_user_id kerak' });
+  const u = tgUserFrom(req);
+  if (!u) return res.status(401).json({ ok: false, error: 'auth' });
+  const tg = String(u.id);
   try {
     const r = await getPool().query(
       `SELECT id, created_at, total, status, items, name, phone, address, delivery_type, payment
