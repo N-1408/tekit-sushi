@@ -4,14 +4,21 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, pName, pImg, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
-import { haptic, useNativeBack } from '../lib/tg'
+import { haptic, useNativeBack, tgUser } from '../lib/tg'
 
 export function WhaleMark({ size = 40 }: { size?: number }) {
   return <img src="/logo.png" width={size} height={size} className="rounded-[12px]" alt="" />
 }
 
+function hiName(t: any, user: { name?: string } | null) {
+  let h = 12
+  try { h = Number(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Tashkent' }).format(new Date())) } catch {}
+  const g = h >= 5 && h < 12 ? t.greetMorning : h < 18 ? t.greetDay : t.greetEvening
+  return `${g}, ${user?.name || tgUser()?.first_name || t.greetGuest}!`
+}
+
 export function TopBar({ title, right, back = true }: { title?: string; right?: React.ReactNode; back?: boolean }) {
-  const { t } = useStore()
+  const { t, user } = useStore()
   useNativeBack(!!title && back)
   return (
     <header className="sticky top-0 z-30 bg-paper border-b border-navy-line"
@@ -24,7 +31,7 @@ export function TopBar({ title, right, back = true }: { title?: string; right?: 
             <WhaleMark />
             <div className="flex-1 min-w-0">
               <div className="text-[16px] font-extrabold leading-tight">{t.brand}</div>
-              <div className="text-[11px] font-semibold text-[#8A93B8] leading-tight">{t.freeDelivery} · {t.city}</div>
+              <div className="text-[11px] font-semibold text-[#8A93B8] leading-tight truncate">{hiName(t, user)}</div>
             </div>
           </>
         )}
@@ -186,6 +193,12 @@ export function Sheet({ open, onClose, title, children, foot }: {
     return () => clearTimeout(id)
   }, [])
   React.useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+  // Surib yopilganda holat tozalanadi: aks holda qayta ochilganda modal ko'rinmas va tegmas bo'lib qolardi
+  React.useEffect(() => {
+    if (open) return
+    setDy(0); setDrag(false); st.current = null
+    if (timer.current) { clearTimeout(timer.current); timer.current = null }
+  }, [open])
 
   const onDown = (e: React.TouchEvent) => {
     if (timer.current) return

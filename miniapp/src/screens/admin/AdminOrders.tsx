@@ -1,7 +1,7 @@
 import React from 'react'
 import { useStore } from '../../lib/store'
 import { fmt } from '../../lib/money'
-import { AdminTopBar, Btn, Modal, Toggle, useAdmin } from './common'
+import { AdminTopBar, Btn, Modal, useAdmin } from './common'
 import { fmtDT, beepNewOrder } from '../../lib/admin'
 import { haptic } from '../../lib/tg'
 
@@ -36,9 +36,6 @@ function Body() {
   const [cancelNote, setCancelNote] = React.useState('')
   const [openId, setOpenId] = React.useState<number | null>(null)
   const [cashO, setCashO] = React.useState<O | null>(null)
-  const [shopOpen, setShopOpen] = React.useState(true)
-  const [openT, setOpenT] = React.useState('10:00')
-  const [closeT, setCloseT] = React.useState('23:00')
   const cached = a.data?.orders || []
   const maxIdRef = React.useRef(Math.max(0, ...cached.map((o: O) => Number(o.id) || 0)))
   const firstRef = React.useRef(cached.length === 0)
@@ -62,12 +59,7 @@ function Body() {
       const list: O[] = j.orders || []
       setErr('')
       const top = list.reduce((m, o) => Math.max(m, Number(o.id) || 0), 0)
-      A.update({ orders: list, risk: j.risk || {}, settings: j.settings || {} })
-      if (j.settings) {
-        setShopOpen(j.settings.shop_open !== '0')
-        if (j.settings.open_time) setOpenT(j.settings.open_time)
-        if (j.settings.close_time) setCloseT(j.settings.close_time)
-      }
+      A.update({ orders: list, risk: j.risk || {} })
       if (top > myMax) {
         if (!firstRef.current) {
           beepNewOrder()
@@ -103,20 +95,6 @@ function Body() {
       }
     } catch { showToast(t.orderFail) }
     setBusy(false)
-  }
-
-  async function saveSettings(patch: Record<string, any>) {
-    try {
-      const r = await fetch('/api/admin', {
-        method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() },
-        body: JSON.stringify({ action: 'settings', ...patch }),
-      })
-      const j = await r.json().catch(() => null)
-      if (r.ok && j?.ok && j.settings) {
-        a.update({ settings: j.settings })
-        haptic('success')
-      } else { showToast(j?.error || t.orderFail); haptic('error') }
-    } catch { showToast(t.orderFail) }
   }
 
   const todayStr = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tashkent' }).format(new Date())
@@ -161,16 +139,6 @@ function Body() {
           <div className="px-4 mt-10 text-center text-[14px] font-semibold text-[#8A93B8]">— {t.aNoOrdersA} —</div>
         ) : (
           <>
-          <div className="px-4 mt-3 flex flex-wrap items-center gap-2.5 bg-white border border-navy-line rounded-[18px] p-3.5">
-            <Toggle on={shopOpen} onChange={v => { setShopOpen(v); saveSettings({ shop_open: v }) }} />
-            <span className="text-[13px] font-extrabold">{shopOpen ? t.aOpen : t.aClosed}</span>
-            <span className="flex-1" />
-            <input value={openT} onChange={e => setOpenT(e.target.value)} onBlur={() => saveSettings({ open_time: openT })}
-              className="w-[74px] text-center bg-white border border-navy-line rounded-xl py-2 text-[12.5px] font-bold outline-none focus:border-navy" />
-            <span className="text-[12px] font-bold text-[#8A93B8]">–</span>
-            <input value={closeT} onChange={e => setCloseT(e.target.value)} onBlur={() => saveSettings({ close_time: closeT })}
-              className="w-[74px] text-center bg-white border border-navy-line rounded-xl py-2 text-[12.5px] font-bold outline-none focus:border-navy" />
-          </div>
           <div className="px-4 mt-3 space-y-2.5">
             {shown.map(o => {
               const items = parseItems(o.items)

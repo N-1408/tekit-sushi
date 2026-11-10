@@ -167,7 +167,7 @@ export default async (req, res) => {
     const action = str(req.query.action || 'orders', 20);
     try {
       if (action === 'bootstrap') {
-        const [o, st, catsR, itemsR, promosR, riskR, setR] = await Promise.all([
+        const [o, st, catsR, itemsR, promosR, riskR] = await Promise.all([
           P.query(`SELECT id, created_at, name, phone, address, branch, delivery_type, payment, total, status, status_note,
                           items, note, delivery_time, promo_code, discount
                    FROM orders ORDER BY id DESC LIMIT 300`),
@@ -176,7 +176,6 @@ export default async (req, res) => {
           P.query(`SELECT * FROM menu_items ORDER BY sort, cat`),
           P.query(`SELECT code, percent, active FROM promos ORDER BY code`),
           P.query(`SELECT phone, count(*)::int AS cancels FROM orders WHERE status = 'cancelled' GROUP BY phone`),
-          P.query(`SELECT key, value FROM settings WHERE key IN ('shop_open','open_time','close_time')`),
         ]);
         return res.status(200).json({
           ok: true,
@@ -186,7 +185,6 @@ export default async (req, res) => {
           items: itemsR.rows,
           promos: promosR.rows,
           risk: Object.fromEntries(riskR.rows.map(r => [r.phone, r.cancels])),
-          settings: Object.fromEntries(setR.rows.map(r => [r.key, r.value])),
         });
       }
       if (action === 'orders') {
@@ -210,10 +208,6 @@ export default async (req, res) => {
         const r = await P.query(`SELECT code, percent, active FROM promos ORDER BY code`);
         return res.status(200).json({ ok: true, promos: r.rows });
       }
-      if (action === 'settings') {
-        const r = await P.query(`SELECT key, value FROM settings WHERE key IN ('shop_open','open_time','close_time')`);
-        return res.status(200).json({ ok: true, settings: Object.fromEntries(r.rows.map(r => [r.key, r.value])) });
-      }
       return res.status(400).json({ ok: false, error: 'action' });
     } catch (e) {
       console.error('admin get error', e);
@@ -226,19 +220,6 @@ export default async (req, res) => {
     try {
       const b = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const act = str(b.action, 24);
-
-      // ---- shop settings (ochiq-yopiq, ish vaqti) ----
-      if (act === 'settings') {
-        const shopOpen = b.shop_open === undefined ? undefined : (bool(b.shop_open) ? '1' : '0');
-        const openTime = b.open_time !== undefined ? str(b.open_time, 5) : undefined;
-        const closeTime = b.close_time !== undefined ? str(b.close_time, 5) : undefined;
-        for (const [k, v] of [['shop_open', shopOpen], ['open_time', openTime], ['close_time', closeTime]]) {
-          if (v === undefined || v === null) continue;
-          await P.query(`INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`, [k, String(v)]);
-        }
-        const r = await P.query(`SELECT key, value FROM settings WHERE key IN ('shop_open','open_time','close_time')`);
-        return res.status(200).json({ ok: true, settings: Object.fromEntries(r.rows.map(r => [r.key, r.value])) });
-      }
 
       // ---- order status ----
       if (act === 'status') {

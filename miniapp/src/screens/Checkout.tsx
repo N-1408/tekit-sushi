@@ -13,7 +13,10 @@ export default function Checkout() {
   const sum = cart.filter(l => l.q > 0).reduce((s, l) => s + l.q * l.price, 0)
   const last = myOrders[0]
   const [name, setName] = React.useState(last?.name || user?.name || '')
-  const [phone, setPhone] = React.useState(last?.phone || user?.phone || '')
+  // +998 avtomatik: faqat 9 ta raqam (2 xil kod + 7 raqam) yoziladi
+  const digitsOf = (v: string) => { let d = (v || '').replace(/\D/g, ''); if (d.startsWith('998')) d = d.slice(3); return d.slice(-9) }
+  const [phoneD, setPhoneD] = React.useState(digitsOf(last?.phone || user?.phone || ''))
+  const fmtPhone = (d: string) => [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean).join(' ')
   const [mode, setMode] = React.useState<'delivery' | 'pickup'>('delivery')
   const [addr, setAddr] = React.useState(last?.addr || user?.addr || '')
   const pay = 'cash' as const
@@ -56,7 +59,7 @@ export default function Checkout() {
     setPromoBusy(false)
   }
 
-  const valid = name.trim().length > 1 && phone.replace(/\D/g, '').length >= 9 && (mode === 'pickup' || addr.trim().length > 4)
+  const valid = name.trim().length > 1 && phoneD.length === 9 && (mode === 'pickup' || addr.trim().length > 4)
 
   async function submit() {
     setBusy(true); setErr('')
@@ -65,7 +68,7 @@ export default function Checkout() {
       const r = await fetch('/api/order', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name, phone, mode, addr: mode === 'delivery' ? addr : '', pay, note,
+          name, phone: '+998' + phoneD, mode, addr: mode === 'delivery' ? addr : '', pay, note,
           change_amount: pay === 'cash' && changeAmt.replace(/\D/g, '') ? Number(changeAmt.replace(/\D/g, '')) : null,
           promo: promoPct > 0 ? promoCode : '',
           total: sum, lang, tg_user_id: (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id ?? null,
@@ -75,10 +78,10 @@ export default function Checkout() {
       if (!r.ok) throw new Error()
       const j = await r.json()
       setDone({ oid: j.order_id })
-      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum, mode, pay, addr: mode === 'delivery' ? addr : '', name, phone })
+      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum, mode, pay, addr: mode === 'delivery' ? addr : '', name, phone: '+998' + phoneD })
       clearCart()
       setTimeout(refreshOrders, 2500)
-      saveUser({ name: name.trim() || user?.name || '', phone: phone.trim() || user?.phone || '', addr: mode === 'delivery' && addr.trim() ? addr.trim() : (user?.addr ?? '') })
+      saveUser({ name: name.trim() || user?.name || '', phone: phoneD.length === 9 ? '+998' + phoneD : (user?.phone || ''), addr: mode === 'delivery' && addr.trim() ? addr.trim() : (user?.addr ?? '') })
     } catch { setErr(t.orderFail) }
     setBusy(false)
   }
@@ -102,7 +105,13 @@ export default function Checkout() {
           <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:gap-8 lg:items-start">
           <div className="px-4 mt-4 space-y-3.5 lg:flex-1 lg:min-w-0 lg:px-0">
             <Line label={t.yourName}><input className={input} value={name} onChange={e => setName(e.target.value)} placeholder="Nurmuhammad" /></Line>
-            <Line label={t.phone}><input className={input} type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+998 90 123 45 67" /></Line>
+            <Line label={t.phone}>
+              <div className="flex items-center gap-1.5 bg-white border border-navy-line rounded-xl px-3.5 py-3 focus-within:border-navy focus-within:ring-2 focus-within:ring-navy/10">
+                <span className="text-[14px] font-extrabold text-[#4A5270]">+998</span>
+                <input className="flex-1 min-w-0 bg-transparent text-[14px] font-medium outline-none placeholder:text-[#A2A9C6]" type="tel" inputMode="numeric" autoComplete="tel-national"
+                  value={fmtPhone(phoneD)} onChange={e => setPhoneD(e.target.value.replace(/\D/g, '').slice(0, 9))} placeholder="90 123 45 67" />
+              </div>
+            </Line>
 
             <Line label={t.howGet}>
               <div className="flex gap-2">

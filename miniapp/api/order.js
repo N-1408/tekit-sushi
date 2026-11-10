@@ -55,22 +55,6 @@ export default async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });
   if (!rateLimit(req, 'order', 5, 10 * 60 * 1000)) return res.status(429).json({ ok: false, error: 'Juda ko\u02bbp urinish' });
 
-  // Restoran ochiq-yopiq holati (admin panel boshqaradi, settings jadvali)
-  try {
-    await ensureSchema();
-    const st = await getPool().query(`SELECT key, value FROM settings WHERE key IN ('shop_open','open_time','close_time')`);
-    const m = Object.fromEntries(st.rows.map(r => [r.key, r.value]));
-    if (m.shop_open === '0') return res.status(503).json({ ok: false, error: 'Restoran hozir yopiq, keyinroq urinib ko\u02bbring' });
-    if (m.open_time && m.close_time) {
-      const tz = new Date(Date.now() + 5 * 3600 * 1000);
-      const cur = tz.getUTCHours() * 60 + tz.getUTCMinutes();
-      const toMin = t => { const [h, mi] = String(t).split(':').map(n => parseInt(n, 10) || 0); return h * 60 + mi; };
-      const a = toMin(m.open_time), b = toMin(m.close_time);
-      const inHours = a <= b ? (cur >= a && cur < b) : (cur >= a || cur < b);
-      if (!inHours) return res.status(503).json({ ok: false, error: `Ish vaqti ${m.open_time}-${m.close_time}, hozir yopiq` });
-    }
-  } catch (e) { console.error('open check', e?.message); }
-
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ ok: false, error: 'DB sozlanmagan' });
   }
