@@ -16,7 +16,7 @@ export default function Checkout() {
   const [phone, setPhone] = React.useState(last?.phone || user?.phone || '')
   const [mode, setMode] = React.useState<'delivery' | 'pickup'>('delivery')
   const [addr, setAddr] = React.useState(last?.addr || user?.addr || '')
-  const [pay, setPay] = React.useState<'cash' | 'card'>('cash')
+  const pay = 'cash' as const
   const [changeAmt, setChangeAmt] = React.useState('')
   const [note, setNote] = React.useState('')
   const [busy, setBusy] = React.useState(false)
@@ -127,8 +127,7 @@ export default function Checkout() {
 
             <Line label={t.payment}>
               <div className="flex gap-2">
-                <button className={chip(pay === 'cash')} onClick={() => { setPay('cash'); haptic() }}>💵 {t.cash}</button>
-                <button className={chip(pay === 'card')} onClick={() => { setPay('card'); haptic() }}>💳 {t.cardTransfer}</button>
+                <span className={chip(true)}>💵 {t.cash}</span>
               </div>
               {pay === 'cash' && (
                 <div className="mt-2.5 space-y-2.5">

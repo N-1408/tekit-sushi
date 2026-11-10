@@ -84,6 +84,8 @@ export default async (req, res) => {
     // klient maydon nomlarini moslash
     o.address = o.address || o.addr || null;
     o.payment = o.payment || o.pay || 'cash';
+    // eski klientlar 'card' yuborsa ham: integratsiya yo'q bo'lsa faqat naqd (yoki kelajakdagi 'online')
+    if (o.payment !== 'cash' && o.payment !== 'online') o.payment = 'cash';
     if (!o.delivery_type) o.delivery_type = (o.mode === 'pickup') ? 'pickup' : 'delivery';
     if (!Array.isArray(o.items) || o.items.length === 0 || o.items.length > 60) {
       return res.status(400).json({ ok: false, error: 'Buyurtma tarkibi noto\u02bbg\u02bbri' });
