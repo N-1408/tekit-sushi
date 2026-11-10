@@ -44,7 +44,7 @@ export default function Onboarding() {
   return (
     <div className="fixed inset-0 z-[70] bg-[#0A2194] overflow-y-auto">
       <div className="min-h-full flex flex-col">
-        <div className="px-5 pt-[calc(env(safe-area-inset-top)+var(--tg-csa-top,0px)+var(--tg-extra,0px)+22px)] pb-7 text-white">
+        <div className="px-5 pt-[calc(env(safe-area-inset-top)+var(--tg-csa-top,0px)+var(--tg-extra,0px)+22px)] pb-7 text-white lg:max-w-[620px] lg:mx-auto lg:pt-10">
           <div className="flex items-center justify-between">
             <div className="tekit-pattern w-12 h-12 rounded-2xl grid place-items-center text-[22px] shadow-lg">🐋</div>
             <div className="flex gap-1.5">
@@ -56,7 +56,7 @@ export default function Onboarding() {
           <h1 className="mt-7 text-[26px] font-extrabold leading-tight">{step === 0 ? t.obHi : t.obLocTitle}</h1>
           <p className="mt-1.5 text-[13.5px] text-white/70 font-medium">{step === 0 ? t.obSub1 : t.obLocSub}</p>
         </div>
-        <div className="flex-1 bg-[#F6F7FB] rounded-t-[28px] px-5 pt-6 pb-[calc(env(safe-area-inset-bottom)+28px)]">
+        <div className="flex-1 bg-[#F6F7FB] rounded-t-[28px] px-5 pt-6 pb-[calc(env(safe-area-inset-bottom)+28px)] lg:flex-none lg:max-w-[520px] lg:mx-auto lg:rounded-[28px] lg:my-10 lg:pb-8 lg:shadow-[0_24px_60px_-24px_rgba(0,0,0,.45)]">
           {step === 0 ? (
             <div className="space-y-3.5 anim-up">
               <div>
