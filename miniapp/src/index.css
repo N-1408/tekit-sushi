@@ -39,3 +39,8 @@ input, textarea, select { font-size: 16px !important; }
 @keyframes spin { to { transform: rotate(360deg) } }
 .spin { animation: spin .8s linear infinite; }
 .press:active { transform: scale(.96); }
+
+/* hover faqat sichqoncha/sensorli panel bilan */
+@media (hover:hover) and (pointer:fine){
+  .hov:hover{ background:#F2F4FB; }
+}

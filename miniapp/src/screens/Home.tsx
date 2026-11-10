@@ -18,8 +18,9 @@ export default function Home() {
   const found = q.trim() ? products.filter(p => pName(p, lang).toLowerCase().includes(q.trim().toLowerCase())) : null
 
   return (
-    <div className="pb-28">
+    <div className="pb-28 lg:pb-12">
       <TopBar />
+      <div className="lg:max-w-[1240px] lg:mx-auto">
       <div className="px-4 pt-3">
         <div className="relative">
           <input value={q} onChange={e => setQ(e.target.value)} placeholder={t.search}
@@ -31,7 +32,7 @@ export default function Home() {
       {found ? (
         <section className="px-4 mt-4">
           {found.length === 0 ? <div className="py-10 text-center text-[14px] font-semibold text-[#8A93B8]">— {t.noResults} —</div> : (
-            <div className="grid grid-cols-2 gap-2.5">{found.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}</div>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 lg:gap-4">{found.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}</div>
           )}
         </section>
       ) : (
@@ -54,7 +55,7 @@ export default function Home() {
                 <span className="text-[10.5px] font-extrabold bg-red-600 text-white rounded-lg px-2 py-0.5">{sales.length}</span>
               </div>
               <div className="flex gap-2.5 overflow-x-auto no-scrollbar pb-1">
-                {sales.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
+                {sales.map((p, i) => <div key={p.id} className="w-[160px] shrink-0 lg:w-[196px]"><ProductCard p={p} i={i} /></div>)}
               </div>
             </section>
           )}
@@ -77,7 +78,7 @@ export default function Home() {
                   const on = favs.includes(p.id)
                   return (
                     <article key={p.id} onClick={() => { haptic(); openP(p) }}
-                      className="press shrink-0 w-[136px] bg-white border border-navy-line rounded-[18px] overflow-hidden cursor-pointer active:scale-95 transition-transform">
+                      className="press shrink-0 w-[136px] lg:w-[176px] bg-white border border-navy-line rounded-[18px] overflow-hidden cursor-pointer active:scale-95 transition-transform">
                       <div className="relative">
                         <img src={pImg(p)} alt="" loading="lazy" decoding="async" className="w-full aspect-square object-cover bg-navy-soft" />
                         <button onClick={e => { e.stopPropagation(); toggleFav(p.id); haptic() }}
@@ -95,7 +96,7 @@ export default function Home() {
 
           <section className="mt-5">
             <h2 className="px-4 text-[17px] font-extrabold">🔥 {t.hit}</h2>
-            <div className="grid grid-cols-2 gap-2.5 px-4 mt-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 lg:gap-4 px-4 mt-2.5">
               {hits.slice(0, 8).map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
             </div>
           </section>
@@ -110,13 +111,14 @@ export default function Home() {
                   <button onClick={() => { haptic(); nav(`/cat/${cid}`) }} className="text-[12px] font-bold text-navy active:opacity-60">{t.all} →</button>
                 </div>
                 <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-2.5 pb-1">
-                  {list.map((p, i) => <div key={p.id} className="w-[152px] shrink-0"><ProductCard p={p} i={i} /></div>)}
+                  {list.map((p, i) => <div key={p.id} className="w-[152px] shrink-0 lg:w-[196px]"><ProductCard p={p} i={i} /></div>)}
                 </div>
               </section>
             )
           })}
         </>
       )}
+      </div>
     </div>
   )
 }

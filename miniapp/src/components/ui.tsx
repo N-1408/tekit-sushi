@@ -16,7 +16,7 @@ export function TopBar({ title, right, back = true }: { title?: string; right?: 
   return (
     <header className="sticky top-0 z-30 bg-paper border-b border-navy-line"
       style={{ paddingTop: 'calc(10px + var(--sat))' }}>
-      <div className="flex items-center gap-2.5 px-4 pb-2.5">
+      <div className="flex items-center gap-2.5 px-4 lg:px-6 pb-2.5 lg:max-w-[1240px] lg:mx-auto">
         {title ? (
           <div className="text-[17px] font-extrabold flex-1">{title}</div>
         ) : (
@@ -81,15 +81,15 @@ export function TabBar() {
     { id: 'profile', to: '/profile', label: t.tabProfile, icon: 'profile' },
   ]
   return (
-    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line"
+    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line lg:right-auto lg:top-0 lg:w-[220px] lg:border-t-0 lg:border-r"
       style={{ paddingBottom: 'calc(8px + var(--sab))' }}>
-      <div className="flex">
+      <div className="flex lg:flex-col lg:gap-1.5 lg:px-3 lg:pt-4">
         {tabs.map(tb => {
           const on = loc === tb.to
           return (
             <button key={tb.id} onClick={() => { if (!on) { haptic(); nav(tb.to) } }}
-              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${on ? 'text-navy' : 'text-[#A2A9C6]'}`}>
-              <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${on ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
+              className={`press hov flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors lg:flex-none lg:flex-row lg:gap-3 lg:w-full lg:px-3.5 lg:py-3 lg:rounded-2xl lg:text-[13.5px] ${on ? 'text-navy lg:bg-navy-soft' : 'text-[#A2A9C6] lg:text-[#5A628A]'}`}>
+              <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 lg:bg-transparent lg:px-0 lg:py-0 ${on ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
                 <svg width="23" height="23" viewBox="0 0 24 24" fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{ICONS(on)[tb.icon]}</svg>
                 {tb.id === 'cart' && cartCount > 0 && (
                   <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-navy text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-white">{cartCount}</span>
