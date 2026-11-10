@@ -23,7 +23,7 @@ input, textarea, select { font-size: 16px !important; }
   overflow: hidden; position: relative;
 }
 .tekit-pattern::before {
-  content: ""; position: absolute; inset: -30%;
+  content: ""; position: absolute; inset: -30%; pointer-events: none;
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='340' height='150'><text x='0' y='60' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.14' font-family='Arial'>TEKIT ティキット</text><text x='170' y='130' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.14' font-family='Arial'>TEKIT ティキット</text></svg>");
   background-size: 340px 150px;
 }

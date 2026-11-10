@@ -10,7 +10,10 @@ export default function Onboarding() {
   const first = !user
   const [step, setStep] = React.useState(0)
   const [name, setName] = React.useState(user?.name || u?.first_name || '')
-  const [phone, setPhone] = React.useState(user?.phone || '')
+  // +998 avtomatik: faqat 9 ta raqam (2 xil kod + 7 raqam) yoziladi
+  const digitsOf = (v: string) => { let d = (v || '').replace(/\D/g, ''); if (d.startsWith('998')) d = d.slice(3); return d.slice(-9) }
+  const [phoneD, setPhoneD] = React.useState(digitsOf(user?.phone || ''))
+  const fmtPhone = (d: string) => [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean).join(' ')
   const [addr, setAddr] = React.useState(user?.addr || '')
   const [coords, setCoords] = React.useState<{ lat: number; lon: number } | null>(user?.lat != null ? { lat: user.lat, lon: user.lon! } : null)
   const [busy, setBusy] = React.useState(false)
@@ -34,10 +37,10 @@ export default function Onboarding() {
     if (step === 1 && first && !addr && !busy && locState === 'idle') detect()
   }, [step])
 
-  const valid1 = name.trim().length > 1 && phone.replace(/\D/g, '').length >= 9
+  const valid1 = name.trim().length > 1 && phoneD.length === 9
   const commit = (a: string) => {
     haptic('success')
-    saveUser({ tg_id: u?.id, name: name.trim() || u?.first_name || 'Mijoz', phone: phone.trim(), addr: a.trim(), lat: coords?.lat, lon: coords?.lon })
+    saveUser({ tg_id: u?.id, name: name.trim() || u?.first_name || 'Mijoz', phone: '+998' + phoneD, addr: a.trim(), lat: coords?.lat, lon: coords?.lon })
     closeOb()
   }
 
@@ -65,7 +68,10 @@ export default function Onboarding() {
               </div>
               <div>
                 <div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{t.phone}</div>
-                <input className={input} type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+998 90 123 45 67" />
+                <div className="flex items-stretch gap-0 rounded-xl border border-navy-line bg-white overflow-hidden focus-within:border-navy focus-within:ring-2 focus-within:ring-navy/10">
+                  <span className="grid place-items-center px-3.5 text-[14px] font-bold text-[#4A5270] bg-white border-r border-navy-line select-none">+998</span>
+                  <input className="flex-1 px-3.5 py-3 text-[14px] font-medium outline-none bg-white placeholder:text-[#A2A9C6]" type="tel" inputMode="numeric" value={fmtPhone(phoneD)} onChange={e => setPhoneD(e.target.value.replace(/\D/g, '').replace(/^998/, '').slice(0, 9))} placeholder="90 123 45 67" />
+                </div>
               </div>
               <button onClick={() => { if (valid1) { haptic(); setStep(1) } }}
                 className={`w-full py-3.5 rounded-2xl text-[14.5px] font-extrabold press transition-all ${valid1 ? 'bg-navy text-white shadow-[0_8px_20px_-6px_rgba(10,33,148,.45)]' : 'bg-white text-[#A2A9C6] border border-navy-line'}`}>
