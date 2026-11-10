@@ -1,7 +1,7 @@
 import React from 'react'
 import { useStore } from '../../lib/store'
 import { fmt } from '../../lib/money'
-import { AdminTopBar, Btn, Modal, useAdmin } from './common'
+import { AdminTopBar, Btn, Modal, Toggle, useAdmin } from './common'
 import { fmtDT, beepNewOrder } from '../../lib/admin'
 import { haptic } from '../../lib/tg'
 
@@ -35,6 +35,10 @@ function Body() {
   const [cancelO, setCancelO] = React.useState<O | null>(null)
   const [cancelNote, setCancelNote] = React.useState('')
   const [openId, setOpenId] = React.useState<number | null>(null)
+  const [cashO, setCashO] = React.useState<O | null>(null)
+  const [shopOpen, setShopOpen] = React.useState(true)
+  const [openT, setOpenT] = React.useState('10:00')
+  const [closeT, setCloseT] = React.useState('23:00')
   const cached = a.data?.orders || []
   const maxIdRef = React.useRef(Math.max(0, ...cached.map((o: O) => Number(o.id) || 0)))
   const firstRef = React.useRef(cached.length === 0)
@@ -58,7 +62,12 @@ function Body() {
       const list: O[] = j.orders || []
       setErr('')
       const top = list.reduce((m, o) => Math.max(m, Number(o.id) || 0), 0)
-      A.update({ orders: list })
+      A.update({ orders: list, risk: j.risk || {}, settings: j.settings || {} })
+      if (j.settings) {
+        setShopOpen(j.settings.shop_open !== '0')
+        if (j.settings.open_time) setOpenT(j.settings.open_time)
+        if (j.settings.close_time) setCloseT(j.settings.close_time)
+      }
       if (top > myMax) {
         if (!firstRef.current) {
           beepNewOrder()
@@ -94,6 +103,20 @@ function Body() {
       }
     } catch { showToast(t.orderFail) }
     setBusy(false)
+  }
+
+  async function saveSettings(patch: Record<string, any>) {
+    try {
+      const r = await fetch('/api/admin', {
+        method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() },
+        body: JSON.stringify({ action: 'settings', ...patch }),
+      })
+      const j = await r.json().catch(() => null)
+      if (r.ok && j?.ok && j.settings) {
+        a.update({ settings: j.settings })
+        haptic('success')
+      } else { showToast(j?.error || t.orderFail); haptic('error') }
+    } catch { showToast(t.orderFail) }
   }
 
   const todayStr = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tashkent' }).format(new Date())
@@ -137,6 +160,17 @@ function Body() {
         shown.length === 0 ? (
           <div className="px-4 mt-10 text-center text-[14px] font-semibold text-[#8A93B8]">— {t.aNoOrdersA} —</div>
         ) : (
+          <>
+          <div className="px-4 mt-3 flex flex-wrap items-center gap-2.5 bg-white border border-navy-line rounded-[18px] p-3.5">
+            <Toggle on={shopOpen} onChange={v => { setShopOpen(v); saveSettings({ shop_open: v }) }} />
+            <span className="text-[13px] font-extrabold">{shopOpen ? t.aOpen : t.aClosed}</span>
+            <span className="flex-1" />
+            <input value={openT} onChange={e => setOpenT(e.target.value)} onBlur={() => saveSettings({ open_time: openT })}
+              className="w-[74px] text-center bg-white border border-navy-line rounded-xl py-2 text-[12.5px] font-bold outline-none focus:border-navy" />
+            <span className="text-[12px] font-bold text-[#8A93B8]">–</span>
+            <input value={closeT} onChange={e => setCloseT(e.target.value)} onBlur={() => saveSettings({ close_time: closeT })}
+              className="w-[74px] text-center bg-white border border-navy-line rounded-xl py-2 text-[12.5px] font-bold outline-none focus:border-navy" />
+          </div>
           <div className="px-4 mt-3 space-y-2.5">
             {shown.map(o => {
               const items = parseItems(o.items)
@@ -148,6 +182,9 @@ function Body() {
                     <div className="flex items-center gap-2">
                       <span className="text-[13.5px] font-extrabold">#{o.id}</span>
                       <span className={`text-[10.5px] font-extrabold px-2 py-0.5 rounded-lg ${ST_CLS[o.status] || 'bg-navy-soft text-navy-ink'}`}>{(t as any)['st_' + o.status]}</span>
+                      {(a.data?.risk?.[String(o.phone)] || 0) >= 2 && (
+                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-red-100 text-red-600">⚠ {a.data.risk[String(o.phone)]} bekor</span>
+                      )}
                       <span className="flex-1" />
                       <span className="text-[11px] font-semibold text-[#8A93B8]">{fmtDT(o.created_at)}</span>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A93B8" strokeWidth="2.4" strokeLinecap="round" className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
@@ -160,7 +197,7 @@ function Body() {
                     <div className="mt-1 flex items-center gap-2">
                       <span className="text-[15px] font-extrabold tracking-tight">{fmt(o.total)} UZS</span>
                       <span className="text-[11px] font-semibold text-[#8A93B8]">
-                        {o.delivery_type === 'pickup' ? t.pickup : t.deliveryMode} · {o.payment === 'transfer' || o.payment === 'card' ? t.cardTransfer : t.cash}
+                        {o.delivery_type === 'pickup' ? t.pickup : t.deliveryMode} · {o.payment === 'transfer' || o.payment === 'card' ? t.cardTransfer : t.cash}{o.change_amount ? ` · ${t.changeLabel} ${fmt(o.change_amount)}` : ''}
                       </span>
                     </div>
                   </button>
@@ -191,7 +228,10 @@ function Body() {
                           <Btn key={s} kind="danger" small disabled={busy} onClick={() => { setCancelO(o); setCancelNote('') }}>{t.aCancelA}</Btn>
                         ) : (
                           <Btn key={s} kind={s === 'confirmed' ? 'primary' : 'soft'} small disabled={busy}
-                            onClick={() => setStatus(o.id, s)}>
+                            onClick={() => {
+                              if (s === 'confirmed' && o.payment === 'cash') { setCashO(o); return }
+                              setStatus(o.id, s)
+                            }}>
                             {s === 'confirmed' ? t.aConfirmA : s === 'delivering' ? t.aOnWay : t.aDeliveredA}
                           </Btn>
                         ))}
@@ -202,6 +242,7 @@ function Body() {
               )
             })}
           </div>
+          </>
         )}
 
       <Modal open={!!cancelO} onClose={() => setCancelO(null)} title={t.aCancelQ}>
@@ -211,6 +252,19 @@ function Body() {
         <div className="mt-3 flex gap-2">
           <Btn kind="ghost" onClick={() => setCancelO(null)}>{t.aCloseX}</Btn>
           <Btn kind="danger" disabled={busy} onClick={() => { const id = cancelO.id; setCancelO(null); setStatus(id, 'cancelled', cancelNote || undefined) }}>{t.aCancelA}</Btn>
+        </div>
+      </Modal>
+
+      <Modal open={!!cashO} onClose={() => setCashO(null)} title={t.aCashQ}>
+        <div className="text-[13px] font-semibold text-[#4A5270]">#{cashO?.id} · {cashO?.name} · {cashO?.phone}</div>
+        <div className="mt-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[12px] font-semibold text-amber-800 leading-snug">{t.aCashRisk}</div>
+        {(a.data?.risk?.[String(cashO?.phone)] || 0) >= 1 && (
+          <div className="mt-2 text-[12.5px] font-extrabold text-red-600">⚠ {a.data.risk[String(cashO?.phone || '')]} ta bekor qilingan buyurtma bor</div>
+        )}
+        {cashO?.change_amount ? <div className="mt-2 text-[13px] font-bold">{t.changeLabel} {fmt(cashO.change_amount)} UZS</div> : null}
+        <div className="mt-3 flex gap-2">
+          <Btn kind="ghost" onClick={() => setCashO(null)}>{t.aCloseX}</Btn>
+          <Btn kind="primary" disabled={busy} onClick={() => { const id = cashO.id; setCashO(null); setStatus(id, 'confirmed') }}>{t.aConfirmA}</Btn>
         </div>
       </Modal>
     </div>

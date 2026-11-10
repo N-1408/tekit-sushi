@@ -1,4 +1,6 @@
 import { Pool } from 'pg';
+import { createDelivery } from './delivery.js';
+import { notifyUser } from './notify.js';
 import { tgUserFrom, cors, failGuard, recordFail } from './_verify.js';
 let pool;
 function getPool() {
@@ -29,6 +31,7 @@ function ensureSchema() {
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_time text;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS status text DEFAULT 'new';
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_note text;
+       CREATE TABLE IF NOT EXISTS settings (key text PRIMARY KEY, value text NOT NULL);
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_at timestamptz;
        CREATE TABLE IF NOT EXISTS menu_categories (
          slug text PRIMARY KEY, sort int DEFAULT 0,
@@ -164,7 +167,7 @@ export default async (req, res) => {
     const action = str(req.query.action || 'orders', 20);
     try {
       if (action === 'bootstrap') {
-        const [o, st, catsR, itemsR, promosR] = await Promise.all([
+        const [o, st, catsR, itemsR, promosR, riskR, setR] = await Promise.all([
           P.query(`SELECT id, created_at, name, phone, address, branch, delivery_type, payment, total, status, status_note,
                           items, note, delivery_time, promo_code, discount
                    FROM orders ORDER BY id DESC LIMIT 300`),
@@ -172,6 +175,8 @@ export default async (req, res) => {
           P.query(`SELECT * FROM menu_categories ORDER BY sort`),
           P.query(`SELECT * FROM menu_items ORDER BY sort, cat`),
           P.query(`SELECT code, percent, active FROM promos ORDER BY code`),
+          P.query(`SELECT phone, count(*)::int AS cancels FROM orders WHERE status = 'cancelled' GROUP BY phone`),
+          P.query(`SELECT key, value FROM settings WHERE key IN ('shop_open','open_time','close_time')`),
         ]);
         return res.status(200).json({
           ok: true,
@@ -180,14 +185,17 @@ export default async (req, res) => {
           cats: catsR.rows,
           items: itemsR.rows,
           promos: promosR.rows,
+          risk: Object.fromEntries(riskR.rows.map(r => [r.phone, r.cancels])),
+          settings: Object.fromEntries(setR.rows.map(r => [r.key, r.value])),
         });
       }
       if (action === 'orders') {
         const r = await P.query(
           `SELECT id, created_at, name, phone, address, branch, delivery_type, payment, total, status, status_note,
-                  items, note, delivery_time, promo_code, discount
+                  items, note, delivery_time, promo_code, discount, change_amount
            FROM orders ORDER BY id DESC LIMIT 300`);
-        return res.status(200).json({ ok: true, orders: r.rows });
+        const riskR = await P.query(`SELECT phone, count(*)::int AS cancels FROM orders WHERE status = 'cancelled' GROUP BY phone`);
+        return res.status(200).json({ ok: true, orders: r.rows, risk: Object.fromEntries(riskR.rows.map(r => [r.phone, r.cancels])) });
       }
       if (action === 'stats') {
         const days = [1, 7, 30].includes(Number(req.query.days)) ? Number(req.query.days) : 7;
@@ -202,6 +210,10 @@ export default async (req, res) => {
         const r = await P.query(`SELECT code, percent, active FROM promos ORDER BY code`);
         return res.status(200).json({ ok: true, promos: r.rows });
       }
+      if (action === 'settings') {
+        const r = await P.query(`SELECT key, value FROM settings WHERE key IN ('shop_open','open_time','close_time')`);
+        return res.status(200).json({ ok: true, settings: Object.fromEntries(r.rows.map(r => [r.key, r.value])) });
+      }
       return res.status(400).json({ ok: false, error: 'action' });
     } catch (e) {
       console.error('admin get error', e);
@@ -214,6 +226,19 @@ export default async (req, res) => {
     try {
       const b = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const act = str(b.action, 24);
+
+      // ---- shop settings (ochiq-yopiq, ish vaqti) ----
+      if (act === 'settings') {
+        const shopOpen = b.shop_open === undefined ? undefined : (bool(b.shop_open) ? '1' : '0');
+        const openTime = b.open_time !== undefined ? str(b.open_time, 5) : undefined;
+        const closeTime = b.close_time !== undefined ? str(b.close_time, 5) : undefined;
+        for (const [k, v] of [['shop_open', shopOpen], ['open_time', openTime], ['close_time', closeTime]]) {
+          if (v === undefined || v === null) continue;
+          await P.query(`INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`, [k, String(v)]);
+        }
+        const r = await P.query(`SELECT key, value FROM settings WHERE key IN ('shop_open','open_time','close_time')`);
+        return res.status(200).json({ ok: true, settings: Object.fromEntries(r.rows.map(r => [r.key, r.value])) });
+      }
 
       // ---- order status ----
       if (act === 'status') {
@@ -228,8 +253,32 @@ export default async (req, res) => {
           return res.status(400).json({ ok: false, error: `o'tish mumkin emas: ${from} → ${st}` });
         const note = b.note ? str(b.note, 300) : null;
         const r = await P.query(
-          'UPDATE orders SET status = $1, status_note = $2, status_at = now() WHERE id = $3 RETURNING id, status',
+          'UPDATE orders SET status = $1, status_note = $2, status_at = now() WHERE id = $3 RETURNING id, status, payment, change_amount, delivery_provider',
           [st, note, id]);
+        const o = r.rows[0];
+        // Yetkazib berish provideri: tashqi API ulangan bo'lsa tasdiqlangach kuryer so'raladi
+        const prov = (process.env.DELIVERY_PROVIDER || 'own').trim().toLowerCase();
+        if (st === 'confirmed' && prov !== 'own') {
+          try {
+            const orow = (await P.query('SELECT id, name, phone, address, note, total, status_note FROM orders WHERE id=$1', [id])).rows[0];
+            const d = await createDelivery(orow);
+            if (d.provider !== 'own') {
+              await P.query('UPDATE orders SET delivery_external_id=$1, delivery_status=$2 WHERE id=$3',
+                [d.external_id ? String(d.external_id) : null, d.status, id]);
+            }
+          } catch (de) { console.error('delivery dispatch', de?.message); }
+        }
+        // Mijozga Telegram xabari (bepul)
+        try {
+          const u = (await P.query('SELECT tg_user_id, total FROM orders WHERE id=$1', [id])).rows[0];
+          const msgs = {
+            confirmed: `<b>Buyurtma #${id} tasdiqlandi</b> \u2764\uFE0F\nSushichimiz ishga tushdi, taxminan 45-60 daqiqada yetib boradi.`,
+            delivering: `<b>Buyurtma #${id} yo\u02bblda</b> \ud83d\ude9a\nKuryer yetib borishiga oz qoldi.`,
+            done: `<b>Buyurtma #${id} yetkazildi</b> \ud83c\udf63\nBuhor oling! Fikr-mulohazangizni kutamiz.`,
+            cancelled: note ? `Buyurtma #${id} bekor qilindi. Sabab: ${note}` : `Buyurtma #${id} bekor qilindi.`,
+          };
+          if (u?.tg_user_id && msgs[st]) void notifyUser(u.tg_user_id, msgs[st]).catch(() => {});
+        } catch (ne) { console.error('notify', ne?.message); }
         return res.status(200).json({ ok: true, order: r.rows[0] });
       }
 

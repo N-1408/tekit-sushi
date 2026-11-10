@@ -6,7 +6,7 @@ import { haptic } from '../lib/tg'
 import { TopBar, Qty, Empty, BigButton } from '../components/ui'
 
 export default function Cart() {
-  const { t, lang, cart, setQty, clearCart, openP } = useStore()
+  const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add } = useStore()
   const nav = useNavigate()
   const lines = cart.filter(l => l.q > 0)
   const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
@@ -17,7 +17,18 @@ export default function Cart() {
       {lines.length === 0 ? (
         <div className="px-4">
           <Empty emoji="🛒" title={t.cartEmpty} sub={t.cartEmptySub}
-            action={<BigButton onClick={() => nav('/')}>{t.toMenu}</BigButton>} />
+            action={
+              <div className="flex flex-col gap-2.5 w-full">
+                <BigButton onClick={() => nav('/')}>{t.toMenu}</BigButton>
+                {myOrders[0]?.items?.length ? (
+                  <button onClick={() => {
+                    haptic()
+                    for (const it of myOrders[0].items) { const p = products.find(x => x.id === it.id); if (p) add(it.id, it.q) }
+                    nav('/')
+                  }} className="press py-2.5 rounded-xl bg-navy-soft text-navy text-[13px] font-bold">{t.repeatOrder}</button>
+                ) : null}
+              </div>
+            } />
         </div>
       ) : (
         <>

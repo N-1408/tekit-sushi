@@ -7,6 +7,7 @@ import { authHeaders } from '../../lib/admin'
 
 export type AdminData = {
   orders: any[]; stats: any; cats: any[]; items: any[]; promos: any[]
+  risk?: Record<string, number>; settings?: Record<string, string>
 }
 const EMPTY_DATA: AdminData = { orders: [], stats: null, cats: [], items: [], promos: [] }
 

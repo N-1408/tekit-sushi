@@ -17,6 +17,7 @@ export default function Checkout() {
   const [mode, setMode] = React.useState<'delivery' | 'pickup'>('delivery')
   const [addr, setAddr] = React.useState(last?.addr || user?.addr || '')
   const [pay, setPay] = React.useState<'cash' | 'card'>('cash')
+  const [changeAmt, setChangeAmt] = React.useState('')
   const [note, setNote] = React.useState('')
   const [busy, setBusy] = React.useState(false)
   const [err, setErr] = React.useState('')
@@ -65,6 +66,7 @@ export default function Checkout() {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           name, phone, mode, addr: mode === 'delivery' ? addr : '', pay, note,
+          change_amount: pay === 'cash' && changeAmt.replace(/\D/g, '') ? Number(changeAmt.replace(/\D/g, '')) : null,
           promo: promoPct > 0 ? promoCode : '',
           total: sum, lang, tg_user_id: (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id ?? null,
           items,
@@ -128,6 +130,14 @@ export default function Checkout() {
                 <button className={chip(pay === 'cash')} onClick={() => { setPay('cash'); haptic() }}>💵 {t.cash}</button>
                 <button className={chip(pay === 'card')} onClick={() => { setPay('card'); haptic() }}>💳 {t.cardTransfer}</button>
               </div>
+              {pay === 'cash' && (
+                <div className="mt-2.5 space-y-2.5">
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[11.5px] font-semibold text-amber-800 leading-snug">⚠️ {t.cashWarn}</div>
+                  <input className={input} value={changeAmt} onChange={e => setChangeAmt(e.target.value.replace(/[^0-9 ]/g, ''))}
+                    placeholder={t.changePlaceholder} inputMode="numeric" />
+                  <div className="text-[11px] font-semibold text-[#A2A9C6] -mt-1.5">{t.changeLabel} · {t.changeHint}</div>
+                </div>
+              )}
               <div className="text-[11.5px] font-semibold text-[#A2A9C6] mt-1.5">{t.paySoon}</div>
             </Line>
 

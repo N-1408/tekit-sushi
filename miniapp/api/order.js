@@ -1,5 +1,7 @@
 import { Pool } from 'pg';
 import { cors, rateLimit } from './_verify.js';
+import { createDelivery } from './delivery.js';
+import { notifyUser } from './notify.js';
 
 let pool;
 function getPool() {
@@ -32,7 +34,16 @@ function ensureSchema() {
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_time text;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS status text DEFAULT 'new';
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS promo_code text;
-       ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount int DEFAULT 0;`
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount int DEFAULT 0;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_note text;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS status_at timestamptz;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS payment_status text DEFAULT 'pending';
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at timestamptz;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS change_amount int;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_provider text;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_external_id text;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_status text;
+       CREATE TABLE IF NOT EXISTS settings (key text PRIMARY KEY, value text NOT NULL);`
     ).then(() => true).catch(e => { console.error('ensureSchema', e); return false; });
   }
   return ensured;
@@ -44,6 +55,22 @@ export default async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });
   if (!rateLimit(req, 'order', 5, 10 * 60 * 1000)) return res.status(429).json({ ok: false, error: 'Juda ko\u02bbp urinish' });
 
+  // Restoran ochiq-yopiq holati (admin panel boshqaradi, settings jadvali)
+  try {
+    await ensureSchema();
+    const st = await getPool().query(`SELECT key, value FROM settings WHERE key IN ('shop_open','open_time','close_time')`);
+    const m = Object.fromEntries(st.rows.map(r => [r.key, r.value]));
+    if (m.shop_open === '0') return res.status(503).json({ ok: false, error: 'Restoran hozir yopiq, keyinroq urinib ko\u02bbring' });
+    if (m.open_time && m.close_time) {
+      const tz = new Date(Date.now() + 5 * 3600 * 1000);
+      const cur = tz.getUTCHours() * 60 + tz.getUTCMinutes();
+      const toMin = t => { const [h, mi] = String(t).split(':').map(n => parseInt(n, 10) || 0); return h * 60 + mi; };
+      const a = toMin(m.open_time), b = toMin(m.close_time);
+      const inHours = a <= b ? (cur >= a && cur < b) : (cur >= a || cur < b);
+      if (!inHours) return res.status(503).json({ ok: false, error: `Ish vaqti ${m.open_time}-${m.close_time}, hozir yopiq` });
+    }
+  } catch (e) { console.error('open check', e?.message); }
+
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ ok: false, error: 'DB sozlanmagan' });
   }
@@ -54,6 +81,10 @@ export default async (req, res) => {
     if (!o || !o.items || !o.name || !o.phone) {
       return res.status(400).json({ ok: false, error: 'Kerakli maydonlar yetishmaydi' });
     }
+    // klient maydon nomlarini moslash
+    o.address = o.address || o.addr || null;
+    o.payment = o.payment || o.pay || 'cash';
+    if (!o.delivery_type) o.delivery_type = (o.mode === 'pickup') ? 'pickup' : 'delivery';
     if (!Array.isArray(o.items) || o.items.length === 0 || o.items.length > 60) {
       return res.status(400).json({ ok: false, error: 'Buyurtma tarkibi noto\u02bbg\u02bbri' });
     }
@@ -88,9 +119,10 @@ export default async (req, res) => {
     }
     const finalTotal = Math.max(0, total - discount);
     const pool = getPool();
+    const changeAmount = o.change_amount != null ? Math.max(0, Math.round(Number(o.change_amount) || 0)) : null;
     const result = await pool.query(
-      `INSERT INTO orders (tg_user_id, name, phone, address, branch, delivery_type, payment, items, total, note, delivery_time, promo_code, discount)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING id, created_at`,
+      `INSERT INTO orders (tg_user_id, name, phone, address, branch, delivery_type, payment, items, total, note, delivery_time, promo_code, discount, change_amount, payment_status, delivery_provider)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id, created_at`,
       [
         o.tg_user_id || null,
         String(o.name),
@@ -105,10 +137,27 @@ export default async (req, res) => {
         o.when ? String(o.when) : null,
         promoCode,
         discount,
+        changeAmount,
+        o.payment === 'cash' || o.payment === 'transfer' ? 'pending' : 'pending',
+        (process.env.DELIVERY_PROVIDER || 'own').trim().toLowerCase(),
       ]
     );
-    void 0;
     const row = result.rows[0];
+    // Adapterlar: to'lov va yetkazib berish (mock rejimda no-op, shartnoma kelsa ishlaydi)
+    try {
+      const delivery = await createDelivery({ id: row.id, address: o.address, phone: o.phone, name: o.name, note: o.note, total: finalTotal });
+      if (delivery.provider !== 'own' && delivery.external_id) {
+        await pool.query('UPDATE orders SET delivery_external_id=$1, delivery_status=$2 WHERE id=$3', [String(delivery.external_id), delivery.status, row.id]);
+      }
+    } catch (de) { console.error('delivery adapter', de?.message); }
+    // Mijozga Telegram xabari (bepul, SMS o'rniga)
+    if (o.tg_user_id) {
+      const lines = (o.items || []).map(i => `• ${i.title || i.id} ×${i.q}`).join('\n');
+      const payTxt = o.payment === 'cash'
+        ? (changeAmount ? `Naqd pul, qaytim ${changeAmount.toLocaleString('ru-RU')} so'm` : 'Naqd pul')
+        : 'Kartaga o\u02bbtkazish';
+      void notifyUser(o.tg_user_id, `<b>Buyurtma #${row.id} qabul qilindi</b>\n${lines}\n\nJami: ${finalTotal.toLocaleString('ru-RU')} so'm\nTo'lov: ${payTxt}\n\nTasdiqlash haqida alohida xabar beramiz. Rahmat! \u2764\uFE0F`).catch(() => {});
+    }
     return res.status(201).json({ ok: true, order_id: row.id, created_at: row.created_at });
   } catch (e) {
     console.error('order insert error', e);
