@@ -138,8 +138,8 @@ function Body() {
         <div className="space-y-1.5">
           {items.map((it: any, i: number) => (
             <div key={i} className="flex items-center gap-2 text-[12.5px]">
-              <span className="w-6 h-6 rounded-lg bg-navy-soft text-navy-ink grid place-items-center text-[11px] font-extrabold">{it.q}</span>
-              <span className="flex-1 font-semibold truncate">{it.title}</span>
+              <span className="w-6 h-6 rounded-lg bg-navy-soft text-navy-ink grid place-items-center text-[11px] font-extrabold">{it.q ?? it.qty ?? 1}</span>
+              <span className="flex-1 font-semibold truncate">{it.title || it.name || '—'}</span>
               <span className="font-bold">{fmt((Number(it.price) || 0) * (Number(it.q) || 1))}</span>
             </div>
           ))}
@@ -251,7 +251,7 @@ function Body() {
                   const open = openId === o.id
                   const nx = NEXT[o.status] || []
                   const items = parseItems(o.items)
-                  const sum = items.slice(0, 2).map((it: any) => `${it.q}× ${it.title}`).join(', ') + (items.length > 2 ? ` +${items.length - 2}` : '')
+                  const sum = items.slice(0, 2).map((it: any) => `${it.q ?? it.qty ?? 1}× ${it.title || it.name || '—'}`).join(', ') + (items.length > 2 ? ` +${items.length - 2}` : '')
                   return (
                     <React.Fragment key={o.id}>
                       <div onClick={() => { setOpenId(open ? null : o.id) }}
