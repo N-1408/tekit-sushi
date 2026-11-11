@@ -239,7 +239,7 @@ export function Sheet({ open, onClose, title, children, foot }: {
       <div className="absolute inset-0 bg-navy-deep/45 backdrop-blur-[2px]" onClick={onClose}
         style={{ opacity: Math.max(0, 1 - dy / 420), transition: drag ? 'none' : 'opacity .3s' }} />
       <div
-        className={`${!entered && !moving ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[82dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none lg:top-0 lg:animate-none lg:h-fit lg:w-[480px] lg:mx-auto lg:rounded-[26px] lg:shadow-[0_24px_60px_rgba(10,15,50,.3)]`}
+        className={`${!entered && !moving ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[90dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none lg:top-0 lg:animate-none lg:h-fit lg:w-[480px] lg:mx-auto lg:rounded-[26px] lg:shadow-[0_24px_60px_rgba(10,15,50,.3)]`}
         style={{ transform: `translateY(${dy}px)`, transition: drag ? 'none' : 'transform .32s cubic-bezier(.32,.72,0,1)' }}
       >
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
@@ -354,26 +354,8 @@ export function ProductSheet() {
             <span className="text-[12.5px] font-bold">{p.weight}</span>
           </div>
         ) : null}
-        {hasKbju && (
-          <div className="mt-3 bg-white border border-navy-line rounded-2xl px-3.5 py-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10.5px] font-extrabold text-[#8A93B8] uppercase tracking-widest">КБЖУ</span>
-              <span className="text-[10.5px] font-bold text-[#A2A9C6]">{t.per100}</span>
-            </div>
-            <div className="mt-2 grid grid-cols-4 gap-1.5">
-              {([[t.nKcal, p.kcal], [t.nProt, p.protein], [t.nFat, p.fat], [t.nCarb, p.carbs]] as const).map(([label, val]) => (
-                <div key={label} className="bg-navy-soft/70 rounded-xl py-2 text-center">
-                  <div className="text-[15px] font-extrabold text-navy leading-none">{val != null ? val : '—'}</div>
-                  <div className="mt-1 text-[9.5px] font-bold text-[#8A93B8] leading-none">{label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
-
         {p.cat !== 'sous' && sauces.length > 0 && (
-          <div className="mt-3.5 bg-navy-soft/60 rounded-3xl p-3.5">
+          <div className="mt-3 bg-navy-soft/60 rounded-3xl p-3.5">
             <div className="flex items-center gap-2.5">
               <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-[15px] shrink-0 shadow-sm">🍣</span>
               <div className="flex-1 min-w-0">
@@ -405,6 +387,24 @@ export function ProductSheet() {
               })}
             </div>
           </div>
+        {hasKbju && (
+          <div className="mt-3.5 bg-white border border-navy-line rounded-2xl px-3.5 py-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10.5px] font-extrabold text-[#8A93B8] uppercase tracking-widest">КБЖУ</span>
+              <span className="text-[10.5px] font-bold text-[#A2A9C6]">{t.per100}</span>
+            </div>
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
+              {([[t.nKcal, p.kcal], [t.nProt, p.protein], [t.nFat, p.fat], [t.nCarb, p.carbs]] as const).map(([label, val]) => (
+                <div key={label} className="bg-navy-soft/70 rounded-xl py-2 text-center">
+                  <div className="text-[15px] font-extrabold text-navy leading-none">{val != null ? val : '—'}</div>
+                  <div className="mt-1 text-[9.5px] font-bold text-[#8A93B8] leading-none">{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
+
         )}
       </div>
     </Sheet>
