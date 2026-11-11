@@ -64,32 +64,33 @@ export default function Product() {
         <p className="mt-3 text-[14px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
 
         {p.cat !== 'sous' && sauces.length > 0 && (
-          <div className="mt-4">
-            <div className="text-[15px] font-extrabold">{t.sauces}</div>
-            <div className="mt-2.5 flex gap-2.5 overflow-x-auto pb-1 -mx-4 px-4 snap-x lg:mx-0 lg:px-0 lg:flex-wrap">
+          <div className="mt-4 bg-navy-soft/60 rounded-3xl p-3.5">
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-[15px] shrink-0 shadow-sm">🍣</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13.5px] font-extrabold text-navy leading-tight">{t.sAsk}</div>
+                <div className="text-[10.5px] font-semibold text-[#8A93B8] leading-tight mt-0.5">{t.sSub}</div>
+              </div>
+            </div>
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-3.5 px-3.5 snap-x lg:mx-0 lg:px-0 lg:flex-wrap">
               {sauces.map(s => {
                 const sq = qtyOf(s.id)
                 return (
-                  <div key={s.id} className="shrink-0 w-[112px] snap-start">
-                    <div className="rounded-2xl overflow-hidden bg-navy-soft aspect-[4/3]">
-                      <img src={pImg(s)} alt={pName(s, lang)} loading="lazy" className="w-full h-full object-cover" />
+                  <div key={s.id} className={'shrink-0 snap-start flex items-center gap-2 rounded-full bg-white border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
+                    <img src={pImg(s)} alt={pName(s, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
+                    <div className="pr-0.5">
+                      <div className="text-[11.5px] font-extrabold leading-none whitespace-nowrap">{pName(s, lang)}</div>
+                      <div className="text-[10px] font-bold text-[#8A93B8] mt-1 leading-none">{fmt(s.price)}</div>
                     </div>
-                    <div className="mt-1.5 text-[12px] font-bold leading-tight truncate">{pName(s, lang)}</div>
-                    <div className="flex items-center justify-between mt-1">
-                      <span className="text-[11.5px] font-extrabold">{fmt(s.price)}</span>
-                      {sq > 0 ? (
-                        <div className="flex items-center gap-1">
-                          <button onClick={() => { setQty(s.id, sq - 1); haptic() }}
-                            className="press w-7 h-7 rounded-full bg-white border border-navy-line text-navy text-[14px] font-extrabold grid place-items-center active:scale-90 transition-transform">−</button>
-                          <span className="w-4 text-center text-[12.5px] font-extrabold">{sq}</span>
-                          <button onClick={() => { setQty(s.id, sq + 1); haptic() }}
-                            className="press w-7 h-7 rounded-full bg-navy text-white text-[14px] font-extrabold grid place-items-center active:scale-90 transition-transform">+</button>
-                        </div>
-                      ) : (
-                        <button onClick={() => { add(s.id, 1); haptic('light'); showToast(t.added) }}
-                          className="press w-7 h-7 rounded-full bg-navy text-white text-[16px] font-extrabold grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">+</button>
-                      )}
-                    </div>
+                    {sq > 0 && (
+                      <div className="flex items-center gap-1 ml-0.5">
+                        <button onClick={() => { setQty(s.id, sq - 1); haptic() }}
+                          className="press w-6 h-6 rounded-full bg-white border border-navy-line text-navy text-[12px] font-extrabold grid place-items-center active:scale-90 transition-transform">−</button>
+                        <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
+                      </div>
+                    )}
+                    <button onClick={() => { if (sq > 0) { setQty(s.id, sq + 1); haptic() } else { add(s.id, 1); haptic('light'); showToast(t.added) } }}
+                      className="press w-7 h-7 rounded-full bg-navy text-white text-[15px] font-extrabold grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">+</button>
                   </div>
                 )
               })}
