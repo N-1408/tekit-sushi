@@ -141,7 +141,7 @@ export default async (req, res) => {
     const catPct = {};
     for (const c of cats) catPct[c.slug] = c.sale_active ? (c.sale_percent || 0) : 0;
     const rows = (await p.query(
-      `SELECT id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort,
+      `SELECT id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort, kcal, protein, fat, carbs,
               sale_active, sale_percent, sale_price
        FROM menu_items WHERE active = true ORDER BY sort`)).rows;
     const items = rows.map(r => {
