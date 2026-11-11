@@ -1,6 +1,5 @@
 import React from 'react'
 import { useStore } from '../../lib/store'
-import { T } from '../../lib/i18n'
 import { fmt } from '../../lib/money'
 import { AdminTopBar, Btn, Modal, useAdmin } from './common'
 import { fmtDT, startAlertLoop, stopAlertLoop, isSoundMuted, setSoundMuted } from '../../lib/admin'
@@ -17,7 +16,6 @@ const NEXT: Record<string, string[]> = {
   delivering: ['done', 'cancelled'],
   done: [], cancelled: [],
 }
-const t: any = T.en
 
 type O = any
 
@@ -26,7 +24,7 @@ export default function AdminOrders() {
 }
 
 function Body() {
-  const { showToast } = useStore()
+  const { t, showToast } = useStore()
   const a = useAdmin()
   const [err, setErr] = React.useState('')
   const [filter, setFilter] = React.useState<string>('new')

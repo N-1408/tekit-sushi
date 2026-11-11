@@ -1,7 +1,6 @@
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStore, pImg } from '../../lib/store'
-import { T } from '../../lib/i18n'
 import { fmt } from '../../lib/money'
 import { AdminTopBar, Btn, Toggle, useAdmin } from './common'
 import { haptic } from '../../lib/tg'
@@ -15,8 +14,7 @@ export default function AdminMenu() {
 
 function Body() {
   const nav = useNavigate()
-  const { lang } = useStore()
-  const t: any = T.en
+  const { t, lang } = useStore()
   const a = useAdmin()
   const { cat: catParam } = useParams()
   const [q, setQ] = React.useState('')

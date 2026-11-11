@@ -1,6 +1,5 @@
 import React from 'react'
 import { useStore } from '../../lib/store'
-import { T } from '../../lib/i18n'
 import { fmt } from '../../lib/money'
 import { AdminTopBar, AdminGate, useAdmin } from './common'
 import type { AdminStat } from '../../lib/admin'
@@ -32,8 +31,7 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
 }
 
 function Body() {
-  // admin text is always English
-  const t: any = T.en
+  const { t } = useStore()
   const a = useAdmin()
   const [local, setLocal] = React.useState<AdminStat | null>(null)
   const [range, setRange] = React.useState<1 | 7 | 30>(7)

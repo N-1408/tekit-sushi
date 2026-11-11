@@ -1,6 +1,5 @@
 import React from 'react'
 import { useStore } from '../../lib/store'
-import { T } from '../../lib/i18n'
 import { AdminTopBar, Btn, Field, Toggle, inputCls, Modal, useAdmin } from './common'
 import { haptic } from '../../lib/tg'
 
@@ -13,8 +12,7 @@ export default function AdminCats() {
 }
 
 function Body() {
-  const { showToast, lang } = useStore()
-  const t: any = T.en
+  const { t, showToast, lang } = useStore()
   const a = useAdmin()
   const [cats, setCats] = React.useState<Cat[]>([])
   const [counts, setCounts] = React.useState<Record<string, number>>({})

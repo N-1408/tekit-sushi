@@ -312,12 +312,15 @@ export function StatusChip({ status, label }: { status: string; label: string })
 }
 
 export function ProductSheet() {
-  const { sheetP, closeP, lang, t, add, favs, toggleFav, showToast } = useStore()
+  const { sheetP, closeP, lang, t, add, setQty, cart, products, favs, toggleFav, showToast } = useStore()
   const [q, setQ] = React.useState(1)
   React.useEffect(() => { setQ(1) }, [sheetP?.id])
   if (!sheetP) return null
   const p = sheetP
   const fav = favs.includes(p.id)
+  const sauces = products.filter(x => x.cat === 'sous' && x.id !== p.id && x.active !== false)
+  const qtyOf = (sid: string) => cart.find(l => l.id === sid)?.q || 0
+  const hasKbju = [p.kcal, p.protein, p.fat, p.carbs].some(v => v != null && (v as number) > 0)
   return (
     <Sheet open onClose={closeP} title={pName(p, lang)}
       foot={
@@ -351,7 +354,58 @@ export function ProductSheet() {
             <span className="text-[12.5px] font-bold">{p.weight}</span>
           </div>
         ) : null}
+        {hasKbju && (
+          <div className="mt-3 bg-white border border-navy-line rounded-2xl px-3.5 py-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10.5px] font-extrabold text-[#8A93B8] uppercase tracking-widest">КБЖУ</span>
+              <span className="text-[10.5px] font-bold text-[#A2A9C6]">{t.per100}</span>
+            </div>
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
+              {([[t.nKcal, p.kcal], [t.nProt, p.protein], [t.nFat, p.fat], [t.nCarb, p.carbs]] as const).map(([label, val]) => (
+                <div key={label} className="bg-navy-soft/70 rounded-xl py-2 text-center">
+                  <div className="text-[15px] font-extrabold text-navy leading-none">{val != null ? val : '—'}</div>
+                  <div className="mt-1 text-[9.5px] font-bold text-[#8A93B8] leading-none">{label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
+
+        {p.cat !== 'sous' && sauces.length > 0 && (
+          <div className="mt-3.5 bg-navy-soft/60 rounded-3xl p-3.5">
+            <div className="flex items-center gap-2.5">
+              <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-[15px] shrink-0 shadow-sm">🍣</span>
+              <div className="flex-1 min-w-0">
+                <div className="text-[13.5px] font-extrabold text-navy leading-tight">{t.sAsk}</div>
+                <div className="text-[10.5px] font-semibold text-[#8A93B8] leading-tight mt-0.5">{t.sSub}</div>
+              </div>
+            </div>
+            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-3.5 px-3.5 snap-x">
+              {sauces.map(sa => {
+                const sq = qtyOf(sa.id)
+                return (
+                  <div key={sa.id} className={'shrink-0 snap-start flex items-center gap-2 rounded-full bg-white border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
+                    <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
+                    <div className="pr-0.5">
+                      <div className="text-[11.5px] font-extrabold leading-none whitespace-nowrap">{pName(sa, lang)}</div>
+                      <div className="text-[10px] font-bold text-[#8A93B8] mt-1 leading-none">{fmt(sa.price)}</div>
+                    </div>
+                    {sq > 0 && (
+                      <div className="flex items-center gap-1 ml-0.5">
+                        <button onClick={() => { setQty(sa.id, sq - 1); haptic() }}
+                          className="press w-6 h-6 rounded-full bg-white border border-navy-line text-navy text-[12px] font-extrabold grid place-items-center active:scale-90 transition-transform">−</button>
+                        <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
+                      </div>
+                    )}
+                    <button onClick={() => { if (sq > 0) { setQty(sa.id, sq + 1); haptic() } else { add(sa.id, 1); haptic('light'); showToast(t.added) } }}
+                      className="press w-7 h-7 rounded-full bg-navy text-white text-[15px] font-extrabold grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">+</button>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </Sheet>
   )

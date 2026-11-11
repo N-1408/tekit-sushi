@@ -2,7 +2,6 @@ import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { useStore } from '../../lib/store'
-import { T } from '../../lib/i18n'
 import { tgUser, haptic, useNativeBack } from '../../lib/tg'
 import { authHeaders } from '../../lib/admin'
 
@@ -32,7 +31,7 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
   const { roleReady } = useStore()
   const [input, setInput] = React.useState('')
   const [err, setErr] = React.useState('')
-  const t: any = T.en
+  const { t } = useStore()
   const [data, setData] = React.useState<AdminData | null>(() => {
     try { const v = localStorage.getItem('tk-admin-data'); return v ? JSON.parse(v) : null } catch { return null }
   })
@@ -201,7 +200,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 function AdminSidebar() {
   const nav = useNavigate()
   const loc = useLocation()
-  const t: any = T.en
+  const { t } = useStore()
   const a = useAdmin()
   const pending = (a.data?.orders || []).filter((o: any) => o.status === 'new').length
   const items = [
@@ -243,7 +242,7 @@ function AdminSidebar() {
 function AdminTabBar() {
   const nav = useNavigate()
   const loc = useLocation()
-  const t: any = T.en
+  const { t } = useStore()
   const a = useAdmin()
   const pending = (a.data?.orders || []).filter((o: any) => o.status === 'new').length
 

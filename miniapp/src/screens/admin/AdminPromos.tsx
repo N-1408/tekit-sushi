@@ -1,6 +1,5 @@
 import React from 'react'
 import { useStore } from '../../lib/store'
-import { T } from '../../lib/i18n'
 import { AdminTopBar, Btn, Field, Toggle, inputCls, useAdmin } from './common'
 import { haptic } from '../../lib/tg'
 
@@ -9,8 +8,7 @@ export default function AdminPromos() {
 }
 
 function Body() {
-  const { showToast } = useStore()
-  const t: any = T.en
+  const { t, showToast } = useStore()
   const a = useAdmin()
   const promos: any[] = a.data?.promos || []
   const [code, setCode] = React.useState('')
