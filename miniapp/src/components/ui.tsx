@@ -387,6 +387,7 @@ export function ProductSheet() {
               })}
             </div>
           </div>
+        )}
         {hasKbju && (
           <div className="mt-3.5 bg-white border border-navy-line rounded-2xl px-3.5 py-3">
             <div className="flex items-center justify-between">
@@ -404,8 +405,6 @@ export function ProductSheet() {
           </div>
         )}
         <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
-
-        )}
       </div>
     </Sheet>
   )
