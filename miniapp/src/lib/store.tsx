@@ -9,6 +9,8 @@ export type Product = {
   t_uz: string; t_ru: string; t_en: string
   d_uz: string; d_ru: string; d_en: string
   pcs: number; weight?: string; hit?: boolean
+  kcal?: number | null; protein?: number | null; fat?: number | null; carbs?: number | null
+  active?: boolean
   old_price?: number | null; sale_percent?: number; sale_active?: boolean
 }
 export const PRODUCTS: Product[] = menu as Product[]
@@ -34,6 +36,7 @@ export const pName = (p: Product | CartLine, l: Lang) => (p as any)['t_' + l] ||
 export const pImg = (p: Product | CartLine) => {
   const im = String((p as any).img || '')
   if (/^https?:/i.test(im)) return im
+  if (im.startsWith('/')) return im
   if (/^up_/i.test(im)) return `/api/img?id=${im}`
   return CDN + im
 }

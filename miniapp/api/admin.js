@@ -43,6 +43,8 @@ function ensureSchema() {
          pcs int DEFAULT 0, weight text, hit boolean DEFAULT false, active boolean DEFAULT true, sort int DEFAULT 0,
          sale_active boolean DEFAULT false, sale_percent int DEFAULT 0, sale_price int);
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS weight text;
+      for (const col of ['kcal', 'protein', 'fat', 'carbs'])
+        await P.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS ${col} int`);
        CREATE TABLE IF NOT EXISTS promos (code text PRIMARY KEY, percent int NOT NULL, active boolean NOT NULL DEFAULT true);`
     ).then(() => true).catch(e => { console.error('ensureSchema', e); ensured = undefined; return false; });
   }
@@ -59,6 +61,7 @@ const ALLOWED_TRANSITIONS = {
 
 function str(v, max = 500) { const s = String(v ?? '').trim(); return s.slice(0, max); }
 function num(v, d = 0) { const n = Number(v); return Number.isFinite(n) ? n : d; }
+const nOrNull = (v) => { const n = num(v, 0); return n > 0 ? Math.round(n) : null }
 function bool(v) { return v === true || v === 'true' || v === 1; }
 function slugify(s) {
   return str(s, 80).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'item';
@@ -289,6 +292,7 @@ export default async (req, res) => {
           d_uz: str(b.d_uz, 600), d_ru: str(b.d_ru, 600), d_en: str(b.d_en, 600),
           pcs: Math.max(0, Math.round(num(b.pcs, 0))),
           weight: str(b.weight, 60) || null,
+          kcal: nOrNull(b.kcal), protein: nOrNull(b.protein), fat: nOrNull(b.fat), carbs: nOrNull(b.carbs),
           hit: bool(b.hit), active: b.active === undefined ? true : bool(b.active),
           sale_active: saleActive, sale_percent: saleActive ? salePercent : 0,
           sale_price: saleActive && salePrice > 0 ? Math.round(salePrice) : null,
@@ -298,18 +302,20 @@ export default async (req, res) => {
           if (ex.rows.length) return res.status(400).json({ ok: false, error: 'id bor' });
           const sortRow = await P.query('SELECT coalesce(max(sort),0)+1 AS s FROM menu_items WHERE cat = $1', [cat]);
           await P.query(
-            `INSERT INTO menu_items (id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, active, sort, sale_active, sale_percent, sale_price)
-             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`,
+            `INSERT INTO menu_items (id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, active, sort, sale_active, sale_percent, sale_price, kcal, protein, fat, carbs)
+             VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23)`,
             [id, vals.slug, vals.cat, vals.price, vals.img, vals.t_uz, vals.t_ru, vals.t_en, vals.d_uz, vals.d_ru, vals.d_en,
-             vals.pcs, vals.weight, vals.hit, vals.active, sortRow.rows[0].s, vals.sale_active, vals.sale_percent, vals.sale_price]);
+             vals.pcs, vals.weight, vals.hit, vals.active, sortRow.rows[0].s, vals.sale_active, vals.sale_percent, vals.sale_price,
+             vals.kcal, vals.protein, vals.fat, vals.carbs]);
         } else {
           const r = await P.query(
             `UPDATE menu_items SET slug=$2, cat=$3, price=$4, img=$5, t_uz=$6, t_ru=$7, t_en=$8,
                     d_uz=$9, d_ru=$10, d_en=$11, pcs=$12, weight=$13, hit=$14, active=$15,
-                    sale_active=$16, sale_percent=$17, sale_price=$18
+                    sale_active=$16, sale_percent=$17, sale_price=$18, kcal=$19, protein=$20, fat=$21, carbs=$22
              WHERE id = $1 RETURNING id`,
             [id, vals.slug, vals.cat, vals.price, vals.img, vals.t_uz, vals.t_ru, vals.t_en, vals.d_uz, vals.d_ru, vals.d_en,
-             vals.pcs, vals.weight, vals.hit, vals.active, vals.sale_active, vals.sale_percent, vals.sale_price]);
+             vals.pcs, vals.weight, vals.hit, vals.active, vals.sale_active, vals.sale_percent, vals.sale_price,
+             vals.kcal, vals.protein, vals.fat, vals.carbs]);
           if (!r.rows.length) return res.status(404).json({ ok: false, error: 'topilmadi' });
         }
         return res.status(200).json({ ok: true, id });

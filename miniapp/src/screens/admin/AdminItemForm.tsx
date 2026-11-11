@@ -13,6 +13,7 @@ const blank = {
   id: '', slug: '', cat: 'set', price: 0, img: '',
   t_uz: '', t_ru: '', t_en: '', d_uz: '', d_ru: '', d_en: '',
   pcs: 0, weight: '', hit: false, active: true,
+  kcal: '', protein: '', fat: '', carbs: '',
   sale_active: false, sale_percent: 0, sale_price: 0,
 }
 
@@ -138,6 +139,22 @@ function Body() {
             </Field>
             <Field label={t.aPcsF}>
               <input value={f.pcs || ''} onChange={e => set('pcs', Number(e.target.value.replace(/\D/g, '')) || 0)} inputMode="numeric" className={inputCls} />
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t.aKcalF}>
+              <input value={f.kcal ?? ''} onChange={e => set('kcal', e.target.value.replace(/\D/g, '').slice(0, 5))} inputMode="numeric" placeholder="—" className={inputCls} />
+            </Field>
+            <Field label={t.aProtF}>
+              <input value={f.protein ?? ''} onChange={e => set('protein', e.target.value.replace(/\D/g, '').slice(0, 3))} inputMode="numeric" placeholder="—" className={inputCls} />
+            </Field>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label={t.aFatF}>
+              <input value={f.fat ?? ''} onChange={e => set('fat', e.target.value.replace(/\D/g, '').slice(0, 3))} inputMode="numeric" placeholder="—" className={inputCls} />
+            </Field>
+            <Field label={t.aCarbF}>
+              <input value={f.carbs ?? ''} onChange={e => set('carbs', e.target.value.replace(/\D/g, '').slice(0, 3))} inputMode="numeric" placeholder="—" className={inputCls} />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-3">

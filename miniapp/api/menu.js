@@ -24,6 +24,41 @@ const CAT_SEED = [
   { slug: 'sous', sort: 12, uz: 'Souslar', ru: 'Соусы', en: 'Sauces', emoji: '🥫' },
 ];
 
+
+function nutritionFor(it) {
+  if (it.cat === 'sous') return null
+  const s = `${it.t_en || ''} ${it.t_ru || ''} ${it.t_uz || ''} ${it.d_uz || ''}`.toLowerCase()
+  const has = (...w) => w.some((x) => s.includes(x))
+  let kcal = 160, prot = 7, fat = 6, carb = 19
+  switch (it.cat) {
+    case 'set': kcal = 160; prot = 8; fat = 6; carb = 19; break
+    case 'sushi': kcal = 145; prot = 8; fat = 4; carb = 21; break
+    case 'salat': kcal = 120; prot = 7; fat = 8; carb = 6; break
+    case 'sup': kcal = 75; prot = 5; fat = 4; carb = 7; break
+    case 'wok': kcal = 155; prot = 7; fat = 5; carb = 21; break
+    case 'garnir': kcal = 135; prot = 3; fat = 3; carb = 26; break
+    case 'issiq': kcal = 185; prot = 11; fat = 9; carb = 17; break
+    case 'bola': kcal = 210; prot = 8; fat = 9; carb = 25; break
+    case 'desert': kcal = 280; prot = 5; fat = 13; carb = 36; break
+    case 'ichimlik': kcal = 42; prot = 1; fat = 0; carb = 10; break
+  }
+  if (has('tempura', 'klyar', 'paniro', 'fried', 'qovurilgan')) { kcal += 35; fat += 4; carb += 6 }
+  if (has('gril', 'grill', 'yaki', 'pechen')) { kcal += 25; fat += 3 }
+  if (has('spayci', 'spicy', 'mayonez', 'mayo')) { kcal += 20; fat += 3 }
+  if (has('krem', 'pishloq', 'cheese', 'qaymoq', 'kaymok')) { kcal += 15; fat += 2 }
+  if (has('mochi', 'cheesecake', 'chizkeik', 'shokolad', 'chocolate', 'tort')) { kcal += 40; fat += 4; carb += 8 }
+  return { kcal: Math.round(kcal), protein: Math.round(prot), fat: Math.round(fat), carbs: Math.round(carb) }
+}
+
+const SAUCES = [
+  { id: '3a1a6d7a', slug: 'sous-soevyj', price: 12000, img: '/sauces/soya.jpg', uz: 'Soya', ru: 'Соевый соус', en: 'Soy sauce', d_uz: 'Rollar va sushi uchun klassik sous', d_ru: 'Классический соус к роллам и суши', d_en: 'Classic sauce for rolls and sushi' },
+  { id: 'sous-imbir-w', slug: 'sous-imbir-oq', price: 8000, img: '/sauces/imbir-white.jpg', uz: 'Imbir (oq)', ru: 'Имбирь (белый)', en: 'Ginger (white)', d_uz: 'Marinadlangan oq imbir', d_ru: 'Маринованный белый имбирь', d_en: 'Pickled white ginger' },
+  { id: 'sous-imbir-p', slug: 'sous-imbir-pushti', price: 8000, img: '/sauces/imbir-pink.jpg', uz: 'Imbir (pushti)', ru: 'Имбирь (розовый)', en: 'Ginger (pink)', d_uz: 'Marinadlangan pushti imbir', d_ru: 'Маринованный розовый имбирь', d_en: 'Pickled pink ginger' },
+  { id: 'sous-spicy', slug: 'sous-spicy', price: 10000, img: '/sauces/spicy.jpg', uz: 'Spayci sous', ru: 'Спайси соус', en: 'Spicy sauce', d_uz: 'Achchiq mayonezli sous', d_ru: 'Острый соус на основе майонеза', d_en: 'Spicy mayo-based sauce' },
+  { id: 'sous-teriyaki', slug: 'sous-teriyaki', price: 10000, img: '/sauces/teriyaki.jpg', uz: 'Teriyaki sous', ru: 'Соус терияки', en: 'Teriyaki sauce', d_uz: 'Shirin teriyaki sousi', d_ru: 'Сладкий соус терияки', d_en: 'Sweet teriyaki sauce' },
+  { id: 'sous-wasabi', slug: 'sous-wasabi', price: 8000, img: '/sauces/wasabi.jpg', uz: 'Vasabi', ru: 'Васаби', en: 'Wasabi', d_uz: 'Achchiq yapon xreni', d_ru: 'Острый японский хрен', d_en: 'Hot Japanese horseradish' },
+]
+
 let ensured;
 function ensureSchema() {
   if (!ensured) {
@@ -38,6 +73,8 @@ function ensureSchema() {
         t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text,
         pcs int DEFAULT 0, weight text, hit boolean DEFAULT false, active boolean DEFAULT true, sort int DEFAULT 0,
         sale_active boolean DEFAULT false, sale_percent int DEFAULT 0, sale_price int)`);
+      for (const col of ['kcal', 'protein', 'fat', 'carbs'])
+        await p.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS ${col} int`);
       const c = await p.query('SELECT count(*)::int AS n FROM menu_items');
       if (c.rows[0].n === 0) {
         for (const cat of CAT_SEED) {
@@ -53,6 +90,19 @@ function ensureSchema() {
             [it.id, it.slug, it.cat, it.price, it.img, it.t_uz, it.t_ru, it.t_en, it.d_uz, it.d_ru, it.d_en, it.pcs, it.hit, i]);
           i++;
         }
+      }
+      for (const sc of SAUCES) {
+        const upd = `cat='sous', img=EXCLUDED.img, t_ru=EXCLUDED.t_ru, t_en=EXCLUDED.t_en, d_uz=EXCLUDED.d_uz, d_ru=EXCLUDED.d_ru, d_en=EXCLUDED.d_en`;
+        await p.query(
+          `INSERT INTO menu_items (id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, sort)
+           VALUES ($1,$2,'sous',$3,$4,$5,$6,$7,$8,$9,$10,0,false,true,999)
+           ON CONFLICT (id) DO UPDATE SET ${upd}`,
+          [sc.id, sc.slug, sc.price, sc.img, sc.uz, sc.ru, sc.en, sc.d_uz, sc.d_ru, sc.d_en]);
+      }
+      const need = await p.query(`SELECT id, cat, t_uz, t_ru, t_en, d_uz FROM menu_items WHERE kcal IS NULL AND cat <> 'sous'`);
+      for (const it of need.rows) {
+        const n = nutritionFor(it);
+        if (n) await p.query('UPDATE menu_items SET kcal=$2, protein=$3, fat=$4, carbs=$5 WHERE id=$1', [it.id, n.kcal, n.protein, n.fat, n.carbs]);
       }
     })().catch(e => { console.error('menu ensureSchema', e); ensured = undefined; return false; }).then(r => r !== false);
   }

@@ -4,6 +4,22 @@ const HEADERS = {
   'Accept-Language': 'uz,ru,en',
 }
 export default async function handler(req, res) {
+  const q = String(req.query.q || '').trim()
+  if (q.length >= 3) {
+    try {
+      const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&countrycodes=uz&accept-language=uz,ru,en&viewbox=69.05,41.48,69.55,41.15&q=${encodeURIComponent(q)}`
+      const r = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(7000) })
+      if (!r.ok) return res.status(200).json({ ok: true, results: [] })
+      const j = await r.json()
+      const results = (Array.isArray(j) ? j : []).slice(0, 5).map((x: any) => ({
+        label: String(x.display_name || ''), lat: Number(x.lat), lon: Number(x.lon),
+      })).filter((x: any) => x.label && isFinite(x.lat))
+      cors(res, 'GET, OPTIONS')
+      return res.status(200).json({ ok: true, results })
+    } catch {
+      return res.status(200).json({ ok: true, results: [] })
+    }
+  }
   const lat = Number(req.query.lat)
   const lon = Number(req.query.lon)
   if (!isFinite(lat) || !isFinite(lon)) return res.status(400).json({ ok: false })

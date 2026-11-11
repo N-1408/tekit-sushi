@@ -4,6 +4,7 @@ import { useStore, pName } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
 import { TopBar, BigButton } from '../components/ui'
+import MapPicker from '../components/MapPicker'
 
 const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{label}</div>{children}</div>
 
@@ -29,6 +30,9 @@ export default function Checkout() {
   const [promoPct, setPromoPct] = React.useState(0)
   const [promoMsg, setPromoMsg] = React.useState('')
   const [promoBusy, setPromoBusy] = React.useState(false)
+  const [sugs, setSugs] = React.useState<{ label: string; lat: number; lon: number }[]>([])
+  const [mapOpen, setMapOpen] = React.useState(false)
+  const sugT = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const [locBusy, setLocBusy] = React.useState(false)
   const [locMsg, setLocMsg] = React.useState('')
   const discount = promoPct > 0 ? Math.round(sum * promoPct / 100) : 0
@@ -45,6 +49,34 @@ export default function Checkout() {
       else setLocMsg(t.obLocFail)
     } catch { setLocMsg(t.obLocFail) }
     setLocBusy(false)
+  }
+
+  function onAddr(v: string) {
+    setAddr(v)
+    if (sugT.current) clearTimeout(sugT.current)
+    const query = v.trim()
+    if (query.length < 3) { setSugs([]); return }
+    sugT.current = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`)
+        const j = await r.json()
+        setSugs(j?.results || [])
+      } catch { setSugs([]) }
+    }, 450)
+  }
+
+  function pickSug(s: { label: string; lat: number; lon: number }) {
+    setAddr(s.label)
+    setSugs([])
+    haptic('light')
+    saveUser({ name: user?.name || '', phone: user?.phone || '', addr: s.label, lat: s.lat, lon: s.lon })
+  }
+
+  function onMapPick(a: string, lat: number, lon: number) {
+    setAddr(a)
+    setSugs([])
+    haptic('medium')
+    saveUser({ name: user?.name || '', phone: user?.phone || '', addr: a, lat, lon })
   }
 
   async function applyPromo() {
@@ -122,13 +154,30 @@ export default function Checkout() {
 
             {mode === 'delivery' && (
               <Line label={t.address}>
-                <textarea className={input + ' min-h-[72px] resize-none'} value={addr} onChange={e => setAddr(e.target.value)} placeholder={t.addressPh} />
+                <div className="relative">
+                  <textarea className={input + ' min-h-[72px] resize-none'} value={addr} onChange={e => onAddr(e.target.value)} placeholder={t.addressPh} />
+                  {sugs.length > 0 && (
+                    <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-navy-line rounded-xl shadow-lg overflow-hidden z-30 max-h-56 overflow-y-auto">
+                      {sugs.map((sg, i) => (
+                        <button key={i} type="button" onMouseDown={e => e.preventDefault()} onClick={() => pickSug(sg)}
+                          className="block w-full text-left px-3.5 py-2.5 text-[13px] font-medium border-b border-navy-line/50 last:border-0 hover:bg-navy-soft/60 active:bg-navy-soft">
+                          {sg.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <button onClick={detectLoc} disabled={locBusy}
                   className="press mt-2 w-full py-2.5 rounded-xl bg-navy-soft text-navy text-[12.5px] font-bold flex items-center justify-center gap-2 disabled:opacity-60">
                   {locBusy ? <span className="w-3.5 h-3.5 border-2 border-navy/30 border-t-navy rounded-full animate-spin" /> : (
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" /></svg>
                   )}
                   {locBusy ? t.obLocDetecting : t.obLocBtn}
+                </button>
+                <button onClick={() => setMapOpen(true)}
+                  className="press mt-2 w-full py-2.5 rounded-xl bg-navy-soft text-navy text-[12.5px] font-bold flex items-center justify-center gap-2">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z" /><path d="M9 4v14" /><path d="M15 6v14" /></svg>
+                  {t.mapBtn}
                 </button>
                 {locMsg && <div className={`text-[11.5px] font-bold mt-1.5 ${locMsg === t.obLocOk ? 'text-emerald-600' : 'text-amber-600'}`}>{locMsg}</div>}
               </Line>
@@ -177,6 +226,13 @@ export default function Checkout() {
           </div>
         </>
       )}
+      <MapPicker
+        open={mapOpen}
+        initial={user?.lat && user?.lon ? { lat: user.lat, lon: user.lon } : null}
+        onPick={onMapPick}
+        onClose={() => setMapOpen(false)}
+        t={t}
+      />
     </div>
   )
 }
