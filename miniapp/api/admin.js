@@ -43,8 +43,10 @@ function ensureSchema() {
          pcs int DEFAULT 0, weight text, hit boolean DEFAULT false, active boolean DEFAULT true, sort int DEFAULT 0,
          sale_active boolean DEFAULT false, sale_percent int DEFAULT 0, sale_price int);
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS weight text;
-      for (const col of ['kcal', 'protein', 'fat', 'carbs'])
-        await P.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS ${col} int`);
+       ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS kcal int;
+       ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS protein int;
+       ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS fat int;
+       ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS carbs int;
        CREATE TABLE IF NOT EXISTS promos (code text PRIMARY KEY, percent int NOT NULL, active boolean NOT NULL DEFAULT true);`
     ).then(() => true).catch(e => { console.error('ensureSchema', e); ensured = undefined; return false; });
   }
