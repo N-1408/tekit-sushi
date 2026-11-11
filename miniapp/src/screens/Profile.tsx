@@ -95,7 +95,17 @@ export default function Profile() {
           </div>
         ) : null}
 
-        <div className="mt-4 bg-white border border-navy-line rounded-[18px] overflow-hidden">
+        <button onClick={() => nav('/history')}
+          className="mt-4 w-full bg-white border border-navy-line rounded-[18px] px-4 py-3.5 flex items-center gap-3.5 active:bg-navy-soft transition-colors"
+        >
+          <span className="text-[#8A93B8]">
+            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+          </span>
+          <span className="text-[14.5px] font-bold flex-1 text-left">{t.historyTitle}</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A2A9C6" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 5 7 7-7 7" /></svg>
+        </button>
+
+        <div className="mt-2.5 bg-white border border-navy-line rounded-[18px] overflow-hidden">
           {rows.map((r, i) => (
             <React.Fragment key={r.id}>
               {i > 0 && <div className="h-px bg-navy-line mx-4" />}

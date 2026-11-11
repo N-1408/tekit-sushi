@@ -60,3 +60,19 @@ export function beepNewOrder() {
     })
   } catch {}
 }
+
+let alertTimer: ReturnType<typeof setInterval> | null = null
+export function isSoundMuted(): boolean {
+  try { return localStorage.getItem('tk-admin-sound') === '0' } catch { return false }
+}
+export function setSoundMuted(v: boolean) {
+  try { localStorage.setItem('tk-admin-sound', v ? '0' : '1') } catch {}
+}
+export function startAlertLoop() {
+  if (isSoundMuted() || alertTimer) return
+  beepNewOrder()
+  alertTimer = setInterval(() => beepNewOrder(), 5000)
+}
+export function stopAlertLoop() {
+  if (alertTimer) { clearInterval(alertTimer); alertTimer = null }
+}

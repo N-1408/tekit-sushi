@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useStore } from '../../lib/store'
+import { T } from '../../lib/i18n'
 import { fmt } from '../../lib/money'
 import { AdminTopBar, Btn, Field, Toggle, inputCls, Modal, useAdmin } from './common'
 import { pImg } from '../../lib/store'
@@ -23,7 +24,8 @@ export default function AdminItemForm() {
 
 function Body() {
   const nav = useNavigate()
-  const { t, showToast, lang } = useStore()
+  const { showToast, lang } = useStore()
+  const t: any = T.en
   const a = useAdmin()
   const { id } = useParams()
   const isNew = !id

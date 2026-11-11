@@ -6,6 +6,7 @@ import Product from './screens/Product'
 import Cart from './screens/Cart'
 import Checkout from './screens/Checkout'
 import Orders from './screens/Orders'
+import History from './screens/History'
 import Profile from './screens/Profile'
 import AdminDash from './screens/admin/AdminDash'
 import AdminOrders from './screens/admin/AdminOrders'
@@ -35,6 +36,7 @@ export default function App() {
         <Route path="/cart" element={<Cart />} />
         <Route path="/checkout" element={<Checkout />} />
         <Route path="/orders" element={<Orders />} />
+        <Route path="/history" element={<History />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/admin" element={<AdminShell><AdminOrders /></AdminShell>} />
         <Route path="/admin/orders" element={<Navigate to="/admin" replace />} />

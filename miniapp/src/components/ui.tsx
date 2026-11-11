@@ -266,10 +266,15 @@ export function Sheet({ open, onClose, title, children, foot }: {
 
 export function Empty({ emoji, title, sub, action }: { emoji: string; title: string; sub?: string; action?: React.ReactNode }) {
   return (
-    <div className="py-16 text-center">
-      <div className="tekit-pattern w-24 h-24 rounded-[26px] mx-auto grid place-items-center text-[40px] shadow-lg">{emoji}</div>
-      <div className="mt-4 text-[17px] font-extrabold">{title}</div>
-      {sub && <div className="mt-1 text-[13px] font-medium text-[#8A93B8]">{sub}</div>}
+    <div className="py-14 text-center">
+      <div className="relative w-28 h-28 mx-auto">
+        <div className="absolute -inset-4 rounded-full bg-navy-soft/70 blur-2xl opacity-80" />
+        <div className="relative tekit-pattern w-28 h-28 rounded-[30px] grid place-items-center text-[46px] shadow-[0_16px_34px_-14px_rgba(10,33,148,.45)]">{emoji}</div>
+        <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-navy/15" />
+        <span className="absolute top-4 -left-2.5 w-2 h-2 rounded-full bg-navy/20" />
+      </div>
+      <div className="mt-5 text-[17px] font-extrabold">{title}</div>
+      {sub && <div className="mt-1.5 text-[13px] font-medium text-[#8A93B8] max-w-[280px] mx-auto leading-relaxed">{sub}</div>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   )

@@ -2,6 +2,7 @@ import React from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { useStore } from '../../lib/store'
+import { T } from '../../lib/i18n'
 import { tgUser, haptic, useNativeBack } from '../../lib/tg'
 import { authHeaders } from '../../lib/admin'
 
@@ -31,7 +32,7 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
   const { roleReady } = useStore()
   const [input, setInput] = React.useState('')
   const [err, setErr] = React.useState('')
-  const { t } = useStore()
+  const t: any = T.en
   const [data, setData] = React.useState<AdminData | null>(() => {
     try { const v = localStorage.getItem('tk-admin-data'); return v ? JSON.parse(v) : null } catch { return null }
   })
@@ -189,13 +190,60 @@ const TAB_ICON: Record<string, JSX.Element> = {
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
-  return <AdminGate tabs>{children}</AdminGate>
+  return (
+    <AdminGate tabs>
+      <AdminSidebar />
+      <div className="lg:pl-[248px]">{children}</div>
+    </AdminGate>
+  )
+}
+
+function AdminSidebar() {
+  const nav = useNavigate()
+  const loc = useLocation()
+  const t: any = T.en
+  const a = useAdmin()
+  const pending = (a.data?.orders || []).filter((o: any) => o.status === 'new').length
+  const items = [
+    { id: 'orders', to: '/admin', label: t.aTabO, icon: TAB_ICON.orders },
+    { id: 'menu', to: '/admin/menu', label: t.aTabM, icon: TAB_ICON.menu },
+    { id: 'promos', to: '/admin/promos', label: t.aTabP, icon: TAB_ICON.promos },
+    { id: 'dash', to: '/admin/dash', label: t.aTabD, icon: TAB_ICON.dash },
+  ]
+  const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
+  return (
+    <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-[248px] z-40 bg-white border-r border-navy-line flex-col">
+      <div className="px-5 pt-5 pb-6 flex items-center gap-3">
+        <img src="/logo.png" className="w-10 h-10 rounded-xl bg-navy-soft" alt="" />
+        <div>
+          <div className="text-[15px] font-extrabold text-navy leading-tight">Tekit</div>
+          <div className="text-[10px] font-extrabold text-[#8A93B8] uppercase tracking-[0.18em] mt-0.5">Admin panel</div>
+        </div>
+      </div>
+      <nav className="flex-1 px-3 space-y-1">
+        {items.map(it => {
+          const act = on(it.to)
+          return (
+            <button key={it.id} onClick={() => { if (!act) { haptic(); nav(it.to) } }}
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-[13.5px] font-extrabold transition-colors ${act ? 'bg-navy text-white shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]' : 'text-[#4A5270] hover:bg-navy-soft'}`}>
+              <span className={act ? 'text-white' : 'text-[#8A93B8]'}>{it.icon}</span>
+              <span className="flex-1 text-left">{it.label}</span>
+              {it.id === 'orders' && !!pending && (
+                <span className="min-w-[19px] h-[19px] px-1 rounded-full bg-red-600 text-white text-[10.5px] font-extrabold grid place-items-center leading-none">{pending}</span>
+              )}
+            </button>
+          )
+        })}
+      </nav>
+      <div className="px-5 py-4 text-[10.5px] font-bold text-[#A2A9C6]">Tekit Sushi · v1.0</div>
+    </aside>
+  )
 }
 
 function AdminTabBar() {
   const nav = useNavigate()
   const loc = useLocation()
-  const { t } = useStore()
+  const t: any = T.en
   const a = useAdmin()
   const pending = (a.data?.orders || []).filter((o: any) => o.status === 'new').length
 
@@ -207,7 +255,7 @@ function AdminTabBar() {
   ]
   const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
   return (
-    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line"
+    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line lg:hidden"
       style={{ paddingBottom: 'calc(8px + var(--sab))' }}>
       <div className="flex">
         {tabs.map(tb => {
