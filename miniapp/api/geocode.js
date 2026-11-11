@@ -11,9 +11,9 @@ export default async function handler(req, res) {
       const r = await fetch(url, { headers: HEADERS, signal: AbortSignal.timeout(7000) })
       if (!r.ok) return res.status(200).json({ ok: true, results: [] })
       const j = await r.json()
-      const results = (Array.isArray(j) ? j : []).slice(0, 5).map((x: any) => ({
+      const results = (Array.isArray(j) ? j : []).slice(0, 5).map(x => ({
         label: String(x.display_name || ''), lat: Number(x.lat), lon: Number(x.lon),
-      })).filter((x: any) => x.label && isFinite(x.lat))
+      })).filter(x => x.label && isFinite(x.lat))
       cors(res, 'GET, OPTIONS')
       return res.status(200).json({ ok: true, results })
     } catch {
