@@ -104,8 +104,8 @@ export default function Home() {
           className="press mt-2 flex w-full items-center gap-3 rounded-xl bg-[#FFD84D] px-4 py-3 text-left active:scale-[.99] transition-transform">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white/60 text-[#111]"><Bike size={18} strokeWidth={2.2} /></span>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-[14px] font-extrabold text-[#111]">{t.bonusTitle}</div>
-            <div className="truncate text-[12px] font-semibold text-[#111]/70">{t.bonusSub}</div>
+            <div className="text-[13.5px] font-extrabold leading-tight text-[#111]">{t.bonusTitle}</div>
+            <div className="mt-0.5 text-[11.5px] font-semibold leading-tight text-[#111]/70">{t.bonusSub}</div>
           </div>
           <ChevronRight size={18} className="shrink-0 text-[#111]/70" />
         </button>

@@ -33,7 +33,7 @@ export function Header({ overHero }: { overHero?: boolean }) {
         style={{ paddingTop: 'calc(8px + var(--sat))', paddingBottom: 8 }}>
         <div className="mx-auto flex max-w-[1020px] items-center gap-2 px-3 lg:px-4">
           <button onClick={() => { haptic(); setDrawer(true) }}
-            className={`press grid h-10 w-10 place-items-center rounded-full active:scale-90 transition-transform ${dark ? 'bg-[#F2F2F4] text-[#111]' : 'bg-white/15 text-white backdrop-blur-sm'}`}>
+            className={`press grid h-10 w-10 place-items-center rounded-full active:scale-90 transition-transform ${dark ? 'bg-[#F2F2F4] text-[#111]' : 'bg-black/25 text-white backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,.18)]'}`}>
             <Menu size={20} strokeWidth={2.2} />
           </button>
           <button onClick={() => { if (loc.pathname !== '/') { haptic(); nav('/') } }} className="press flex flex-1 items-center justify-center gap-2">
@@ -41,11 +41,11 @@ export function Header({ overHero }: { overHero?: boolean }) {
             <span className={`text-[14px] font-extrabold uppercase tracking-wide ${dark ? 'text-[#111]' : 'text-white'} lg:text-[15px]`}>{t.brand}</span>
           </button>
           <button onClick={() => { haptic(); nav('/profile') }}
-            className={`press grid h-10 w-10 place-items-center rounded-full active:scale-90 transition-transform ${dark ? 'bg-[#F2F2F4] text-[#111]' : 'bg-white/15 text-white backdrop-blur-sm'}`}>
+            className={`press grid h-10 w-10 place-items-center rounded-full active:scale-90 transition-transform ${dark ? 'bg-[#F2F2F4] text-[#111]' : 'bg-black/25 text-white backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,.18)]'}`}>
             <User size={20} strokeWidth={2.2} />
           </button>
           <button onClick={() => { haptic(); nav('/cart') }}
-            className={`press relative grid h-10 w-10 place-items-center rounded-full active:scale-90 transition-transform ${dark ? 'bg-[#F2F2F4] text-[#111]' : 'bg-white/15 text-white backdrop-blur-sm'}`}>
+            className={`press relative grid h-10 w-10 place-items-center rounded-full active:scale-90 transition-transform ${dark ? 'bg-[#F2F2F4] text-[#111]' : 'bg-black/25 text-white backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,.18)]'}`}>
             <ShoppingCart size={20} strokeWidth={2.2} />
             {cartCount > 0 && <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-white bg-accent text-[10px] font-extrabold leading-none text-white">{cartCount}</span>}
           </button>
