@@ -390,10 +390,31 @@ export default async (req, res) => {
 
       if (act === 'cat_del') {
         const slug = str(b.slug, 20);
-        const inCat = await P.query('SELECT count(*)::int AS n FROM menu_items WHERE cat = $1 AND active = true', [slug]);
-        if (inCat.rows[0].n > 0) return res.status(400).json({ ok: false, error: 'kategoriyada mahsulot bor, avval ularni oʻchirib qoʻying' });
+        const moveTo = str(b.move_to, 20);
+        const inCat = await P.query('SELECT count(*)::int AS n FROM menu_items WHERE cat = $1', [slug]);
+        if (inCat.rows[0].n > 0) {
+          if (!moveTo) return res.status(400).json({ ok: false, error: 'move-needed', items: inCat.rows[0].n });
+          const tgt = await P.query('SELECT 1 FROM menu_categories WHERE slug = $1', [moveTo]);
+          if (!tgt.rows.length) return res.status(400).json({ ok: false, error: 'maqsad kategoriya topilmadi' });
+          await P.query('UPDATE menu_items SET cat = $2 WHERE cat = $1', [slug, moveTo]);
+        }
         const r = await P.query('DELETE FROM menu_categories WHERE slug = $1 RETURNING slug', [slug]);
         if (!r.rows.length) return res.status(404).json({ ok: false, error: 'topilmadi' });
+        return res.status(200).json({ ok: true });
+      }
+
+      if (act === 'cat_sort') {
+        const slug = str(b.slug, 20);
+        const dir = b.dir === 'up' ? 'up' : 'down';
+        const rows = (await P.query('SELECT slug, sort FROM menu_categories ORDER BY sort, slug')).rows;
+        const i = rows.findIndex(x => x.slug === slug);
+        if (i < 0) return res.status(404).json({ ok: false, error: 'topilmadi' });
+        const j = dir === 'up' ? i - 1 : i + 1;
+        if (j < 0 || j >= rows.length) return res.status(200).json({ ok: true });
+        const A = rows[i], B = rows[j];
+        const newA = (B.sort === A.sort) ? (dir === 'up' ? A.sort - 1 : A.sort + 1) : B.sort;
+        await P.query('UPDATE menu_categories SET sort = $2 WHERE slug = $1', [A.slug, newA]);
+        await P.query('UPDATE menu_categories SET sort = $2 WHERE slug = $1', [B.slug, A.sort]);
         return res.status(200).json({ ok: true });
       }
 
