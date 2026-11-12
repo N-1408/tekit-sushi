@@ -4,9 +4,6 @@ import { useStore, pName, pImg, CATS } from '../lib/store'
 import { TopBar, ProductCard, QtyPill } from '../components/ui'
 import { haptic } from '../lib/tg'
 
-const CAT_ICON: Record<string, string> = {
-  set: '🍱', roll: '🍣', issiq: '🔥', sup: '🍲', wok: '🍜', salat: '🥗', desert: '🍰', ichimlik: '🥤', garnir: '🍚'
-}
 
 export default function Home() {
   const { t, lang, products, favs, showToast, toggleFav, openP } = useStore()
@@ -41,9 +38,8 @@ export default function Home() {
           <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-4 pb-1">
             {CATS.map(c => (
               <button key={c.id} onClick={() => { haptic(); nav(`/cat/${c.id}`) }}
-                className="press shrink-0 w-[76px] h-[88px] flex flex-col items-center justify-center gap-1.5 bg-white border border-navy-line rounded-[18px] active:scale-95 transition-transform">
-                <span className="text-[24px]">{CAT_ICON[(c as any).id] || '🍽'}</span>
-                <span className="text-[11px] font-bold">{(c as any)[lang] || t.catNames[c.id]}</span>
+                className="press shrink-0 w-[76px] h-[64px] flex items-center justify-center text-center bg-white border border-navy-line rounded-[18px] active:scale-95 transition-transform">
+                <span className="text-[11.5px] font-bold leading-tight px-1">{(c as any)[lang] || t.catNames[c.id]}</span>
               </button>
             ))}
           </div>

@@ -53,7 +53,7 @@ function Body() {
           {catsWith.map(c => (
             <button key={c.slug} onClick={() => nav(`/admin/menu/${c.slug}`)}
               className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${cur === c.slug ? 'bg-navy text-white shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-white text-[#8A93B8] border border-navy-line'}`}>
-              {c.emoji} {(c as any)['title_' + lang] || c.title_uz} {countIn(c.slug)}
+              {(c as any)['title_' + lang] || c.title_uz} · {countIn(c.slug)}
               {c.sale_active && c.sale_percent > 0 && <span className="ml-1 text-[10px]">%</span>}
             </button>
           ))}
