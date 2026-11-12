@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore, type MyOrder } from '../lib/store'
 import { fmt } from '../lib/money'
-import { TopBar, Empty, BigButton } from '../components/ui'
+import { Empty, BigButton, SubBar} from '../components/ui'
 
 const ACTIVE = ['new', 'confirmed', 'cooking', 'delivering']
 const ARCHIVE = ['done', 'cancelled']
@@ -104,7 +104,7 @@ export default function Orders() {
 
   return (
     <div className="pb-28">
-      <TopBar title={t.tabOrders} back={false} />
+      <SubBar title={t.tabOrders} />
       {myOrders.length === 0 ? (
         <div className="px-4">
           <Empty emoji="📦" title={t.noOrders} sub={t.noOrdersSub}

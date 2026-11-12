@@ -15,7 +15,9 @@ import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
-import { TabBar, ProductSheet } from './components/ui'
+import { ProductSheet } from './components/ui'
+import { Header } from './components/Header'
+import { Footer } from './components/Footer'
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 
@@ -25,10 +27,11 @@ export default function App() {
   const isAdmin = loc.pathname.startsWith('/admin')
   useEffect(() => { initTg() }, [])
 
-  const wide = !isAdmin && !loc.pathname.startsWith('/p/')
+  const isHome = loc.pathname === '/'
+  const wide = !isAdmin && isHome
   return (
     <>
-      <div className={wide ? 'lg:pl-[220px]' : undefined}>
+      {!isAdmin && <Header overHero={isHome} />}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/cat/:cat" element={<Cat />} />
@@ -49,11 +52,10 @@ export default function App() {
         <Route path="/admin/cats" element={<AdminGate><AdminCats /></AdminGate>} />
         <Route path="/admin/promos" element={<AdminShell><AdminPromos /></AdminShell>} />
       </Routes>
-      </div>
+      {!isAdmin && wide && <Footer />}
       {!isAdmin && (!user || ob) && <Onboarding />}
-      {!isAdmin && <TabBar />}
       {!isAdmin && <ProductSheet />}
-      {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-[calc(50%+110px)] z-[60] bg-navy-deep text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
+      {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-1/2 z-[60] bg-navy-deep text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
     </>
   )
 }

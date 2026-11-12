@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  Flame, UtensilsCrossed, Fish, Salad, Soup, Drumstick, CookingPot, Baby,
+  Menu, Flame, UtensilsCrossed, Fish, Salad, Soup, Drumstick, CookingPot, Baby,
   CakeSlice, Wheat, CupSoda, Droplets, Package, Heart, Search, Home, ShoppingCart,
   User, MapPin, Phone, Clock, Plus, Minus, X, ChevronRight, ChevronLeft, ArrowLeft,
   Percent, Sparkles, Check, Trash2, History, Receipt, ChefHat, Info, CircleHelp,
@@ -15,7 +15,7 @@ export const CAT_ICON: Record<string, any> = {
 }
 
 export {
-  Flame, UtensilsCrossed, Fish, Salad, Soup, Drumstick, CookingPot, Baby, CakeSlice,
+  Menu, Flame, UtensilsCrossed, Fish, Salad, Soup, Drumstick, CookingPot, Baby, CakeSlice,
   Wheat, CupSoda, Droplets, Package, Heart, Search, Home, ShoppingCart, User, MapPin,
   Phone, Clock, Plus, Minus, X, ChevronRight, ChevronLeft, ArrowLeft, Percent, Sparkles,
   Check, Trash2, History, Receipt, ChefHat, Info, CircleHelp, Timer, CreditCard, Banknote,

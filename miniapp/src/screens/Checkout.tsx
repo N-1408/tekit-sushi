@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, pName } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, BigButton } from '../components/ui'
+import { BigButton, SubBar} from '../components/ui'
 import { Banknote, Check } from '../lib/icons'
 import MapPicker from '../components/MapPicker'
 
@@ -124,7 +124,7 @@ export default function Checkout() {
 
   return (
     <div className="pb-28">
-      <TopBar title={t.checkout} />
+      <SubBar title={t.checkout} />
       {done ? (
         <div className="px-4 pt-16 text-center lg:max-w-[560px] lg:mx-auto">
           <div className="tekit-pattern w-24 h-24 rounded-[26px] mx-auto grid place-items-center shadow-lg text-white"><Check size={44} strokeWidth={2.4} /></div>

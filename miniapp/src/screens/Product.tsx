@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore, pName, pImg, pDesc } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty } from '../components/ui'
+import { Qty, SubBar} from '../components/ui'
 import { Heart, UtensilsCrossed, Check } from '../lib/icons'
 
 export default function Product() {
@@ -14,13 +14,13 @@ export default function Product() {
   const [q, setQ] = React.useState(1)
   const sauces = products.filter(x => x.cat === 'sous' && x.id !== id && x.active !== false)
   const qtyOf = (sid: string) => cart.find(l => l.id === sid)?.q || 0
-  if (!p) return <div className="pb-28"><TopBar title="…" /></div>
+  if (!p) return <div className="pb-28"><SubBar title="…"/></div>
   const fav = favs.includes(p.id)
   const hasKbju = [p.kcal, p.protein, p.fat, p.carbs].some(v => v != null && (v as number) > 0)
 
   return (
     <div className="pb-32">
-      <TopBar title={pName(p, lang)} />
+      <SubBar title={pName(p, lang)} />
       <div className="lg:max-w-[1240px] lg:mx-auto lg:grid lg:grid-cols-2 lg:gap-10 lg:items-start lg:px-8 lg:pt-6">
       <div className="relative lg:rounded-[26px] lg:overflow-hidden">
         <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover bg-navy-soft" />

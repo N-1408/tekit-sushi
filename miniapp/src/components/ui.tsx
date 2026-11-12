@@ -157,41 +157,62 @@ export function QtyPill({ p, small }: { p: { id: string }; small?: boolean }) {
 }
 
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const { cart, add, lang, favs, toggleFav, showToast, t, openP } = useStore()
+  const { cart, add, setQty, lang, favs, toggleFav, showToast, t, openP } = useStore()
   const fav = favs.includes(p.id)
   const sale = p.sale_active && (p.old_price ?? 0) > p.price
+  const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
   return (
     <article onClick={() => { haptic(); openP(p) }}
-      className="anim-up bg-white border border-navy-line rounded-[20px] overflow-hidden active:scale-[.975] transition-transform duration-200 cursor-pointer shadow-card"
-      style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
-      <div className="relative aspect-square bg-navy-soft">
-        <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+      className="anim-up cursor-pointer overflow-hidden rounded-[14px] bg-white active:scale-[.985] transition-transform duration-200"
+      style={{ animationDelay: `${Math.min(i * 30, 240)}ms` }}>
+      <div className="relative aspect-square overflow-hidden rounded-[14px] bg-[#F4F4F6]">
+        <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="h-full w-full object-cover" />
         <button onClick={e => { e.stopPropagation(); toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
-          className="absolute top-2 right-2 w-8 h-8 rounded-full bg-white/95 grid place-items-center shadow-sm active:scale-90 transition-transform">
+          className="absolute right-2 top-2 grid h-8 w-8 place-items-center rounded-full bg-white/95 shadow-sm active:scale-90 transition-transform">
           <Heart size={16} strokeWidth={2} fill={fav ? '#E23B52' : 'none'} color={fav ? '#E23B52' : '#8A93B8'} />
         </button>
         {sale ? (
-          <span className="absolute top-2 left-2 bg-accent text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg shadow">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
-        ) : p.hit ? <span className="absolute top-2 left-2 bg-navy text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg">{t.hit}</span> : null}
-        {(() => {
-          const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
-          return q > 0 ? <QtyPill p={p} /> : (
-            <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
-              className="absolute bottom-2 right-2 w-9 h-9 rounded-full bg-navy text-white grid place-items-center shadow-btn active:scale-90 transition-transform">
-              <Plus size={16} strokeWidth={2.6} />
-            </button>
-          )
-        })()}
+          <span className="absolute left-2 top-2 rounded-lg bg-accent px-2 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white shadow">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
+        ) : p.hit ? <span className="absolute left-2 top-2 rounded-lg bg-navy px-2 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white">{t.hit}</span> : null}
       </div>
-      <div className="p-2.5">
-        <div className="text-[13.5px] font-bold leading-snug line-clamp-2 min-h-[36px]">{pName(p, lang)}</div>
-        <div className="text-[11px] font-semibold text-[#8A93B8] mt-0.5 min-h-[15px]">{p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')}</div>
-        <div className="mt-1.5 text-[15px] font-extrabold tracking-tight flex items-baseline gap-1.5">
-          {fmt(p.price)} <span className="text-[11px] font-bold text-[#8A93B8]">UZS</span>
-          {(p.old_price ?? 0) > p.price && <span className="text-[11px] font-bold text-[#8A93B8] line-through">{fmt(p.old_price)}</span>}
+      <div className="px-1.5 pt-2">
+        <div className="line-clamp-2 min-h-[38px] text-[14px] font-bold leading-snug text-[#111]">{pName(p, lang)}</div>
+        <div className="mt-0.5 min-h-[16px] text-[12px] font-medium text-[#8A8FA3]">{p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')}</div>
+        <div className="mt-1.5 flex items-center gap-1.5">
+          {q > 0 ? (
+            <div onClick={e => e.stopPropagation()} className="flex items-center gap-1 rounded-full bg-[#F2F2F4] p-1">
+              <button onClick={() => { setQty(p.id, q - 1); haptic('light') }} className="press grid h-7 w-7 place-items-center rounded-full bg-white text-[#111] active:scale-90 transition-transform"><Minus size={14} strokeWidth={2.6} /></button>
+              <span className="w-4 text-center text-[12.5px] font-extrabold">{q}</span>
+              <button onClick={() => { add(p.id); haptic('medium') }} className="press grid h-7 w-7 place-items-center rounded-full bg-accent text-white active:scale-90 transition-transform"><Plus size={14} strokeWidth={2.6} /></button>
+            </div>
+          ) : (
+            <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
+              className="press flex items-center gap-1.5 rounded-full bg-[#F2F2F4] px-3.5 py-2 text-[13px] font-extrabold text-[#111] active:scale-95 transition-transform">
+              {fmt(p.price)}
+              <span className="grid h-5 w-5 place-items-center rounded-full bg-white"><Plus size={12} strokeWidth={2.8} /></span>
+            </button>
+          )}
+          {(p.old_price ?? 0) > p.price && <span className="text-[11px] font-bold text-[#A2A9C6] line-through">{fmt(p.old_price)}</span>}
         </div>
       </div>
     </article>
+  )
+}
+
+
+/* Sub-sahifa sarlavha qatori: kgsushi breadcrumb uslubi (uy tugmasi + sarlavha) */
+export function SubBar({ title, right }: { title?: string; right?: React.ReactNode }) {
+  const st = useStore() as any
+  const nav = useNavigate()
+  return (
+    <div className="flex items-center gap-3 px-3 pt-[calc(72px+var(--sat))] lg:pt-[80px]">
+      <button onClick={() => { haptic(); nav('/') }}
+        className="press grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#F2F2F4] text-[#111] active:scale-90 transition-transform">
+        <Home size={18} strokeWidth={2.2} />
+      </button>
+      {title ? <h1 className="min-w-0 flex-1 truncate text-[20px] font-extrabold text-[#111] lg:text-[28px]">{title}</h1> : <div className="flex-1" />}
+      {right}
+    </div>
   )
 }
 
@@ -350,85 +371,107 @@ export function ProductSheet() {
   const sauces = products.filter(x => x.cat === 'sous' && x.id !== p.id && x.active !== false)
   const qtyOf = (sid: string) => cart.find(l => l.id === sid)?.q || 0
   const hasKbju = [p.kcal, p.protein, p.fat, p.carbs].some(v => v != null && (v as number) > 0)
-  return (
-    <Sheet open onClose={closeP} title={pName(p, lang)}
-      foot={
-        <div className="flex gap-2.5 items-center">
-          <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
-          <button onClick={() => { add(p.id, q); haptic('medium'); showToast(t.added); closeP() }}
-            className="press flex-1 py-3.5 rounded-2xl bg-accent text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-10px_rgba(255,106,43,.7)] active:scale-[.98] transition-transform">
-            {t.addCart} · {fmt(p.price * q)}
-          </button>
-        </div>
-      }>
-      <div>
-        <div className="relative rounded-[20px] overflow-hidden bg-navy-soft">
-          <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover" />
-          <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
-            className="absolute top-2.5 right-2.5 w-10 h-10 rounded-full bg-white grid place-items-center shadow-md active:scale-90 transition-transform">
-            <Heart size={19} strokeWidth={2} fill={fav ? '#E23B52' : 'none'} color={fav ? '#E23B52' : '#8A93B8'} />
-          </button>
-          {p.weight ? <span className="absolute bottom-2.5 left-3 bg-white/95 text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.weight}</span> : null}
-        </div>
-        <div className="mt-3 flex items-start justify-between gap-3">
-          <div className="text-[19px] font-extrabold leading-tight flex-1">{pName(p, lang)}</div>
-          <div className="text-right">
-            {(p.old_price ?? 0) > p.price && <div className="text-[12px] font-bold text-[#8A93B8] line-through">{fmt(p.old_price)} UZS</div>}
-            <div className="text-[18px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[12px] text-[#8A93B8]"> UZS</span></div>
+
+  const infoCol = (
+    <div className="flex h-full min-w-0 flex-1 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 lg:px-6 lg:py-5 overscroll-contain">
+        <div className="text-[20px] font-extrabold leading-tight text-[#111] lg:text-[22px]">{pName(p, lang)}</div>
+        {p.weight && <div className="mt-1 text-[13px] font-medium text-[#8A8FA3]">{p.weight}</div>}
+        <p className="mt-2 text-[13.5px] leading-relaxed text-[#6B6F80] whitespace-pre-line">{pDesc(p, lang)}</p>
+        {hasKbju && (
+          <div className="mt-4 rounded-[12px] bg-[#F2F2F4] px-3.5 py-3">
+            <div className="flex items-center justify-between">
+              <span className="text-[10.5px] font-extrabold uppercase tracking-widest text-[#8A8FA3]">КБЖУ</span>
+              <span className="text-[10.5px] font-bold text-[#A2A9C6]">{t.per100}</span>
+            </div>
+            <div className="mt-2 grid grid-cols-4 gap-1.5">
+              {([[t.nKcal, p.kcal], [t.nProt, p.protein], [t.nFat, p.fat], [t.nCarb, p.carbs]] as const).map(([label, val]) => (
+                <div key={label} className="py-1 text-center">
+                  <div className="text-[16px] font-extrabold leading-none text-[#111]">{val != null ? val : '—'}</div>
+                  <div className="mt-1 text-[9.5px] font-bold leading-none text-[#8A8FA3]">{label}</div>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
         {p.cat !== 'sous' && sauces.length > 0 && (
-          <div className="mt-3 bg-navy-soft/60 rounded-3xl p-3.5">
+          <div className="mt-3.5 rounded-[12px] bg-[#F2F2F4] p-3.5">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-navy shrink-0 shadow-sm"><UtensilsCrossed size={15} /></span>
-              <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-extrabold text-navy leading-tight">{t.sAsk}</div>
-                <div className="text-[10.5px] font-semibold text-[#8A93B8] leading-tight mt-0.5">{t.sSub}</div>
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-navy shadow-sm"><UtensilsCrossed size={15} /></span>
+              <div className="min-w-0 flex-1">
+                <div className="text-[13.5px] font-extrabold leading-tight text-navy">{t.sAsk}</div>
+                <div className="mt-0.5 text-[10.5px] font-semibold leading-tight text-[#8A8FA3]">{t.sSub}</div>
               </div>
             </div>
-            <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-3.5 px-3.5 snap-x">
+            <div className="-mx-3.5 mt-3 flex snap-x gap-2 overflow-x-auto px-3.5 pb-1 lg:mx-0 lg:flex-wrap lg:px-0">
               {sauces.map(sa => {
                 const sq = qtyOf(sa.id)
                 return (
-                  <div key={sa.id} className={'shrink-0 snap-start flex items-center gap-2 rounded-full bg-white border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-navy shadow-btn' : 'border-navy-line')}>
-                    <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
+                  <div key={sa.id} className={'flex shrink-0 snap-start items-center gap-2 rounded-full border bg-white py-1.5 pl-1.5 pr-2 ' + (sq > 0 ? 'border-navy' : 'border-transparent')}>
+                    <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="h-9 w-9 rounded-full bg-[#F4F4F6] object-cover" />
                     <div className="pr-0.5">
-                      <div className="text-[11.5px] font-extrabold leading-none whitespace-nowrap">{pName(sa, lang)}</div>
-                      <div className="text-[10px] font-bold text-[#8A93B8] mt-1 leading-none">{fmt(sa.price)}</div>
+                      <div className="whitespace-nowrap text-[11.5px] font-extrabold leading-none">{pName(sa, lang)}</div>
+                      <div className="mt-1 text-[10px] font-bold leading-none text-[#8A8FA3]">{fmt(sa.price)}</div>
                     </div>
                     {sq > 0 && (
-                      <div className="flex items-center gap-1 ml-0.5">
-                        <button onClick={() => { setQty(sa.id, sq - 1); haptic() }}
-                          className="press w-6 h-6 rounded-full bg-white border border-navy-line text-navy grid place-items-center active:scale-90 transition-transform"><Minus size={12} strokeWidth={2.6} /></button>
+                      <div className="ml-0.5 flex items-center gap-1">
+                        <button onClick={() => { setQty(sa.id, sq - 1); haptic() }} className="press grid h-6 w-6 place-items-center rounded-full border border-navy-line bg-white text-navy active:scale-90 transition-transform"><Minus size={12} strokeWidth={2.6} /></button>
                         <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
                       </div>
                     )}
                     <button onClick={() => { if (sq > 0) { setQty(sa.id, sq + 1); haptic() } else { add(sa.id, 1); haptic('light'); showToast(t.added) } }}
-                      className="press w-7 h-7 rounded-full bg-navy text-white grid place-items-center shadow-btn active:scale-90 transition-transform"><Plus size={14} strokeWidth={2.6} /></button>
+                      className="press grid h-7 w-7 place-items-center rounded-full bg-accent text-white active:scale-90 transition-transform"><Plus size={14} strokeWidth={2.6} /></button>
                   </div>
                 )
               })}
             </div>
           </div>
         )}
-        {hasKbju && (
-          <div className="mt-3.5 bg-white border border-navy-line rounded-2xl px-3.5 py-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10.5px] font-extrabold text-[#8A93B8] uppercase tracking-widest">КБЖУ</span>
-              <span className="text-[10.5px] font-bold text-[#A2A9C6]">{t.per100}</span>
-            </div>
-            <div className="mt-2 grid grid-cols-4 gap-1.5">
-              {([[t.nKcal, p.kcal], [t.nProt, p.protein], [t.nFat, p.fat], [t.nCarb, p.carbs]] as const).map(([label, val]) => (
-                <div key={label} className="bg-navy-soft/70 rounded-xl py-2 text-center">
-                  <div className="text-[15px] font-extrabold text-navy leading-none">{val != null ? val : '—'}</div>
-                  <div className="mt-1 text-[9.5px] font-bold text-[#8A93B8] leading-none">{label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
       </div>
-    </Sheet>
+      <div className="px-4 pb-4 lg:px-6" style={{ paddingBottom: 'calc(16px + var(--sab))' }}>
+        <div className="flex items-center gap-2.5">
+          <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
+          <button onClick={() => { add(p.id, q); haptic('medium'); showToast(t.added); closeP() }}
+            className="press flex flex-1 items-center justify-center gap-2 rounded-[12px] bg-accent py-3.5 text-[16px] font-extrabold text-white shadow-[0_10px_22px_-10px_rgba(255,106,43,.7)] active:scale-[.98] transition-transform">
+            {fmt(p.price * q)}
+            <Plus size={18} strokeWidth={3} />
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+
+  return createPortal(
+    <div className="fixed inset-0 z-50">
+      <div className="absolute inset-0 bg-navy-deep/45" onClick={closeP} />
+      {/* Mobil: pastdan chiqadigan varaq */}
+      <div className="anim-sheet absolute bottom-0 left-0 right-0 flex max-h-[92dvh] flex-col overflow-hidden rounded-t-[28px] bg-white shadow-pop overscroll-contain select-none lg:hidden"
+        style={{ paddingBottom: 0 }}>
+        <div className="pt-2.5 pb-1">
+          <div className="mx-auto h-1.5 w-10 rounded-full bg-[#D8DCEA]" />
+        </div>
+        <div className="relative aspect-square overflow-hidden bg-[#F4F4F6]">
+          <img src={pImg(p)} alt={pName(p, lang)} className="h-full w-full object-cover" />
+          <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
+            className="absolute right-3 top-3 grid h-10 w-10 place-items-center rounded-full bg-white shadow-md active:scale-90 transition-transform">
+            <Heart size={19} strokeWidth={2} fill={fav ? '#E23B52' : 'none'} color={fav ? '#E23B52' : '#8A93B8'} />
+          </button>
+        </div>
+        {infoCol}
+      </div>
+      {/* Desktop: kgsushi split modal (rasm chapda, ma'lumot o'ngda) */}
+      <div className="absolute left-1/2 top-1/2 hidden w-[860px] max-w-[94vw] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[16px] bg-white shadow-pop lg:flex lg:h-[560px]">
+        <button onClick={closeP} className="press absolute right-3 top-3 z-10 grid h-10 w-10 place-items-center rounded-full bg-[#F4F4F4] text-[#111] active:scale-90 transition-transform"><X size={17} strokeWidth={2.4} /></button>
+        <div className="relative w-[55%] shrink-0 bg-[#F4F4F6]">
+          <img src={pImg(p)} alt={pName(p, lang)} className="h-full w-full object-cover" />
+          <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
+            className="absolute bottom-3 right-3 grid h-10 w-10 place-items-center rounded-full bg-white shadow-md active:scale-90 transition-transform">
+            <Heart size={19} strokeWidth={2} fill={fav ? '#E23B52' : 'none'} color={fav ? '#E23B52' : '#8A93B8'} />
+          </button>
+        </div>
+        {infoCol}
+      </div>
+    </div>,
+    document.body
   )
 }

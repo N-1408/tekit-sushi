@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import type { Lang } from '../lib/i18n'
-import { TopBar, Sheet } from '../components/ui'
+import { Sheet, SubBar} from '../components/ui'
 import { MapPin } from '../lib/icons'
 
 const ROW_ICON: Record<string, React.ReactNode> = {
@@ -78,7 +78,7 @@ export default function Profile() {
 
   return (
     <div className="pb-28">
-      <TopBar title={t.tabProfile} back={false} />
+      <SubBar title={t.tabProfile} />
       <div className="px-4 mt-4 lg:max-w-[760px] lg:mx-auto">
         <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-lg">
           <img src="/logo.png" className="w-14 h-14 rounded-2xl bg-white/20" alt="" />

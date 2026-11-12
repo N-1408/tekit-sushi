@@ -1,7 +1,7 @@
 import React from 'react'
 import { useStore, type MyOrder } from '../lib/store'
 import { fmt } from '../lib/money'
-import { TopBar, Empty } from '../components/ui'
+import { Empty, SubBar} from '../components/ui'
 import { Check, X } from '../lib/icons'
 import { statusLabel, CHIP_STYLE } from './Orders'
 
@@ -12,7 +12,7 @@ export default function History() {
 
   return (
     <div className="pb-28">
-      <TopBar title={t.historyTitle} />
+      <SubBar title={t.historyTitle} />
       {arc.length === 0 ? (
         <div className="px-4">
           <Empty emoji="🗄" title={t.noArchive} sub={t.noArchiveSub} />

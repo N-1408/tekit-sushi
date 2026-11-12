@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, pName, pImg } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty, Empty, BigButton } from '../components/ui'
+import { Qty, Empty, BigButton, SubBar} from '../components/ui'
 
 export default function Cart() {
   const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add } = useStore()
@@ -13,7 +13,7 @@ export default function Cart() {
 
   return (
     <div className="pb-28">
-      <TopBar title={t.tabCart} back={false} right={<div />} />
+      <SubBar title={t.tabCart} />
       {lines.length === 0 ? (
         <div className="px-4">
           <Empty emoji="🛒" title={t.cartEmpty} sub={t.cartEmptySub}
