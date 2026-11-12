@@ -2,6 +2,7 @@ import React from 'react'
 import { useStore, type MyOrder } from '../lib/store'
 import { fmt } from '../lib/money'
 import { TopBar, Empty } from '../components/ui'
+import { Check, X } from '../lib/icons'
 import { statusLabel, CHIP_STYLE } from './Orders'
 
 export default function History() {
@@ -21,7 +22,7 @@ export default function History() {
           {arc.map(o => (
             <div key={o.oid} className="bg-white border border-navy-line rounded-[18px] px-4 py-3.5 flex items-center gap-3">
               <div className={`w-9 h-9 rounded-xl grid place-items-center text-[15px] shrink-0 ${o.status === 'done' ? 'bg-emerald-100' : 'bg-rose-100'}`}>
-                {o.status === 'done' ? '✅' : '✕'}
+                {o.status === 'done' ? <Check size={15} strokeWidth={2.6} className="text-emerald-600" /> : <X size={15} strokeWidth={2.6} className="text-rose-500" />}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

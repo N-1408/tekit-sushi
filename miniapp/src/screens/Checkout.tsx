@@ -4,6 +4,7 @@ import { useStore, pName } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
 import { TopBar, BigButton } from '../components/ui'
+import { Banknote, Check } from '../lib/icons'
 import MapPicker from '../components/MapPicker'
 
 const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{label}</div>{children}</div>
@@ -126,7 +127,7 @@ export default function Checkout() {
       <TopBar title={t.checkout} />
       {done ? (
         <div className="px-4 pt-16 text-center lg:max-w-[560px] lg:mx-auto">
-          <div className="tekit-pattern w-24 h-24 rounded-[26px] mx-auto grid place-items-center text-[42px] shadow-lg">✅</div>
+          <div className="tekit-pattern w-24 h-24 rounded-[26px] mx-auto grid place-items-center shadow-lg text-white"><Check size={44} strokeWidth={2.4} /></div>
           <h2 className="mt-4 text-[20px] font-extrabold">{t.orderPlaced}</h2>
           <p className="mt-1.5 text-[13.5px] text-[#8A93B8] font-medium">{t.orderPlacedSub}</p>
           <div className="mt-4 inline-block bg-white border border-navy-line rounded-xl px-4 py-2.5 text-[14px] font-extrabold">#{done.oid}</div>
@@ -185,11 +186,11 @@ export default function Checkout() {
 
             <Line label={t.payment}>
               <div className="flex gap-2">
-                <span className={chip(true)}>💵 {t.cash}</span>
+                <span className={chip(true)}><span className="inline-flex items-center justify-center gap-1.5"><Banknote size={15} strokeWidth={2.2} />{t.cash}</span></span>
               </div>
               {pay === 'cash' && (
                 <div className="mt-2.5 space-y-2.5">
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[11.5px] font-semibold text-amber-800 leading-snug">⚠️ {t.cashWarn}</div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[11.5px] font-semibold text-amber-800 leading-snug">{t.cashWarn}</div>
                   <input className={input} value={changeAmt} onChange={e => setChangeAmt(e.target.value.replace(/[^0-9 ]/g, ''))}
                     placeholder={t.changePlaceholder} inputMode="numeric" />
                   <div className="text-[11px] font-semibold text-[#A2A9C6] -mt-1.5">{t.changeLabel} · {t.changeHint}</div>
