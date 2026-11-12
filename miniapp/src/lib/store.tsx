@@ -86,7 +86,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [products, setProducts] = useState<Product[]>(() => load<Product[]>('tk-menu-v2', PRODUCTS))
   const [role, setRole] = useState<string | null>(null)
   const [roleReady, setRoleReady] = useState(false)
-  const [user, setUser] = useState<User | null>(() => load<User | null>('tk-user', null))
+  const [user, setUser] = useState<User | null>(() => {
+    const saved = load<User | null>('tk-user', null)
+    if (saved) return saved
+    // preview: ?demo=1 — faqat brauzerda ko'rish uchun mahalliy mehmon foydalanuvchisi
+    try {
+      if (new URLSearchParams(window.location.search).has('demo')) {
+        const d = { tg_id: undefined, name: 'Demo mijoz', phone: '+998901234567', addr: 'Toshkent' } as any
+        localStorage.setItem('tk-user', JSON.stringify(d))
+        return d
+      }
+    } catch {}
+    return null
+  })
   const [ob, setOb] = useState(false)
 
   useEffect(() => { localStorage.setItem('tk-lang', JSON.stringify(lang)) }, [lang])
