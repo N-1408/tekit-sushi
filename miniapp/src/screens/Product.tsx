@@ -28,23 +28,23 @@ export default function Product() {
           className="absolute top-3 right-4 w-10 h-10 rounded-full bg-white grid place-items-center shadow-md active:scale-90 transition-transform">
           <Heart size={19} strokeWidth={2} fill={fav ? '#E23B52' : 'none'} color={fav ? '#E23B52' : '#8A93B8'} />
         </button>
-        {p.pcs ? <span className="absolute bottom-3 left-4 bg-white/95 text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
+        {p.pcs ? <span className="absolute bottom-3 left-4 bg-white/95 text-[12.5px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
       </div>
       <div className="px-4 mt-4 lg:px-0 lg:mt-0">
         <div className="flex items-start justify-between gap-3">
-          <h1 className="text-[21px] font-extrabold leading-tight flex-1">{pName(p, lang)}</h1>
-          <div className="text-[20px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[12px] text-[#8A93B8]"> UZS</span></div>
+          <h1 className="text-[23px] font-extrabold leading-tight flex-1">{pName(p, lang)}</h1>
+          <div className="text-[22px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[13.5px] text-[#8A93B8]"> UZS</span></div>
         </div>
         {p.weight ? (
           <div className="mt-3 flex items-center gap-1.5 bg-white border border-navy-line rounded-xl px-3 py-2.5 w-fit">
-            <span className="text-[13px] font-bold">{p.weight}</span>
+            <span className="text-[14.5px] font-bold">{p.weight}</span>
           </div>
         ) : null}
         {hasKbju && (
           <div className="mt-3 bg-white border border-navy-line rounded-2xl px-3.5 py-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10.5px] font-extrabold text-[#8A93B8] uppercase tracking-widest">КБЖУ</span>
-              <span className="text-[10.5px] font-bold text-[#A2A9C6]">{t.per100}</span>
+              <span className="text-[12px] font-extrabold text-[#8A93B8] uppercase tracking-widest">КБЖУ</span>
+              <span className="text-[12px] font-bold text-[#A2A9C6]">{t.per100}</span>
             </div>
             <div className="mt-2 grid grid-cols-4 gap-1.5">
               {([
@@ -54,22 +54,22 @@ export default function Product() {
                 [t.nCarb, p.carbs],
               ] as const).map(([label, val]) => (
                 <div key={label} className="bg-navy-soft/70 rounded-xl py-2 text-center">
-                  <div className="text-[15px] font-extrabold text-navy leading-none">{val != null ? val : '—'}</div>
-                  <div className="mt-1 text-[9.5px] font-bold text-[#8A93B8] leading-none">{label}</div>
+                  <div className="text-[16.5px] font-extrabold text-navy leading-none">{val != null ? val : '—'}</div>
+                  <div className="mt-1 text-[11px] font-bold text-[#8A93B8] leading-none">{label}</div>
                 </div>
               ))}
             </div>
           </div>
         )}
-        <p className="mt-3 text-[14px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
+        <p className="mt-3 text-[15.5px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
 
         {p.cat !== 'sous' && sauces.length > 0 && (
           <div className="mt-4 bg-navy-soft/60 rounded-3xl p-3.5">
             <div className="flex items-center gap-2.5">
               <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-navy shrink-0 shadow-sm"><UtensilsCrossed size={15} /></span>
               <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-extrabold text-navy leading-tight">{t.sAsk}</div>
-                <div className="text-[10.5px] font-semibold text-[#8A93B8] leading-tight mt-0.5">{t.sSub}</div>
+                <div className="text-[15px] font-extrabold text-navy leading-tight">{t.sAsk}</div>
+                <div className="text-[12px] font-semibold text-[#8A93B8] leading-tight mt-0.5">{t.sSub}</div>
               </div>
             </div>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-3.5 px-3.5 snap-x lg:mx-0 lg:px-0 lg:flex-wrap">
@@ -79,18 +79,18 @@ export default function Product() {
                   <div key={s.id} className={'shrink-0 snap-start flex items-center gap-2 rounded-full bg-white border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
                     <img src={pImg(s)} alt={pName(s, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
                     <div className="pr-0.5">
-                      <div className="text-[11.5px] font-extrabold leading-none whitespace-nowrap">{pName(s, lang)}</div>
-                      <div className="text-[10px] font-bold text-[#8A93B8] mt-1 leading-none">{fmt(s.price)}</div>
+                      <div className="text-[13px] font-extrabold leading-none whitespace-nowrap">{pName(s, lang)}</div>
+                      <div className="text-[11.5px] font-bold text-[#8A93B8] mt-1 leading-none">{fmt(s.price)}</div>
                     </div>
                     {sq > 0 && (
                       <div className="flex items-center gap-1 ml-0.5">
                         <button onClick={() => { setQty(s.id, sq - 1); haptic() }}
-                          className="press w-6 h-6 rounded-full bg-white border border-navy-line text-navy text-[12px] font-extrabold grid place-items-center active:scale-90 transition-transform">−</button>
-                        <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
+                          className="press w-6 h-6 rounded-full bg-white border border-navy-line text-navy text-[13.5px] font-extrabold grid place-items-center active:scale-90 transition-transform">−</button>
+                        <span className="w-3.5 text-center text-[13px] font-extrabold">{sq}</span>
                       </div>
                     )}
                     <button onClick={() => { if (sq > 0) { setQty(s.id, sq + 1); haptic() } else { add(s.id, 1); haptic('light'); showToast(t.added) } }}
-                      className="press w-7 h-7 rounded-full bg-navy text-white text-[15px] font-extrabold grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">+</button>
+                      className="press w-7 h-7 rounded-full bg-navy text-white text-[16.5px] font-extrabold grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">+</button>
                   </div>
                 )
               })}
@@ -105,7 +105,7 @@ export default function Product() {
         <div className="flex gap-2.5 items-center lg:max-w-[1240px] lg:mx-auto">
           <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
           <button onClick={() => { add(p.id, q); haptic('medium'); showToast(t.added); nav(-1) }}
-            className="press flex-1 py-3.5 rounded-2xl bg-accent text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-10px_rgba(255,106,43,.7)] active:scale-[.98] transition-transform">
+            className="press flex-1 py-3.5 rounded-2xl bg-accent text-white text-[16.5px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-10px_rgba(255,106,43,.7)] active:scale-[.98] transition-transform">
             {t.addCart} · {fmt(p.price * q)}
           </button>
         </div>

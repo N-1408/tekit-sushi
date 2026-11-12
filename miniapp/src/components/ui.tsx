@@ -32,14 +32,14 @@ export function TopBar({ title, right, back = true }: { title?: string; right?: 
             <button onClick={() => nav(-1)} className="press w-10 h-10 rounded-full bg-white border border-navy-line grid place-items-center text-navy-ink shadow-sm active:scale-90 transition-transform">
               <ArrowLeft size={18} strokeWidth={2.4} />
             </button>
-            <div className="text-[17px] font-extrabold flex-1 truncate">{title}</div>
+            <div className="text-[19px] font-extrabold flex-1 truncate">{title}</div>
           </>
         ) : (
           <>
             <WhaleMark size={42} />
             <div className="flex-1 min-w-0">
-              <div className="text-[16px] font-extrabold leading-tight">{t.brand}</div>
-              <div className="text-[11px] font-semibold text-[#8A93B8] leading-tight truncate">{hiName(t, user)}</div>
+              <div className="text-[18px] font-extrabold leading-tight">{t.brand}</div>
+              <div className="text-[12.5px] font-semibold text-[#8A93B8] leading-tight truncate">{hiName(t, user)}</div>
             </div>
           </>
         )}
@@ -48,7 +48,7 @@ export function TopBar({ title, right, back = true }: { title?: string; right?: 
             <LangPicker />
             <button onClick={() => nav('/cart')} className="press relative w-10 h-10 rounded-full bg-white border border-navy-line grid place-items-center text-navy-ink shadow-sm active:scale-90 transition-transform">
               <ShoppingCart size={18} strokeWidth={2.2} />
-              {cartCount > 0 && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-accent text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-paper">{cartCount}</span>}
+              {cartCount > 0 && <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-accent text-white text-[11.5px] font-extrabold grid place-items-center leading-none border-2 border-paper">{cartCount}</span>}
             </button>
           </div>
         )}
@@ -66,16 +66,16 @@ function LangPicker() {
   return (
     <>
       <button onClick={() => setOpen(true)}
-        className="press flex items-center gap-1.5 bg-white border border-navy-line rounded-full px-2.5 py-2 text-[12px] font-extrabold text-navy-ink shadow-sm active:scale-95 transition-transform">
-        <span className="text-[15px] leading-none">{FLAGS[lang]}</span>{lang.toUpperCase()}
+        className="press flex items-center gap-1.5 bg-white border border-navy-line rounded-full px-2.5 py-2 text-[13.5px] font-extrabold text-navy-ink shadow-sm active:scale-95 transition-transform">
+        <span className="text-[16.5px] leading-none">{FLAGS[lang]}</span>{lang.toUpperCase()}
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title={t.language}>
         <div className="space-y-2 pb-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic(); setOpen(false) }}
               className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-navy text-white border-navy shadow-btn' : 'bg-white border-navy-line'}`}>
-              <span className="text-[22px]">{FLAGS[l]}</span>
-              <span className="text-[15px] font-extrabold flex-1">{LANG_NAME[l]}</span>
+              <span className="text-[24px]">{FLAGS[l]}</span>
+              <span className="text-[16.5px] font-extrabold flex-1">{LANG_NAME[l]}</span>
               {lang === l && <Check size={18} strokeWidth={3} />}
             </button>
           ))}
@@ -110,19 +110,19 @@ export function TabBar() {
         <div className="hidden lg:flex items-center gap-2.5 px-2.5 pt-1 pb-4">
           <WhaleMark size={38} />
           <div>
-            <div className="text-[14px] font-extrabold leading-tight">{t.brand}</div>
-            <div className="text-[10px] font-semibold text-[#8A93B8]">{t.city}</div>
+            <div className="text-[15.5px] font-extrabold leading-tight">{t.brand}</div>
+            <div className="text-[11.5px] font-semibold text-[#8A93B8]">{t.city}</div>
           </div>
         </div>
         {tabs.map(tb => {
           const on = loc === tb.to
           return (
             <button key={tb.id} onClick={() => { if (!on) { haptic(); nav(tb.to) } }}
-              className={`press hov flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors lg:flex-none lg:flex-row lg:gap-3 lg:w-full lg:px-3.5 lg:py-3 lg:rounded-2xl lg:text-[13.5px] ${on ? 'text-navy lg:bg-navy lg:text-white' : 'text-[#A2A9C6] lg:text-[#5A628A]'}`}>
+              className={`press hov flex-1 flex flex-col items-center gap-0.5 pt-2 text-[12px] font-bold transition-colors lg:flex-none lg:flex-row lg:gap-3 lg:w-full lg:px-3.5 lg:py-3 lg:rounded-2xl lg:text-[15px] ${on ? 'text-navy lg:bg-navy lg:text-white' : 'text-[#A2A9C6] lg:text-[#5A628A]'}`}>
               <span className="relative flex items-center justify-center">
                 {ICONS(on)[tb.icon]}
                 {tb.id === 'cart' && cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-accent text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-white">{cartCount}</span>
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-accent text-white text-[11.5px] font-extrabold grid place-items-center leading-none border-2 border-white">{cartCount}</span>
                 )}
               </span>
               {tb.label}
@@ -147,7 +147,7 @@ export function QtyPill({ p, small }: { p: { id: string }; small?: boolean }) {
         className={`press ${sW} rounded-full bg-navy-soft text-navy grid place-items-center active:scale-90 transition-transform`}>
         <Minus size={13} strokeWidth={2.6} />
       </button>
-      <span className={`text-[12px] font-extrabold text-navy ${small ? 'w-3.5' : 'w-4'} text-center`}>{q}</span>
+      <span className={`text-[13.5px] font-extrabold text-navy ${small ? 'w-3.5' : 'w-4'} text-center`}>{q}</span>
       <button onClick={() => { add(p.id); haptic('medium') }}
         className={`press ${sW} rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform`}>
         <Plus size={13} strokeWidth={2.6} />
@@ -172,27 +172,27 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           <Heart size={16} strokeWidth={2} fill={fav ? '#E23B52' : 'none'} color={fav ? '#E23B52' : '#8A93B8'} />
         </button>
         {sale ? (
-          <span className="absolute left-2 top-2 rounded-lg bg-accent px-2 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white shadow">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
-        ) : p.hit ? <span className="absolute left-2 top-2 rounded-lg bg-navy px-2 py-1 text-[10px] font-extrabold uppercase tracking-wide text-white">{t.hit}</span> : null}
+          <span className="absolute left-2 top-2 rounded-lg bg-accent px-2 py-1 text-[11.5px] font-extrabold uppercase tracking-wide text-white shadow">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
+        ) : p.hit ? <span className="absolute left-2 top-2 rounded-lg bg-navy px-2 py-1 text-[11.5px] font-extrabold uppercase tracking-wide text-white">{t.hit}</span> : null}
       </div>
       <div className="px-1.5 pt-2">
-        <div className="line-clamp-2 min-h-[38px] text-[14px] font-bold leading-snug text-[#111]">{pName(p, lang)}</div>
-        <div className="mt-0.5 min-h-[16px] text-[12px] font-medium text-[#8A8FA3]">{p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')}</div>
+        <div className="line-clamp-2 min-h-[38px] text-[15.5px] font-bold leading-snug text-[#111]">{pName(p, lang)}</div>
+        <div className="mt-0.5 min-h-[16px] text-[13.5px] font-medium text-[#8A8FA3]">{p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')}</div>
         <div className="mt-1.5 flex items-center gap-1.5">
           {q > 0 ? (
             <div onClick={e => e.stopPropagation()} className="flex items-center gap-1 rounded-full bg-[#F2F2F4] p-1">
               <button onClick={() => { setQty(p.id, q - 1); haptic('light') }} className="press grid h-7 w-7 place-items-center rounded-full bg-white text-[#111] active:scale-90 transition-transform"><Minus size={14} strokeWidth={2.6} /></button>
-              <span className="w-4 text-center text-[12.5px] font-extrabold">{q}</span>
+              <span className="w-4 text-center text-[14px] font-extrabold">{q}</span>
               <button onClick={() => { add(p.id); haptic('medium') }} className="press grid h-7 w-7 place-items-center rounded-full bg-accent text-white active:scale-90 transition-transform"><Plus size={14} strokeWidth={2.6} /></button>
             </div>
           ) : (
             <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
-              className="press flex items-center gap-1.5 rounded-full bg-[#F2F2F4] px-3.5 py-2 text-[13px] font-extrabold text-[#111] active:scale-95 transition-transform">
+              className="press flex items-center gap-1.5 rounded-full bg-[#F2F2F4] px-3.5 py-2 text-[14.5px] font-extrabold text-[#111] active:scale-95 transition-transform">
               {fmt(p.price)}
               <span className="grid h-5 w-5 place-items-center rounded-full bg-white"><Plus size={12} strokeWidth={2.8} /></span>
             </button>
           )}
-          {(p.old_price ?? 0) > p.price && <span className="text-[11px] font-bold text-[#A2A9C6] line-through">{fmt(p.old_price)}</span>}
+          {(p.old_price ?? 0) > p.price && <span className="text-[12.5px] font-bold text-[#A2A9C6] line-through">{fmt(p.old_price)}</span>}
         </div>
       </div>
     </article>
@@ -210,7 +210,7 @@ export function SubBar({ title, right }: { title?: string; right?: React.ReactNo
         className="press grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#F2F2F4] text-[#111] active:scale-90 transition-transform">
         <Home size={18} strokeWidth={2.2} />
       </button>
-      {title ? <h1 className="min-w-0 flex-1 truncate text-[20px] font-extrabold text-[#111] lg:text-[28px]">{title}</h1> : <div className="flex-1" />}
+      {title ? <h1 className="min-w-0 flex-1 truncate text-[22px] font-extrabold text-[#111] lg:text-[28px]">{title}</h1> : <div className="flex-1" />}
       {right}
     </div>
   )
@@ -300,7 +300,7 @@ export function Sheet({ open, onClose, title, children, foot }: {
             <div className="w-10 h-1.5 rounded-full bg-[#D8DCEA] mx-auto" />
           </div>
           <div className="flex items-center justify-between px-5 pt-1.5 pb-1">
-            <h3 className="text-[18px] font-extrabold">{title}</h3>
+            <h3 className="text-[20px] font-extrabold">{title}</h3>
             <button onClick={onClose} className="press w-8 h-8 rounded-full bg-navy-soft grid place-items-center text-[#8A93B8]">
               <X size={15} strokeWidth={2.8} />
             </button>
@@ -323,8 +323,8 @@ export function Empty({ emoji, title, sub, action }: { emoji: string; title: str
           <UtensilsCrossed size={44} strokeWidth={1.6} />
         </div>
       </div>
-      <div className="mt-5 text-[17px] font-extrabold">{title}</div>
-      {sub && <div className="mt-1.5 text-[13px] font-medium text-[#8A93B8] max-w-[280px] mx-auto leading-relaxed">{sub}</div>}
+      <div className="mt-5 text-[19px] font-extrabold">{title}</div>
+      {sub && <div className="mt-1.5 text-[14.5px] font-medium text-[#8A93B8] max-w-[280px] mx-auto leading-relaxed">{sub}</div>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   )
@@ -335,7 +335,7 @@ export function BigButton({ children, onClick, disabled, ghost, type, accent }: 
 }) {
   return (
     <button type={type} onClick={onClick} disabled={disabled}
-      className={`press w-full py-4 rounded-2xl text-[15.5px] font-extrabold flex items-center justify-center gap-2 transition-all
+      className={`press w-full py-4 rounded-2xl text-[17px] font-extrabold flex items-center justify-center gap-2 transition-all
         ${ghost ? 'bg-white text-navy-ink border border-navy-line' : accent ? 'bg-accent text-white shadow-[0_10px_22px_-10px_rgba(255,106,43,.65)]' : 'bg-navy text-white shadow-btn'} disabled:opacity-40`}>
       {children}
     </button>
@@ -347,7 +347,7 @@ export function Qty({ q, onInc, onDec, small }: { q: number; onInc: () => void; 
   return (
     <div className="flex items-center bg-white border border-navy-line rounded-[14px] p-1">
       <button onClick={onDec} className={`${b} rounded-[11px] grid place-items-center text-navy active:bg-navy-soft active:scale-90 transition-transform`}><Minus size={16} strokeWidth={2.6} /></button>
-      <span className="min-w-[30px] text-center text-[15px] font-extrabold">{q}</span>
+      <span className="min-w-[30px] text-center text-[16.5px] font-extrabold">{q}</span>
       <button onClick={onInc} className={`${b} rounded-[11px] grid place-items-center text-navy active:bg-navy-soft active:scale-90 transition-transform`}><Plus size={16} strokeWidth={2.6} /></button>
     </div>
   )
@@ -358,7 +358,7 @@ export function StatusChip({ status, label }: { status: string; label: string })
     new: 'bg-accent-soft text-accent-deep', confirmed: 'bg-blue-100 text-blue-700', cooking: 'bg-purple-100 text-purple-700',
     delivering: 'bg-indigo-100 text-indigo-700', done: 'bg-emerald-100 text-emerald-700', cancelled: 'bg-red-100 text-red-600',
   }
-  return <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${colors[status] || 'bg-navy-soft text-navy-ink'}`}>{label}</span>
+  return <span className={`text-[12.5px] font-bold px-2.5 py-1 rounded-full ${colors[status] || 'bg-navy-soft text-navy-ink'}`}>{label}</span>
 }
 
 export function ProductSheet() {
@@ -375,20 +375,20 @@ export function ProductSheet() {
   const infoCol = (
     <div className="flex h-full min-w-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto px-4 py-4 lg:px-6 lg:py-5 overscroll-contain">
-        <div className="text-[20px] font-extrabold leading-tight text-[#111] lg:text-[22px]">{pName(p, lang)}</div>
-        {p.weight && <div className="mt-1 text-[13px] font-medium text-[#8A8FA3]">{p.weight}</div>}
-        <p className="mt-2 text-[13.5px] leading-relaxed text-[#6B6F80] whitespace-pre-line">{pDesc(p, lang)}</p>
+        <div className="text-[22px] font-extrabold leading-tight text-[#111] lg:text-[24px]">{pName(p, lang)}</div>
+        {p.weight && <div className="mt-1 text-[14.5px] font-medium text-[#8A8FA3]">{p.weight}</div>}
+        <p className="mt-2 text-[15px] leading-relaxed text-[#6B6F80] whitespace-pre-line">{pDesc(p, lang)}</p>
         {hasKbju && (
           <div className="mt-4 rounded-[12px] bg-[#F2F2F4] px-3.5 py-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10.5px] font-extrabold uppercase tracking-widest text-[#8A8FA3]">КБЖУ</span>
-              <span className="text-[10.5px] font-bold text-[#A2A9C6]">{t.per100}</span>
+              <span className="text-[12px] font-extrabold uppercase tracking-widest text-[#8A8FA3]">КБЖУ</span>
+              <span className="text-[12px] font-bold text-[#A2A9C6]">{t.per100}</span>
             </div>
             <div className="mt-2 grid grid-cols-4 gap-1.5">
               {([[t.nKcal, p.kcal], [t.nProt, p.protein], [t.nFat, p.fat], [t.nCarb, p.carbs]] as const).map(([label, val]) => (
                 <div key={label} className="py-1 text-center">
-                  <div className="text-[16px] font-extrabold leading-none text-[#111]">{val != null ? val : '—'}</div>
-                  <div className="mt-1 text-[9.5px] font-bold leading-none text-[#8A8FA3]">{label}</div>
+                  <div className="text-[18px] font-extrabold leading-none text-[#111]">{val != null ? val : '—'}</div>
+                  <div className="mt-1 text-[11px] font-bold leading-none text-[#8A8FA3]">{label}</div>
                 </div>
               ))}
             </div>
@@ -399,8 +399,8 @@ export function ProductSheet() {
             <div className="flex items-center gap-2.5">
               <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white text-navy shadow-sm"><UtensilsCrossed size={15} /></span>
               <div className="min-w-0 flex-1">
-                <div className="text-[13.5px] font-extrabold leading-tight text-navy">{t.sAsk}</div>
-                <div className="mt-0.5 text-[10.5px] font-semibold leading-tight text-[#8A8FA3]">{t.sSub}</div>
+                <div className="text-[15px] font-extrabold leading-tight text-navy">{t.sAsk}</div>
+                <div className="mt-0.5 text-[12px] font-semibold leading-tight text-[#8A8FA3]">{t.sSub}</div>
               </div>
             </div>
             <div className="-mx-3.5 mt-3 flex snap-x gap-2 overflow-x-auto px-3.5 pb-1 lg:mx-0 lg:flex-wrap lg:px-0">
@@ -410,13 +410,13 @@ export function ProductSheet() {
                   <div key={sa.id} className={'flex shrink-0 snap-start items-center gap-2 rounded-full border bg-white py-1.5 pl-1.5 pr-2 ' + (sq > 0 ? 'border-navy' : 'border-transparent')}>
                     <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="h-9 w-9 rounded-full bg-[#F4F4F6] object-cover" />
                     <div className="pr-0.5">
-                      <div className="whitespace-nowrap text-[11.5px] font-extrabold leading-none">{pName(sa, lang)}</div>
-                      <div className="mt-1 text-[10px] font-bold leading-none text-[#8A8FA3]">{fmt(sa.price)}</div>
+                      <div className="whitespace-nowrap text-[13px] font-extrabold leading-none">{pName(sa, lang)}</div>
+                      <div className="mt-1 text-[11.5px] font-bold leading-none text-[#8A8FA3]">{fmt(sa.price)}</div>
                     </div>
                     {sq > 0 && (
                       <div className="ml-0.5 flex items-center gap-1">
                         <button onClick={() => { setQty(sa.id, sq - 1); haptic() }} className="press grid h-6 w-6 place-items-center rounded-full border border-navy-line bg-white text-navy active:scale-90 transition-transform"><Minus size={12} strokeWidth={2.6} /></button>
-                        <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
+                        <span className="w-3.5 text-center text-[13px] font-extrabold">{sq}</span>
                       </div>
                     )}
                     <button onClick={() => { if (sq > 0) { setQty(sa.id, sq + 1); haptic() } else { add(sa.id, 1); haptic('light'); showToast(t.added) } }}
@@ -432,7 +432,7 @@ export function ProductSheet() {
         <div className="flex items-center gap-2.5">
           <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
           <button onClick={() => { add(p.id, q); haptic('medium'); showToast(t.added); closeP() }}
-            className="press flex flex-1 items-center justify-center gap-2 rounded-[12px] bg-accent py-3.5 text-[16px] font-extrabold text-white shadow-[0_10px_22px_-10px_rgba(255,106,43,.7)] active:scale-[.98] transition-transform">
+            className="press flex flex-1 items-center justify-center gap-2 rounded-[12px] bg-accent py-3.5 text-[18px] font-extrabold text-white shadow-[0_10px_22px_-10px_rgba(255,106,43,.7)] active:scale-[.98] transition-transform">
             {fmt(p.price * q)}
             <Plus size={18} strokeWidth={3} />
           </button>

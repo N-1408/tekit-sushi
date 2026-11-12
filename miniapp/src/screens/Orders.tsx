@@ -46,7 +46,7 @@ function Stepper({ o, t }: { o: MyOrder; t: any }) {
                 i < stage ? 'bg-navy border-navy' : i === stage ? 'bg-navy border-navy/25 animate-pulse' : 'bg-white border-navy-line'
               }`}
             />
-            <span className={`text-[8.5px] font-bold leading-none ${i <= stage ? 'text-navy' : 'text-[#A2A9C6]'}`}>
+            <span className={`text-[10px] font-bold leading-none ${i <= stage ? 'text-navy' : 'text-[#A2A9C6]'}`}>
               {statusLabel(s, t)}
             </span>
           </div>
@@ -75,28 +75,28 @@ export default function Orders() {
     return (
       <div className="bg-white border border-navy-line rounded-[20px] p-4 shadow-[0_2px_10px_-6px_rgba(10,33,148,.15)]">
         <div className="flex items-center justify-between">
-          <span className="text-[15px] font-extrabold">#{o.oid}</span>
-          <span className="text-[11px] font-semibold text-[#A2A9C6]">{ago(o.at, t)}</span>
+          <span className="text-[16.5px] font-extrabold">#{o.oid}</span>
+          <span className="text-[12.5px] font-semibold text-[#A2A9C6]">{ago(o.at, t)}</span>
         </div>
         <div className="mt-1.5 flex items-center gap-2">
-          <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${CHIP_STYLE[o.status] || 'bg-navy-soft text-navy'}`}>
+          <span className={`text-[12.5px] font-extrabold px-2.5 py-1 rounded-full ${CHIP_STYLE[o.status] || 'bg-navy-soft text-navy'}`}>
             {statusLabel(o.status, t)}
           </span>
-          <span className="text-[11px] font-semibold text-[#8A93B8]">{o.mode === 'delivery' ? t.deliveryMode : t.pickup} · {o.pay === 'cash' ? t.cash : t.cardTransfer}</span>
+          <span className="text-[12.5px] font-semibold text-[#8A93B8]">{o.mode === 'delivery' ? t.deliveryMode : t.pickup} · {o.pay === 'cash' ? t.cash : t.cardTransfer}</span>
         </div>
         <Stepper o={o} t={t} />
         <div className="mt-3.5 flex flex-wrap gap-1.5">
           {shown.map(it => (
-            <span key={it.id} className="text-[11.5px] font-bold bg-navy-soft text-navy-ink px-2.5 py-1.5 rounded-lg">
+            <span key={it.id} className="text-[13px] font-bold bg-navy-soft text-navy-ink px-2.5 py-1.5 rounded-lg">
               {it.q}× {it.title}
             </span>
           ))}
-          {rest > 0 && <span className="text-[11.5px] font-bold bg-white border border-navy-line text-[#8A93B8] px-2.5 py-1.5 rounded-lg">+{rest} {t.ordMore}</span>}
+          {rest > 0 && <span className="text-[13px] font-bold bg-white border border-navy-line text-[#8A93B8] px-2.5 py-1.5 rounded-lg">+{rest} {t.ordMore}</span>}
         </div>
         <div className="h-px bg-navy-line my-3" />
         <div className="flex justify-between items-center">
-          <span className="text-[11.5px] font-semibold text-[#8A93B8]">{o.items.length} {t.ordItemsN}</span>
-          <span className="text-[16px] font-extrabold">{fmt(o.sum)} UZS</span>
+          <span className="text-[13px] font-semibold text-[#8A93B8]">{o.items.length} {t.ordItemsN}</span>
+          <span className="text-[18px] font-extrabold">{fmt(o.sum)} UZS</span>
         </div>
       </div>
     )

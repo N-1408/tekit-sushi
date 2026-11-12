@@ -25,7 +25,7 @@ export default function Cart() {
                     haptic()
                     for (const it of myOrders[0].items) { const p = products.find(x => x.id === it.id); if (p) add(it.id, it.q) }
                     nav('/')
-                  }} className="press py-2.5 rounded-xl bg-navy-soft text-navy text-[13px] font-bold">{t.repeatOrder}</button>
+                  }} className="press py-2.5 rounded-xl bg-navy-soft text-navy text-[14.5px] font-bold">{t.repeatOrder}</button>
                 ) : null}
               </div>
             } />
@@ -39,9 +39,9 @@ export default function Cart() {
                 <img src={pImg(l)} alt="" className="w-[68px] h-[68px] rounded-xl object-cover bg-navy-soft cursor-pointer"
                   onClick={() => { haptic(); openP(l) }} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-bold line-clamp-2">{pName(l, lang)}</div>
-                  <div className="text-[12px] font-semibold text-[#8A93B8] mt-0.5">{l.weight}</div>
-                  <div className="text-[14px] font-extrabold mt-1">{fmt(l.price * l.q)} <span className="text-[10px] text-[#8A93B8]">UZS</span></div>
+                  <div className="text-[15px] font-bold line-clamp-2">{pName(l, lang)}</div>
+                  <div className="text-[13.5px] font-semibold text-[#8A93B8] mt-0.5">{l.weight}</div>
+                  <div className="text-[15.5px] font-extrabold mt-1">{fmt(l.price * l.q)} <span className="text-[11.5px] text-[#8A93B8]">UZS</span></div>
                 </div>
                 <div className="flex flex-col justify-between items-end">
                   <button onClick={() => { setQty(l.id, 0); haptic('light') }} className="text-[#A2A9C6] active:text-red-500 p-1">
@@ -52,16 +52,16 @@ export default function Cart() {
               </div>
             ))}
           </div>
-          <div className="lg:w-[380px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4">
+          <div className="lg:w-[380px] lg:shrink-0 lg:sticky lg:top-[92px] lg:px-4">
           <div className="mx-4 mt-4 bg-white border border-navy-line rounded-[18px] p-4 lg:mx-0 lg:mt-0">
-            <div className="flex justify-between text-[13.5px] font-semibold text-[#4A5270]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
-            <div className="flex justify-between text-[13.5px] font-semibold text-[#4A5270] mt-2"><span>{t.delivery}</span><span className="text-emerald-600 font-bold">{t.free}</span></div>
+            <div className="flex justify-between text-[15px] font-semibold text-[#4A5270]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
+            <div className="flex justify-between text-[15px] font-semibold text-[#4A5270] mt-2"><span>{t.delivery}</span><span className="text-emerald-600 font-bold">{t.free}</span></div>
             <div className="h-px bg-navy-line my-3" />
-            <div className="flex justify-between text-[16px] font-extrabold"><span>{t.total}</span><span>{fmt(sum)} UZS</span></div>
+            <div className="flex justify-between text-[18px] font-extrabold"><span>{t.total}</span><span>{fmt(sum)} UZS</span></div>
           </div>
           <div className="px-4 mt-4 flex flex-col gap-2.5 lg:px-0">
             <BigButton onClick={() => { haptic(); nav('/checkout') }}>{t.checkout} · {fmt(sum)}</BigButton>
-            <button onClick={clearCart} className="text-[13px] font-bold text-[#8A93B8] py-2 active:text-red-500">{t.clearCart}</button>
+            <button onClick={clearCart} className="text-[14.5px] font-bold text-[#8A93B8] py-2 active:text-red-500">{t.clearCart}</button>
           </div>
           </div>
           </div>

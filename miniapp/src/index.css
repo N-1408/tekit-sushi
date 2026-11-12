@@ -2,7 +2,9 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --sat: max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
+:root { --sat: min(52px, max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px)))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
+/* Laptop/desktop: Telegram WebApp katta bo'sh joyni bosib olmasin */
+@media (min-width: 1024px) { :root { --sat: 0px !important; --sab: 0px !important; } }
 html { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior-y: none; }
 body {

@@ -17,7 +17,6 @@ import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
 import { ProductSheet } from './components/ui'
 import { Header } from './components/Header'
-import { Footer } from './components/Footer'
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 
@@ -28,7 +27,6 @@ export default function App() {
   useEffect(() => { initTg() }, [])
 
   const isHome = loc.pathname === '/'
-  const wide = !isAdmin && isHome
   return (
     <>
       {!isAdmin && <Header overHero={isHome} />}
@@ -52,7 +50,6 @@ export default function App() {
         <Route path="/admin/cats" element={<AdminGate><AdminCats /></AdminGate>} />
         <Route path="/admin/promos" element={<AdminShell><AdminPromos /></AdminShell>} />
       </Routes>
-      {!isAdmin && wide && <Footer />}
       {!isAdmin && (!user || ob) && <Onboarding />}
       {!isAdmin && <ProductSheet />}
       {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-1/2 z-[60] bg-navy-deep text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}

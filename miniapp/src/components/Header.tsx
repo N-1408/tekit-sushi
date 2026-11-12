@@ -38,7 +38,7 @@ export function Header({ overHero }: { overHero?: boolean }) {
           </button>
           <button onClick={() => { if (loc.pathname !== '/') { haptic(); nav('/') } }} className="press flex flex-1 items-center justify-center gap-2">
             <WhaleMark size={34} />
-            <span className={`text-[14px] font-extrabold uppercase tracking-wide ${dark ? 'text-[#111]' : 'text-white'} lg:text-[15px]`}>{t.brand}</span>
+            <span className={`text-[15.5px] font-extrabold uppercase tracking-wide ${dark ? 'text-[#111]' : 'text-white'} lg:text-[16.5px]`}>{t.brand}</span>
           </button>
           <button onClick={() => { haptic(); nav('/profile') }}
             className={`press grid h-10 w-10 place-items-center rounded-full active:scale-90 transition-transform ${dark ? 'bg-[#F2F2F4] text-[#111]' : 'bg-black/25 text-white backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,.18)]'}`}>
@@ -47,7 +47,7 @@ export function Header({ overHero }: { overHero?: boolean }) {
           <button onClick={() => { haptic(); nav('/cart') }}
             className={`press relative grid h-10 w-10 place-items-center rounded-full active:scale-90 transition-transform ${dark ? 'bg-[#F2F2F4] text-[#111]' : 'bg-black/25 text-white backdrop-blur-sm shadow-[0_2px_8px_rgba(0,0,0,.18)]'}`}>
             <ShoppingCart size={20} strokeWidth={2.2} />
-            {cartCount > 0 && <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-white bg-accent text-[10px] font-extrabold leading-none text-white">{cartCount}</span>}
+            {cartCount > 0 && <span className="absolute -right-1 -top-1 grid h-[18px] min-w-[18px] place-items-center rounded-full border-2 border-white bg-accent text-[11.5px] font-extrabold leading-none text-white">{cartCount}</span>}
           </button>
         </div>
       </header>
@@ -66,13 +66,13 @@ function LangSheet({ onClose }: { onClose: () => void }) {
       <div className="absolute inset-0 bg-navy-deep/45" onClick={onClose} />
       <div className="anim-sheet absolute bottom-0 left-0 right-0 rounded-t-[28px] bg-white p-5 shadow-pop"
         style={{ paddingBottom: 'calc(20px + var(--sab))' }}>
-        <div className="mb-3 text-[18px] font-extrabold">{t.language}</div>
+        <div className="mb-3 text-[20px] font-extrabold">{t.language}</div>
         <div className="space-y-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic(); onClose() }}
               className={`press flex w-full items-center gap-3 rounded-2xl border px-4 py-3 text-left ${lang === l ? 'border-navy bg-navy text-white' : 'border-navy-line bg-white'}`}>
-              <span className="text-[22px]">{FLAGS[l]}</span>
-              <span className="flex-1 text-[15px] font-extrabold">{LANG_NAME[l]}</span>
+              <span className="text-[24px]">{FLAGS[l]}</span>
+              <span className="flex-1 text-[16.5px] font-extrabold">{LANG_NAME[l]}</span>
             </button>
           ))}
         </div>
@@ -104,37 +104,37 @@ function Drawer({ open, onClose }: { open: boolean; onClose: () => void }) {
         <div className="flex items-center gap-2.5 px-4 pb-4">
           <WhaleMark size={40} />
           <div className="flex-1">
-            <div className="text-[15px] font-extrabold">{t.brand}</div>
-            <div className="text-[11px] font-semibold text-[#8A93B8]">{t.city}</div>
+            <div className="text-[16.5px] font-extrabold">{t.brand}</div>
+            <div className="text-[12.5px] font-semibold text-[#8A93B8]">{t.city}</div>
           </div>
           <button onClick={onClose} className="press grid h-9 w-9 place-items-center rounded-full bg-[#F2F2F4] text-[#111]"><X size={16} strokeWidth={2.6} /></button>
         </div>
         <div className="flex-1 overflow-y-auto px-2 pb-4">
           {links.map(l => (
             <button key={l.to} onClick={() => { haptic(); onClose(); nav(l.to) }}
-              className={`press flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-left text-[14px] font-bold ${loc.pathname === l.to ? 'bg-navy text-white' : 'text-[#111] hover:bg-[#F7F7F9]'}`}>
+              className={`press flex w-full items-center gap-3 rounded-2xl px-3.5 py-3 text-left text-[15.5px] font-bold ${loc.pathname === l.to ? 'bg-navy text-white' : 'text-[#111] hover:bg-[#F7F7F9]'}`}>
               {l.icon}{l.label}
             </button>
           ))}
-          <div className="mt-4 px-3.5 pb-1.5 text-[11px] font-extrabold uppercase tracking-widest text-[#A2A9C6]">{t.navMenu}</div>
+          <div className="mt-4 px-3.5 pb-1.5 text-[12.5px] font-extrabold uppercase tracking-widest text-[#A2A9C6]">{t.navMenu}</div>
           {CATS.map(c => {
             const n = products.filter(p => p.cat === (c as any).id).length
             if (!n) return null
             return (
               <button key={(c as any).id} onClick={() => { haptic(); onClose(); nav(`/cat/${(c as any).id}`) }}
-                className="press flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-left text-[14px] font-semibold text-[#111] hover:bg-[#F7F7F9]">
+                className="press flex w-full items-center gap-3 rounded-2xl px-3.5 py-2.5 text-left text-[15.5px] font-semibold text-[#111] hover:bg-[#F7F7F9]">
                 <span className="flex-1 truncate">{(c as any)[lang] || t.catNames[(c as any).id]}</span>
-                <span className="text-[11px] font-bold text-[#A2A9C6]">{n}</span>
+                <span className="text-[12.5px] font-bold text-[#A2A9C6]">{n}</span>
                 <ChevronRight size={15} className="text-[#C4C9DB]" />
               </button>
             )
           })}
         </div>
         <div className="border-t border-navy-line px-4 py-3 flex items-center gap-2" style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
-          <button onClick={() => setLangOpen(true)} className="press flex items-center gap-2 rounded-full bg-[#F2F2F4] px-3 py-2 text-[12px] font-extrabold text-[#111]">
-            <span className="text-[15px]">{FLAGS[lang]}</span>{lang.toUpperCase()}
+          <button onClick={() => setLangOpen(true)} className="press flex items-center gap-2 rounded-full bg-[#F2F2F4] px-3 py-2 text-[13.5px] font-extrabold text-[#111]">
+            <span className="text-[16.5px]">{FLAGS[lang]}</span>{lang.toUpperCase()}
           </button>
-          {role === 'admin' && <button onClick={() => { onClose(); nav('/admin') }} className="press ml-auto text-[12px] font-bold text-navy">{t.admin}</button>}
+          {role === 'admin' && <button onClick={() => { onClose(); nav('/admin') }} className="press ml-auto text-[13.5px] font-bold text-navy">{t.admin}</button>}
         </div>
         {langOpen && <LangSheet onClose={() => setLangOpen(false)} />}
       </aside>

@@ -26,8 +26,8 @@ export default function Profile() {
 
   const infoRow = (k: string, v: React.ReactNode, sub?: boolean) => (
     <div className="flex items-start justify-between gap-3 py-2.5">
-      <span className={`text-[13.5px] font-semibold ${sub ? 'text-[#8A93B8]' : 'text-[#4A5270]'}`}>{k}</span>
-      <span className="text-[13.5px] font-extrabold text-right">{v}</span>
+      <span className={`text-[15px] font-semibold ${sub ? 'text-[#8A93B8]' : 'text-[#4A5270]'}`}>{k}</span>
+      <span className="text-[15px] font-extrabold text-right">{v}</span>
     </div>
   )
 
@@ -39,8 +39,8 @@ export default function Profile() {
             <div className="flex items-center gap-3">
               <span className="w-10 h-10 rounded-xl bg-navy-soft grid place-items-center text-navy"><MapPin size={19} strokeWidth={2} /></span>
               <div>
-                <div className="text-[14.5px] font-extrabold">{t.branchName}</div>
-                <div className="text-[12px] font-semibold text-[#8A93B8] mt-0.5">{t.branchSoon}</div>
+                <div className="text-[16px] font-extrabold">{t.branchName}</div>
+                <div className="text-[13.5px] font-semibold text-[#8A93B8] mt-0.5">{t.branchSoon}</div>
               </div>
             </div>
           </div>
@@ -49,12 +49,12 @@ export default function Profile() {
         return (
           <div className="bg-white border border-navy-line rounded-[18px] px-4 divide-y divide-navy-line">
             <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center justify-between py-3.5">
-              <span className="text-[13.5px] font-semibold text-[#4A5270]">{t.ctTg}</span>
-              <span className="text-[13.5px] font-extrabold text-navy">{t.ctTgVal}</span>
+              <span className="text-[15px] font-semibold text-[#4A5270]">{t.ctTg}</span>
+              <span className="text-[15px] font-extrabold text-navy">{t.ctTgVal}</span>
             </a>
             <a href="tel:+998951550549" className="flex items-center justify-between py-3.5">
-              <span className="text-[13.5px] font-semibold text-[#4A5270]">{t.ctPhone}</span>
-              <span className="text-[13.5px] font-extrabold text-navy">{t.ctPhoneVal}</span>
+              <span className="text-[15px] font-semibold text-[#4A5270]">{t.ctPhone}</span>
+              <span className="text-[15px] font-extrabold text-navy">{t.ctPhoneVal}</span>
             </a>
           </div>
         )
@@ -68,7 +68,7 @@ export default function Profile() {
           </div>
         )
       case 'about':
-        return <p className="text-[14px] leading-relaxed text-[#4A5270] font-medium bg-white border border-navy-line rounded-[18px] p-4">{t.aboutText}</p>
+        return <p className="text-[15.5px] leading-relaxed text-[#4A5270] font-medium bg-white border border-navy-line rounded-[18px] p-4">{t.aboutText}</p>
       default:
         return null
     }
@@ -83,10 +83,10 @@ export default function Profile() {
         <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-lg">
           <img src="/logo.png" className="w-14 h-14 rounded-2xl bg-white/20" alt="" />
           <div className="text-white flex-1">
-            <div className="text-[16px] font-extrabold">{user?.name || t.brand}</div>
-            <div className="text-[12px] text-white/75 font-medium">{user ? (user.phone || user.addr || t.brand) : t.guest}</div>
+            <div className="text-[18px] font-extrabold">{user?.name || t.brand}</div>
+            <div className="text-[13.5px] text-white/75 font-medium">{user ? (user.phone || user.addr || t.brand) : t.guest}</div>
           </div>
-          <button onClick={openOb} className="press bg-white/15 border border-white/25 text-white text-[12px] font-bold px-3.5 py-2 rounded-xl">
+          <button onClick={openOb} className="press bg-white/15 border border-white/25 text-white text-[13.5px] font-bold px-3.5 py-2 rounded-xl">
             {user ? t.obEdit : t.obReg}
           </button>
         </div>
@@ -102,7 +102,7 @@ export default function Profile() {
           <span className="text-[#8A93B8]">
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
           </span>
-          <span className="text-[14.5px] font-bold flex-1 text-left">{t.historyTitle}</span>
+          <span className="text-[16px] font-bold flex-1 text-left">{t.historyTitle}</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A2A9C6" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 5 7 7-7 7" /></svg>
         </button>
 
@@ -113,7 +113,7 @@ export default function Profile() {
               <button onClick={() => setSheet(r.id)}
                 className="w-full text-left px-4 py-3.5 flex items-center gap-3.5 active:bg-navy-soft transition-colors">
                 <span className="text-[#8A93B8]">{ROW_ICON[r.id]}</span>
-                <span className="text-[14.5px] font-bold flex-1">{r.label}</span>
+                <span className="text-[16px] font-bold flex-1">{r.label}</span>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A2A9C6" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 5 7 7-7 7" /></svg>
               </button>
             </React.Fragment>
@@ -126,7 +126,7 @@ export default function Profile() {
             <span className="text-[#8A93B8]">
               <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2.5" /><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" /></svg>
             </span>
-            <span className="text-[14.5px] font-bold flex-1 text-left">{t.admin}</span>
+            <span className="text-[16px] font-bold flex-1 text-left">{t.admin}</span>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A2A9C6" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 5 7 7-7 7" /></svg>
           </button>
         )}
@@ -134,9 +134,9 @@ export default function Profile() {
         <div className="mt-4 bg-white border border-navy-line rounded-[18px] p-1">
           {(['uz', 'ru', 'en'] as Lang[]).map(l => (
             <button key={l} onClick={() => setLang(l)}
-              className={`w-full text-left px-4 py-3 rounded-[14px] text-[14px] font-bold flex justify-between items-center active:bg-navy-soft ${lang === l ? 'text-navy' : 'text-[#4A5270]'}`}>
+              className={`w-full text-left px-4 py-3 rounded-[14px] text-[15.5px] font-bold flex justify-between items-center active:bg-navy-soft ${lang === l ? 'text-navy' : 'text-[#4A5270]'}`}>
               {l === 'uz' ? '🇺🇿 Oʻzbekcha' : l === 'ru' ? '🇷🇺 Русский' : '🇬🇧 English'}
-              {lang === l && <span className="text-navy text-[15px]">✓</span>}
+              {lang === l && <span className="text-navy text-[16.5px]">✓</span>}
             </button>
           ))}
         </div>
@@ -146,13 +146,13 @@ export default function Profile() {
             { k: t.tabOrders, v: String(myOrders.length) },
             { k: t.favTitle, v: String(favs.length) },
           ].map(r => (
-            <div key={r.k} className="flex justify-between text-[13.5px] font-semibold">
+            <div key={r.k} className="flex justify-between text-[15px] font-semibold">
               <span className="text-[#8A93B8]">{r.k}</span><span className="font-extrabold">{r.v}</span>
             </div>
           ))}
         </div>
 
-        <div className="mt-3 text-center text-[11px] font-medium text-[#A2A9C6]">
+        <div className="mt-3 text-center text-[12.5px] font-medium text-[#A2A9C6]">
           Tekit Sushi · v1.0
         </div>
       </div>
