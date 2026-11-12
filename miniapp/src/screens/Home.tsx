@@ -35,7 +35,7 @@ export default function Home() {
         </section>
       ) : (
         <>
-          <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-4 pb-1">
+          <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-4 pb-1 lg:flex-wrap lg:overflow-visible">
             {CATS.map(c => (
               <button key={c.id} onClick={() => { haptic(); nav(`/cat/${c.id}`) }}
                 className="press shrink-0 w-[76px] h-[64px] flex items-center justify-center text-center bg-white border border-navy-line rounded-[18px] active:scale-95 transition-transform">
@@ -95,21 +95,21 @@ export default function Home() {
           <section className="mt-5">
             <h2 className="px-4 text-[17px] font-extrabold">🔥 {t.hit}</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 lg:gap-4 px-4 mt-2.5">
-              {hits.slice(0, 8).map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
+              {hits.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
             </div>
           </section>
 
-          {(['sushi', 'roll', 'ichimlik'] as const).map(cid => {
-            const list = products.filter(p => p.cat === cid).slice(0, 10)
+          <section className="mt-5">
+            <h2 className="px-4 text-[17px] font-extrabold">{t.menuT}</h2>
+          </section>
+          {CATS.map(c => {
+            const list = products.filter(p => p.cat === (c as any).id)
             if (!list.length) return null
             return (
-              <section className="mt-5" key={cid}>
-                <div className="flex items-center justify-between pr-4">
-                  <h2 className="px-4 text-[17px] font-extrabold">{t.catNames[cid]}</h2>
-                  <button onClick={() => { haptic(); nav(`/cat/${cid}`) }} className="text-[12px] font-bold text-navy active:opacity-60">{t.all} →</button>
-                </div>
-                <div className="flex gap-2.5 overflow-x-auto no-scrollbar px-4 mt-2.5 pb-1 lg:grid lg:grid-cols-4 xl:grid-cols-5 lg:gap-4 lg:overflow-visible">
-                  {list.map((p, i) => <div key={p.id} className="w-[152px] shrink-0 lg:w-auto"><ProductCard p={p} i={i} /></div>)}
+              <section className="mt-5" key={(c as any).id}>
+                <h2 className="px-4 text-[17px] font-extrabold">{(c as any)[lang] || t.catNames[(c as any).id]}</h2>
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 lg:gap-4 px-4 mt-2.5">
+                  {list.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
                 </div>
               </section>
             )

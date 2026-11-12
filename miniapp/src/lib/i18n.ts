@@ -5,7 +5,7 @@ export const T = {
   uz: {
     brand: 'Tekit Sushi', tagline: 'Yapon taomi · Toshkent',
     freeDelivery: 'Yetkazish bepul', city: 'Toshkent', payLater: 'Naqd yoki kartaga oʻtkazish',
-    search: 'Menyudan izlash...', noResults: 'topilmadi',
+    search: 'Menyudan izlash...', noResults: 'topilmadi', menuT: 'Menyu',
     tabHome: 'Asosiy', tabCart: 'Savat', tabOrders: 'Buyurtmalar', tabProfile: 'Profil',
     hit: 'Hit', pcs: 'dona', added: 'Savatga qoʻshildi',
     catNames: { hit: 'Xitlar', set: 'Setlar', roll: 'Rollar', sushi: 'Sushi', salat: 'Salatlar', sup: 'Suplar', issiq: 'Issiq taomlar', wok: 'Wok', bola: 'Bolalar', desert: 'Desertlar', garnir: 'Garnirlar', ichimlik: 'Ichimliklar', sous: 'Souslar' },
@@ -63,7 +63,7 @@ export const T = {
   ru: {
     brand: 'Tekit Sushi', tagline: 'Японская кухня · Ташкент',
     freeDelivery: 'Доставка бесплатно', city: 'Ташкент', payLater: 'Наличные или перевод на карту',
-    search: 'Поиск по меню...', noResults: 'не найдено',
+    search: 'Поиск по меню...', noResults: 'не найдено', menuT: 'Меню',
     tabHome: 'Главная', tabCart: 'Корзина', tabOrders: 'Заказы', tabProfile: 'Профиль',
     hit: 'Хит', pcs: 'шт', added: 'Добавлено в корзину',
     catNames: { hit: 'Хиты', set: 'Сеты', roll: 'Роллы', sushi: 'Суши', salat: 'Салаты', sup: 'Супы', issiq: 'Горячее', wok: 'Вок', bola: 'Детям', desert: 'Десерты', garnir: 'Гарниры', ichimlik: 'Напитки', sous: 'Соусы' },
@@ -121,7 +121,7 @@ export const T = {
   en: {
     brand: 'Tekit Sushi', tagline: 'Japanese food · Tashkent',
     freeDelivery: 'Free delivery', city: 'Tashkent', payLater: 'Cash or card transfer',
-    search: 'Search the menu...', noResults: 'no results',
+    search: 'Search the menu...', noResults: 'no results', menuT: 'Menu',
     tabHome: 'Home', tabCart: 'Cart', tabOrders: 'Orders', tabProfile: 'Profile',
     hit: 'Hit', pcs: 'pcs', added: 'Added to cart',
     catNames: { hit: 'Best sellers', set: 'Sets', roll: 'Rolls', sushi: 'Sushi', salat: 'Salads', sup: 'Soups', issiq: 'Hot dishes', wok: 'Wok', bola: 'For kids', desert: 'Desserts', garnir: 'Sides', ichimlik: 'Drinks', sous: 'Sauces' },
