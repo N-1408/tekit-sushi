@@ -85,20 +85,14 @@ function LangPicker({ dark }: { dark?: boolean }) {
 }
 
 /* ---------- ichki sahifalar uchun yuqori panel (tungi) ---------- */
-export function TopBar({ title, right, back = true, flat }: { title?: string; right?: React.ReactNode; back?: boolean; flat?: boolean }) {
+export function TopBar({ title, right, flat }: { title?: string; right?: React.ReactNode; back?: boolean; flat?: boolean }) {
   const { t, user } = useStore()
-  const nav = useNavigate()
-  useNativeBack(!!title && back)
+  useNativeBack(!!title)
   const inner = (
     <div className="bg-[#0F1720] text-[#F2F5F9] border-b border-[#1E2631]">
       <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 pb-2.5 pt-1">
         {title ? (
           <>
-            {back && (
-              <button onClick={() => { haptic('light'); nav(-1) }} className="press w-12 h-12 rounded-2xl bg-[#E9EDF1] text-[#101821] grid place-items-center shrink-0 active:scale-95 transition-transform">
-                <IcChevL />
-              </button>
-            )}
             <div className="text-[16px] font-extrabold flex-1 truncate">{title}</div>
           </>
         ) : (

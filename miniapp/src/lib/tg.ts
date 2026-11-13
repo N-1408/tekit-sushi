@@ -13,15 +13,16 @@ export function initTelegram() {
     const applyInsets = () => {
       const st = document.documentElement.style
       const ios = TGA?.platform === 'ios' || /iPhone|iPad|iPod/i.test(navigator.userAgent || '')
+      const mob = ios || TGA?.platform === 'android' || /Android/i.test(navigator.userAgent || '')
       // Telegram suzuvchi Close/Back tugmalari kontent ustida turadi (iOS ham, fullscreen ham):
       // yuqoriga qo'shimcha bo'shlik ajratamiz
-      st.setProperty('--tg-extra', (TGA?.isFullscreen || ios) ? '44px' : '0px')
+      st.setProperty('--tg-extra', (mob && (TGA?.isFullscreen || ios)) ? '44px' : '0px')
       const cs = (TGA as any).contentSafeAreaInset || {}
       const top = Number(cs.top) || 0
       const bottom = Number(cs.bottom) || 0
-      if (top > 0) st.setProperty('--tg-csa-top', `${top}px`)
+      if (top > 0 && mob) st.setProperty('--tg-csa-top', `${top}px`)
       else st.removeProperty('--tg-csa-top')
-      if (bottom > 0) st.setProperty('--tg-csa-bottom', `${bottom}px`)
+      if (bottom > 0 && mob) st.setProperty('--tg-csa-bottom', `${bottom}px`)
       else st.removeProperty('--tg-csa-bottom')
     }
     try { TGA.onEvent?.('viewportChanged', applyInsets) } catch {}
@@ -77,9 +78,9 @@ export function sendData(data: unknown) {
 
 export function useNativeBack(active: boolean) {
   React.useEffect(() => {
-    if (!active) return
     const bb = TGA?.BackButton
     if (!bb?.show) return
+    if (!active) { try { bb.hide() } catch {} ; return }
     const go = () => history.back()
     try { bb.onClick(go); bb.show() } catch {}
     return () => { try { bb.offClick?.(go); bb.hide() } catch {} }
