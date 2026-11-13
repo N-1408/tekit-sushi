@@ -69,13 +69,13 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
         <button onClick={onClose} className="press w-9 h-9 rounded-full bg-navy-soft grid place-items-center active:scale-90 transition-transform" aria-label="back">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0A2194" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
-        <div className="text-[16.5px] font-extrabold flex-1">{t.mapTitle}</div>
+        <div className="text-[15px] font-extrabold flex-1">{t.mapTitle}</div>
       </div>
       <div ref={boxRef} className="flex-1 relative" />
       <div className="px-4 pt-3 border-t border-navy-line bg-white" style={{ paddingBottom: 'calc(14px + var(--sab))' }}>
-        <div className="text-[13px] font-bold text-[#8A93B8] text-center">{err ? '—' : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`}</div>
+        <div className="text-[11.5px] font-bold text-[#8A93B8] text-center">{err ? '—' : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`}</div>
         <button onClick={pick} disabled={busy}
-          className="press mt-2.5 w-full py-3.5 rounded-2xl bg-navy text-white text-[16.5px] font-extrabold disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[.98] transition-transform">
+          className="press mt-2.5 w-full py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[.98] transition-transform">
           {busy ? '…' : t.mapPick}
         </button>
       </div>

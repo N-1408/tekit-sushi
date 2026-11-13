@@ -2,9 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --sat: min(52px, max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px)))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
-/* Laptop/desktop: Telegram WebApp katta bo'sh joyni bosib olmasin */
-@media (min-width: 1024px) { :root { --sat: 0px !important; --sab: 0px !important; } }
+:root { --sat: max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
 html { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior-y: none; }
 body {
@@ -30,7 +28,6 @@ input, textarea, select { font-size: 16px !important; }
   background-size: 340px 150px;
 }
 
-@keyframes drawerIn { from { transform: translateX(-100%) } to { transform: none } }
 @keyframes fadeUp { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
 .anim-up { animation: fadeUp .45s cubic-bezier(.23,1,.32,1) backwards; }
 @keyframes sheetIn { from { transform: translateY(100%) } to { transform: none } }
