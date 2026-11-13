@@ -7,7 +7,7 @@ html { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior-y: none; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  background: #F6F7FB; color: #0E1839; letter-spacing: -0.01em;
+  background: #F7F7F8; color: #191919; letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
 }
 button, a, [role="button"] { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
@@ -18,7 +18,7 @@ input, textarea, select { font-size: 16px !important; }
 
 /* katakana brand pattern (navy bg, white outline wordmarks) */
 .tekit-pattern {
-  background-color: #0A2194;
+  background-color: #E8462B;
   background-image: repeating-linear-gradient(0deg, transparent 0 78px, rgba(255,255,255,.09) 78px 79px);
   overflow: hidden; position: relative;
 }
@@ -42,11 +42,11 @@ input, textarea, select { font-size: 16px !important; }
 
 /* hover faqat sichqoncha/sensorli panel bilan */
 @media (hover:hover) and (pointer:fine){
-  .hov:hover{ background:#F2F4FB; }
+  .hov:hover{ background:#F5F5F6; }
 }
 
 /* yangi dizayn: hero slayder, drawer */
-.hero-bg { background: linear-gradient(115deg, #0B1440 0%, #0A2194 58%, #1646C9 100%); }
+.hero-bg { background: linear-gradient(115deg, #FFE9EC 0%, #FDF2F4 100%); }
 .wm { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='340' height='150'><text x='0' y='60' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.5' font-family='Arial'>TEKIT ティキット</text><text x='170' y='130' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.5' font-family='Arial'>TEKIT ティキット</text></svg>"); background-size: 340px 150px; }
 @keyframes drawerIn { from { transform: translateX(-100%) } to { transform: none } }
 .anim-drawer { animation: drawerIn .4s cubic-bezier(.32,.72,0,1) both; }

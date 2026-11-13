@@ -45,7 +45,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] bg-[#0A2194] overflow-y-auto">
+    <div className="fixed inset-0 z-[70] bg-[#17171A] overflow-y-auto">
       <div className="min-h-full flex flex-col">
         <div className="px-5 pt-[calc(env(safe-area-inset-top)+var(--tg-csa-top,0px)+var(--tg-extra,0px)+22px)] pb-7 text-white lg:max-w-[620px] lg:mx-auto lg:pt-10">
           <div className="flex items-center justify-between">

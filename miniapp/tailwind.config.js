@@ -4,8 +4,8 @@ export default {
   theme: {
     extend: {
       colors: {
-        navy: { DEFAULT: "#0A2194", deep: "#0B1440", ink: "#0E1839", soft: "#EEF0FA", line: "#E5E8F2" },
-        paper: "#F6F7FB",
+        navy: { DEFAULT: "#E8462B", deep: "#111114", ink: "#191919", soft: "#F3F4F6", line: "#E8E8EA" },
+        paper: "#F7F7F8",
       },
       borderRadius: { xl2: "22px" },
       transitionTimingFunction: { out: "cubic-bezier(.23,1,.32,1)", drawer: "cubic-bezier(.32,.72,0,1)", spring: "cubic-bezier(.34,1.56,.64,1)" },

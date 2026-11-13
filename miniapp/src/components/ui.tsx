@@ -45,10 +45,10 @@ export function CartBtn() {
   const nav = useNavigate()
   return (
     <button onClick={() => { haptic(); nav('/cart') }} aria-label="cart"
-      className="press relative w-10 h-10 rounded-xl bg-white/10 grid place-items-center shrink-0 active:scale-95 transition-transform">
+      className="press relative w-10 h-10 rounded-xl grid place-items-center shrink-0 active:scale-95 transition-transform">
       <IcBag />
       {cartCount > 0 && (
-        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-white text-navy-deep text-[10.5px] font-extrabold grid place-items-center leading-none">{cartCount}</span>
+        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-navy text-white text-[10.5px] font-extrabold grid place-items-center leading-none">{cartCount}</span>
       )}
     </button>
   )
@@ -64,7 +64,7 @@ function LangPicker({ dark }: { dark?: boolean }) {
   return (
     <>
       <button onClick={() => setOpen(true)}
-        className={`press flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[12px] font-extrabold active:scale-95 transition-transform ${dark ? 'bg-white/10 text-white' : 'bg-navy-soft text-navy-ink'}`}>
+        className={`press flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[12px] font-extrabold active:scale-95 transition-transform ${dark ? 'bg-[#F3F4F6] text-[#191919]' : 'bg-navy-soft text-navy-ink'}`}>
         <span className="text-[15px] leading-none">{FLAGS[lang]}</span>{lang.toUpperCase()}
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title={t.language}>
@@ -89,12 +89,12 @@ export function TopBar({ title, right, back = true, flat }: { title?: string; ri
   const nav = useNavigate()
   useNativeBack(!!title && back)
   const inner = (
-    <div className="bg-navy-deep text-white">
+    <div className="bg-white text-[#191919] border-b border-[#ECECEE]">
       <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 pb-2.5 pt-1">
         {title ? (
           <>
             {back && (
-              <button onClick={() => { haptic('light'); nav(-1) }} className="press w-10 h-10 rounded-xl bg-white/10 grid place-items-center shrink-0 active:scale-95 transition-transform">
+              <button onClick={() => { haptic('light'); nav(-1) }} className="press w-10 h-10 rounded-xl bg-[#F3F4F6] grid place-items-center shrink-0 active:scale-95 transition-transform">
                 <IcChevL />
               </button>
             )}
@@ -105,7 +105,7 @@ export function TopBar({ title, right, back = true, flat }: { title?: string; ri
             <WhaleMark />
             <div className="flex-1 min-w-0">
               <div className="text-[15px] font-extrabold leading-tight">{t.brand}</div>
-              <div className="text-[10.5px] font-semibold text-white/55 leading-tight truncate">{hiName(t, user)}</div>
+              <div className="text-[10.5px] font-semibold text-[#9A9AA0] leading-tight truncate">{hiName(t, user)}</div>
             </div>
           </>
         )}
@@ -135,48 +135,48 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
   if (!open) return null
   return createPortal(
     <div className="fixed inset-0 z-[70]">
-      <div className="absolute inset-0 bg-navy-deep/55 backdrop-blur-[2px] anim-fade" onClick={onClose} />
-      <aside className="absolute left-0 top-0 bottom-0 w-[302px] lg:w-[340px] bg-navy-deep text-white flex flex-col anim-drawer shadow-2xl"
+      <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px] anim-fade" onClick={onClose} />
+      <aside className="absolute left-0 top-0 bottom-0 w-[302px] lg:w-[340px] bg-white text-[#191919] flex flex-col anim-drawer shadow-2xl"
         style={{ paddingTop: 'calc(16px + var(--sat))', paddingBottom: 'calc(16px + var(--sab))' }}>
         <div className="flex items-center justify-between px-5">
           <div className="flex items-center gap-2.5">
             <img src="/logo.png" alt="" className="w-10 h-10 rounded-[12px]" />
             <span className="text-[15px] font-extrabold tracking-[0.08em]">TEKIT SUSHI</span>
           </div>
-          <button onClick={onClose} className="press w-9 h-9 rounded-xl bg-white/10 grid place-items-center text-white/80 active:scale-95 transition-transform"><IcX /></button>
+          <button onClick={onClose} className="press w-9 h-9 rounded-xl bg-[#F3F4F6] grid place-items-center text-[#6B6B70] active:scale-95 transition-transform"><IcX /></button>
         </div>
 
         <div className="px-5 mt-4 flex gap-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic('light') }}
-              className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-extrabold transition-colors ${lang === l ? 'bg-white text-navy-deep' : 'bg-white/10 text-white/75 active:scale-95'}`}>
+              className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-extrabold transition-colors ${lang === l ? 'bg-[#2F2F33] text-white' : 'bg-[#F3F4F6] text-[#6B6B70] active:scale-95'}`}>
               <span className="text-[15px] leading-none">{FLAGS[l]}</span>{l.toUpperCase()}
             </button>
           ))}
         </div>
 
-        <div className="px-5 mt-5 mb-1.5 text-[10px] uppercase tracking-[0.14em] text-white/40 font-extrabold">{t.menuT}</div>
+        <div className="px-5 mt-5 mb-1.5 text-[10px] uppercase tracking-[0.14em] text-[#A5A5AA] font-extrabold">{t.menuT}</div>
         <nav className="flex-1 overflow-y-auto no-scrollbar px-3">
           {CATS.map(c => (
             <button key={c.id} onClick={() => { haptic(); onClose(); nav(`/cat/${c.id}`) }}
-              className="press w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-bold text-white/90 active:bg-white/10 transition-colors">
+              className="press w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-bold text-[#191919] active:bg-[#F3F4F6] transition-colors">
               {(c as any)[lang] || t.catNames[c.id]}
-              <span className="text-white/30"><IcChevR /></span>
+              <span className="text-[#C9C9CE]"><IcChevR /></span>
             </button>
           ))}
         </nav>
 
-        <div className="px-5 pt-3 mt-2 border-t border-white/10 space-y-0.5">
-          <button onClick={() => { onClose(); nav('/orders') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-white/90 active:opacity-70">
+        <div className="px-5 pt-3 mt-2 border-t border-[#EFEFF1] space-y-0.5">
+          <button onClick={() => { onClose(); nav('/orders') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#191919] active:opacity-70">
             <IcBag /> {t.tabOrders}
           </button>
-          <button onClick={() => { onClose(); nav('/profile') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-white/90 active:opacity-70">
+          <button onClick={() => { onClose(); nav('/profile') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#191919] active:opacity-70">
             <IcUser /> {t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
           </button>
-          <a href="tel:+998951550549" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-white/90">
+          <a href="tel:+998951550549" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#191919]">
             <IcCash /> {t.ctPhoneVal}
           </a>
-          <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-white/90">
+          <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#191919]">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.25.25-.45.45-.9.45l.3-4.6L18.2 6.8c.35-.3-.1-.5-.55-.2L7.7 13.1l-4.4-1.4c-1-.3-1-1 .2-1.45L20.6 3.3c.8-.3 1.5.2 1.3 1.3Z" /></svg>
             {t.ctTgVal}
           </a>
@@ -194,29 +194,29 @@ export function Header() {
   const [drawer, setDrawer] = useState(false)
   return (
     <>
-      <header className="bg-navy-deep text-white">
+      <header className="bg-white text-[#191919] border-b border-[#ECECEE]">
         <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 pb-2.5 pt-1">
           <button aria-label="menu" onClick={() => { haptic(); setDrawer(true) }}
-            className="press w-10 h-10 rounded-xl bg-white/10 grid place-items-center shrink-0 active:scale-95 transition-transform">
+            className="press w-10 h-10 rounded-xl bg-[#F3F4F6] grid place-items-center shrink-0 active:scale-95 transition-transform">
             <IcBurger />
           </button>
           <button onClick={() => nav('/')} className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
             <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px]" />
             <span className="text-[14.5px] font-extrabold tracking-[0.08em] whitespace-nowrap hidden min-[400px]:block">TEKIT SUSHI</span>
           </button>
-          <div className="hidden lg:flex items-center gap-0.5 bg-white/10 rounded-xl p-1 ml-2">
+          <div className="hidden lg:flex items-center gap-0.5 bg-[#F3F4F6] rounded-xl p-1 ml-2">
             {(['delivery', 'pickup'] as const).map(m => (
               <button key={m} onClick={() => { if (m !== mode) { setMode(m); haptic('light') } }}
-                className={`px-3.5 py-1.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-white text-navy-deep' : 'text-white/65 hover:text-white'}`}>
+                className={`px-3.5 py-1.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-[#2F2F33] text-white' : 'text-[#6B6B70] hover:text-[#191919]'}`}>
                 {m === 'delivery' ? t.deliveryMode : t.pickup}
               </button>
             ))}
           </div>
-          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 bg-white/10 rounded-xl px-3.5 py-2.5 text-[12.5px] font-bold active:opacity-80 transition-opacity">
+          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 bg-navy text-white rounded-xl px-3.5 py-2.5 text-[12.5px] font-bold active:opacity-80 transition-opacity">
             <IcPin /> {t.spAddr}
           </button>
           <div className="flex-1" />
-          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-2 bg-white/10 rounded-xl px-3.5 py-2.5 text-[12.5px] font-bold active:opacity-80 transition-opacity">
+          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-2 px-3 py-2.5 text-[12.5px] font-bold active:opacity-80 transition-opacity">
             <IcUser /> {user?.name ? user.name.split(' ')[0] : t.tabProfile}
           </button>
           <CartBtn />
@@ -234,7 +234,7 @@ export function CityBanner() {
   if (ok) return null
   return (
     <div className="px-4 lg:px-0 mt-3 lg:mt-4">
-      <div className="flex items-center gap-3 bg-navy-soft border border-navy-line rounded-[18px] px-4 py-3">
+      <div className="flex items-center gap-3 bg-white border border-navy-line rounded-[18px] px-4 py-3 shadow-[0_14px_34px_-18px_rgba(0,0,0,.25)]">
         <span className="text-navy shrink-0"><IcPin /></span>
         <div className="flex-1 text-[12.5px] font-bold text-navy-ink leading-snug">{t.cityNote}</div>
         <button onClick={() => { try { localStorage.setItem('tk-city-ok', '1') } catch {}; setOk(true) }}
@@ -285,43 +285,59 @@ const SLIDES: { img: string; b: 'heroB1' | 'heroB2' | 'heroB3' | 'heroB4'; ti: '
 export function HeroSlider() {
   const { t } = useStore()
   const nav = useNavigate()
+  const ref = useRef<HTMLDivElement>(null)
   const [i, setI] = useState(0)
   const n = SLIDES.length
   const timer = useRef<number | null>(null)
-  const x0 = useRef<number | null>(null)
-  const start = () => { if (timer.current) clearInterval(timer.current); timer.current = window.setInterval(() => setI(v => (v + 1) % n), 5200) }
+  const step = () => {
+    const el = ref.current
+    if (!el || el.children.length < 2) return 0
+    return (el.children[1] as HTMLElement).offsetLeft - (el.children[0] as HTMLElement).offsetLeft
+  }
+  const goTo = (k: number) => { const el = ref.current; if (el) el.scrollTo({ left: k * step(), behavior: 'smooth' }) }
+  const start = () => { if (timer.current) clearInterval(timer.current); timer.current = window.setInterval(() => {
+    const el = ref.current; if (!el) return
+    const max = el.scrollWidth - el.clientWidth - 4
+    if (el.scrollLeft >= max) el.scrollTo({ left: 0, behavior: 'smooth' })
+    else el.scrollBy({ left: step(), behavior: 'smooth' })
+  }, 5200) }
   useEffect(() => { start(); return () => { if (timer.current) clearInterval(timer.current) } }, [])
-  const go = (d: number) => { setI(v => (v + d + n) % n); start() }
+  const onScroll = () => {
+    const el = ref.current; if (!el) return
+    const st = step(); if (!st) return
+    setI(Math.max(0, Math.min(n - 1, Math.round(el.scrollLeft / st))))
+  }
+  const BG = ['linear-gradient(115deg,#FFE9EC 0%,#FDF2F4 100%)', 'linear-gradient(115deg,#E8EEF7 0%,#F5F8FC 100%)', 'linear-gradient(115deg,#FFF3E4 0%,#FDF8EF 100%)', 'linear-gradient(115deg,#EAF7F0 0%,#F6FBF8 100%)']
   return (
-    <div className="px-4 lg:px-0 mt-3 lg:mt-5">
-      <div className="relative overflow-hidden rounded-[22px] lg:rounded-[28px] hero-bg text-white select-none shadow-[0_16px_40px_-18px_rgba(10,33,148,.55)]">
-        <div className="flex transition-transform duration-[550ms]" style={{ transform: `translateX(-${i * 100}%)`, transitionTimingFunction: 'cubic-bezier(.23,1,.32,1)' }}>
+    <div className="mt-3 lg:mt-5 select-none">
+      <div className="relative">
+        <div ref={ref} onScroll={onScroll}
+          className="flex gap-2.5 overflow-x-auto no-scrollbar snap-x snap-mandatory px-3 lg:px-5"
+          style={{ scrollbarWidth: 'none' }}>
           {SLIDES.map((sl, k) => (
-            <div key={k} className="w-full shrink-0 relative h-[192px] lg:h-[380px] cursor-pointer"
-              onTouchStart={e => { x0.current = e.touches[0].clientX }}
-              onTouchEnd={e => { if (x0.current == null) return; const dx = e.changedTouches[0].clientX - x0.current; x0.current = null; if (Math.abs(dx) > 44) go(dx < 0 ? 1 : -1) }}
-              onClick={() => { haptic(); nav(sl.to) }}>
-              <div className="absolute inset-0 wm opacity-[.13] pointer-events-none" />
-              <div className="relative h-full flex items-center pl-5 lg:pl-24 pr-4 lg:pr-6">
-                <div className="max-w-[calc(100%-118px)] sm:max-w-[60%] lg:max-w-[56%]">
-                  <span className="inline-block bg-white/15 px-2.5 py-1 rounded-full text-[9.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
-                  <div className="mt-2 lg:mt-4 text-[21px] lg:text-[42px] font-extrabold leading-[1.08] tracking-tight">{(t as any)[sl.ti]}</div>
-                  <div className="mt-1.5 lg:mt-3 text-[11.5px] lg:text-[15px] font-medium text-white/75 leading-snug">{(t as any)[sl.s]}</div>
+            <div key={k} onClick={() => { haptic(); nav(sl.to) }}
+              className="snap-center shrink-0 w-[88%] lg:w-[calc(100%-30px)] relative h-[196px] lg:h-[250px] rounded-[20px] overflow-hidden cursor-pointer"
+              style={{ background: BG[k % 4] }}>
+              <img src={sl.img} alt="" loading={k === 0 ? 'eager' : 'lazy'} decoding="async"
+                className="absolute right-4 lg:right-16 top-1/2 -translate-y-1/2 w-[128px] h-[128px] lg:w-[190px] lg:h-[190px] object-cover rounded-[18px] bg-white p-1 lg:p-1.5 shadow-[0_18px_44px_rgba(20,20,40,.14)]" />
+              <div className="relative h-full flex items-center pl-5 lg:pl-12 pr-4 lg:pr-6">
+                <div className="max-w-[calc(100%-134px)] sm:max-w-[62%] lg:max-w-[54%]">
+                  <span className="inline-block bg-navy text-white px-2.5 py-1 rounded-full text-[9.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
+                  <div className="mt-2 lg:mt-3.5 text-[20px] lg:text-[34px] font-extrabold leading-[1.1] tracking-tight text-[#191919]">{(t as any)[sl.ti]}</div>
+                  <div className="mt-1.5 text-[11.5px] lg:text-[14px] font-medium text-[#5A5A62] leading-snug">{(t as any)[sl.s]}</div>
                 </div>
               </div>
-              <img src={sl.img} alt="" loading={k === 0 ? 'eager' : 'lazy'} decoding="async"
-                className="absolute right-3 lg:right-12 top-1/2 -translate-y-1/2 w-[112px] h-[112px] lg:w-[232px] lg:h-[232px] object-cover rounded-[18px] lg:rounded-[26px] bg-white p-1 lg:p-1.5 shadow-[0_18px_44px_rgba(5,10,40,.45)]" />
             </div>
           ))}
         </div>
-        <div className="absolute bottom-3 lg:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
-          {SLIDES.map((_, k) => (
-            <button key={k} onClick={e => { e.stopPropagation(); go(k - i) }}
-              className={`h-2 rounded-full transition-all duration-300 ${k === i ? 'w-5 bg-white' : 'w-2 h-2 bg-white/55'}`} />
-          ))}
-        </div>
-        <button onClick={e => { e.stopPropagation(); go(-1) }} className="press hidden lg:grid place-items-center absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/12 hover:bg-white/25 transition-colors"><IcChevL /></button>
-        <button onClick={e => { e.stopPropagation(); go(1) }} className="press hidden lg:grid place-items-center absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/12 hover:bg-white/25 transition-colors"><IcChevR /></button>
+        <button onClick={e => { e.stopPropagation(); goTo((i - 1 + n) % n); start() }} className="press hidden lg:grid place-items-center absolute left-9 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-[#191919] shadow-[0_8px_24px_rgba(0,0,0,.12)] hover:shadow-[0_10px_28px_rgba(0,0,0,.18)] transition-shadow"><IcChevL /></button>
+        <button onClick={e => { e.stopPropagation(); goTo((i + 1) % n); start() }} className="press hidden lg:grid place-items-center absolute right-9 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-[#191919] shadow-[0_8px_24px_rgba(0,0,0,.12)] hover:shadow-[0_10px_28px_rgba(0,0,0,.18)] transition-shadow"><IcChevR /></button>
+      </div>
+      <div className="mt-3 flex justify-center gap-1.5">
+        {SLIDES.map((_, k) => (
+          <button key={k} onClick={e => { e.stopPropagation(); goTo(k); start() }}
+            className={`h-2 rounded-full transition-all duration-300 ${k === i ? 'w-5 bg-[#191919]' : 'w-2 bg-[#D9D9DE]'}`} />
+        ))}
       </div>
     </div>
   )
@@ -331,7 +347,7 @@ export function HeroSlider() {
 export function InfoTiles() {
   const { t } = useStore()
   const tiles = [
-    { icon: <IcClock />, title: t.freeDelivery, sub: `${t.city} · ${t.dpTimeVal}`, cls: 'bg-navy-deep text-white', iconCls: 'bg-white/10 text-white' },
+    { icon: <IcClock />, title: t.freeDelivery, sub: `${t.city} · ${t.dpTimeVal}`, cls: 'bg-white text-navy-ink border border-navy-line', iconCls: 'bg-navy text-white' },
     { icon: <IcTag />, title: 'TEKIT10', sub: t.promoTileSub, cls: 'bg-white text-navy-ink border border-navy-line', iconCls: 'bg-navy text-white' },
     { icon: <IcCash />, title: t.cash, sub: t.dpSoon, cls: 'bg-white text-navy-ink border border-navy-line', iconCls: 'bg-navy text-white' },
   ]
@@ -519,10 +535,10 @@ export function Sheet({ open, onClose, title, children, foot }: {
   const moving = drag || dy > 0
   return createPortal(
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-navy-deep/45 backdrop-blur-[2px]" onClick={onClose}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose}
         style={{ opacity: Math.max(0, 1 - dy / 420), transition: drag ? 'none' : 'opacity .3s' }} />
       <div
-        className={`${!entered && !moving ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-paper rounded-t-[26px] max-h-[90dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none lg:top-0 lg:animate-none lg:h-fit lg:w-[480px] lg:mx-auto lg:rounded-[26px] lg:shadow-[0_24px_60px_rgba(10,15,50,.3)]`}
+        className={`${!entered && !moving ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-white rounded-t-[26px] max-h-[90dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none lg:top-0 lg:animate-none lg:h-fit lg:w-[480px] lg:mx-auto lg:rounded-[26px] lg:shadow-[0_24px_60px_rgba(10,15,50,.3)]`}
         style={{ transform: `translateY(${dy}px)`, transition: drag ? 'none' : 'transform .32s cubic-bezier(.32,.72,0,1)' }}>
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
           style={{ touchAction: 'none' }}>
