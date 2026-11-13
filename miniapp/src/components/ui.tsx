@@ -6,7 +6,7 @@ import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser } from '../lib/tg'
 import MapPicker from './MapPicker'
-import { List as PhList, Bag as PhBag, User as PhUser, MapPin as PhMapPin, Clock as PhClock, Tag as PhTag, Money as PhMoney, MagnifyingGlass as PhSearch, X as PhX, CaretLeft as PhCaretL, CaretRight as PhCaretR, Plus as PhPlus, ArrowsDownUp as PhSort, Sun as PhSun, Moon as PhMoon, ForkKnife as PhFork, Truck as PhTruck, Storefront as PhStore, ArrowUp as PhArrowUp, Crosshair as PhCross } from '@phosphor-icons/react'
+import { List as PhList, Bag as PhBag, User as PhUser, MapPin as PhMapPin, Clock as PhClock, Tag as PhTag, Money as PhMoney, MagnifyingGlass as PhSearch, X as PhX, CaretLeft as PhCaretL, CaretRight as PhCaretR, Plus as PhPlus, Minus as PhMinus, ArrowsDownUp as PhSort, Sun as PhSun, Moon as PhMoon, ForkKnife as PhFork, Truck as PhTruck, Storefront as PhStore, ArrowUp as PhArrowUp, Crosshair as PhCross } from '@phosphor-icons/react'
 
 const CDN = 'https://cdn.delever.uz/delever/'
 
@@ -19,6 +19,7 @@ export const IcClock = ({ s = 18 }: { s?: number }) => <PhClock size={s} weight=
 export const IcTag = ({ s = 18 }: { s?: number }) => <PhTag size={s} weight="bold" />
 export const IcCash = ({ s = 18 }: { s?: number }) => <PhMoney size={s} weight="bold" />
 export const IcSearch = ({ s = 17 }: { s?: number }) => <PhSearch size={s} weight="bold" />
+export const IcMinus = ({ s = 14 }: { s?: number }) => <PhMinus size={s} weight="bold" />
 export const IcX = ({ s = 14 }: { s?: number }) => <PhX size={s} weight="bold" />
 export const IcChevL = ({ s = 18 }: { s?: number }) => <PhCaretL size={s} weight="bold" />
 export const IcChevR = ({ s = 18 }: { s?: number }) => <PhCaretR size={s} weight="bold" />
@@ -536,7 +537,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           <div className="mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-between px-1.5">
             <button onClick={e => { e.stopPropagation(); setQty(p.id, q - 1); haptic('light') }}
               className="press w-9 h-9 rounded-[9px] grid place-items-center active:scale-90 transition-transform">
-              <IcX s={14} />
+              <IcMinus s={14} />
             </button>
             <span className="text-[14px] font-extrabold">{q}</span>
             <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium') }}

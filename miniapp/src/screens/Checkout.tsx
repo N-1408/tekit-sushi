@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, pName } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, BigButton } from '../components/ui'
+import { TopBar, BigButton, IcTruck } from '../components/ui'
 import MapPicker from '../components/MapPicker'
 
 const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[var(--mut2)] mb-1.5">{label}</div>{children}</div>
@@ -36,7 +36,20 @@ export default function Checkout() {
   const [locMsg, setLocMsg] = React.useState('')
   const discount = promoPct > 0 ? Math.round(sum * promoPct / 100) : 0
   const threshold = deliveryCfg?.threshold || 200000
-  const dFee = mode === 'delivery' && sum < threshold ? (deliveryCfg?.fee ?? 15000) : 0
+  // 200 000 so'mdan past buyurtma: narx Millennium/Noor API'dan avtomatik olinadi
+  const [qFee, setQFee] = React.useState<number | null>(null)
+  React.useEffect(() => {
+    if (mode !== 'delivery' || sum >= threshold) { setQFee(null); return }
+    const tm = setTimeout(async () => {
+      try {
+        const r = await fetch(`/api/delivery-quote?subtotal=${sum}&address=${encodeURIComponent(addr)}`)
+        const j = await r.json()
+        setQFee(j?.ok ? (j.free ? 0 : Math.max(0, Math.round(Number(j.fee) || 0))) : (deliveryCfg?.fee ?? 15000))
+      } catch { setQFee(deliveryCfg?.fee ?? 15000) }
+    }, 400)
+    return () => clearTimeout(tm)
+  }, [sum, mode, addr, threshold])
+  const dFee = mode === 'delivery' ? (sum >= threshold ? 0 : (qFee ?? deliveryCfg?.fee ?? 15000)) : 0
   const grand = sum - discount + dFee
 
   async function detectLoc() {
@@ -215,8 +228,16 @@ export default function Checkout() {
             <div className="bg-[var(--panel)] border border-navy-line rounded-[18px] p-4">
               <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
               {mode === 'delivery' && (<>
-                <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.delivery}</span><span className={dFee > 0 ? 'font-bold' : 'text-emerald-600 font-bold'}>{dFee > 0 ? `${fmt(dFee)} UZS` : t.free}</span></div>
-                {dFee > 0 && <div className="text-[11px] font-semibold text-[var(--mut2)] mt-1">{t.fdLeft.replace('{x}', fmt(threshold - sum))} · {t.fdTo}</div>}
+                <div className="mt-3 rounded-2xl bg-[var(--bg2)] px-3.5 py-3 border border-[var(--line)]">
+                  <div className="flex justify-between items-center">
+                    <span className="flex items-center gap-1.5 text-[13px] font-bold text-[var(--mut2)]"><IcTruck s={15} />{t.delivery}</span>
+                    <span className={`text-[14px] font-extrabold ${dFee > 0 ? 'text-[var(--ink)]' : 'text-emerald-600'}`}>{dFee > 0 ? `${fmt(dFee)} UZS` : t.free}</span>
+                  </div>
+                  <div className="mt-2.5 h-[7px] rounded-full bg-[var(--line2)] overflow-hidden">
+                    <div className="h-full rounded-full bg-gradient-to-r from-[#0A2194] to-[#29A8E0] transition-all duration-700" style={{ width: `${Math.round(Math.min(1, sum / threshold) * 100)}%` }} />
+                  </div>
+                  <div className={`mt-1.5 text-[11.5px] font-semibold ${dFee > 0 ? 'text-[var(--mut2)]' : 'text-emerald-600'}`}>{dFee > 0 ? `${t.fdLeft.replace('{x}', fmt(threshold - sum))} · ${t.fdTo}` : t.fdDone}</div>
+                </div>
               </>)}
               {discount > 0 && <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.promo} ({promoCode})</span><span className="text-emerald-600 font-bold">−{fmt(discount)} UZS</span></div>}
               <div className="h-px bg-navy-line my-3" />
