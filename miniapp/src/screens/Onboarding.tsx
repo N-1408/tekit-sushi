@@ -1,6 +1,7 @@
 import React from 'react'
 import { useStore } from '../lib/store'
 import { tgUser, requestLocation, haptic } from '../lib/tg'
+import { IcPin } from '../components/ui'
 
 const input = 'w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 placeholder:text-[#A2A9C6]'
 
@@ -84,7 +85,7 @@ export default function Onboarding() {
               <button onClick={detect} disabled={busy}
                 className="w-full py-4 rounded-2xl bg-navy text-white text-[14.5px] font-extrabold press shadow-[0_8px_20px_-6px_rgba(10,33,148,.45)] flex items-center justify-center gap-2.5 disabled:opacity-60">
                 {busy ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" /></svg>
+                  <IcPin s={18} />
                 )}
                 {busy ? t.obLocDetecting : t.obLocBtn}
               </button>

@@ -2,13 +2,13 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import type { Lang } from '../lib/i18n'
-import { TopBar, IcPin, Sheet } from '../components/ui'
+import { TopBar, IcPin, Sheet, IcClock, IcTruck, IcInfo, IcMail, IcLock, IcChevR } from '../components/ui'
 
 const ROW_ICON: Record<string, React.ReactNode> = {
-  branches: <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" /></svg>,
-  contacts: <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" /></svg>,
-  delivery: <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M10 17h4V5H2v12h3" /><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5" /><path d="M14 17h1" /><circle cx="7.5" cy="17.5" r="2.5" /><circle cx="17.5" cy="17.5" r="2.5" /></svg>,
-  about: <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><circle cx="12" cy="8" r="0.4" fill="currentColor" /></svg>,
+  branches: <IcPin s={21} />,
+  contacts: <IcMail s={21} />,
+  delivery: <IcTruck s={21} />,
+  about: <IcInfo s={21} />,
 }
 
 export default function Profile() {
@@ -99,10 +99,10 @@ export default function Profile() {
           className="mt-4 w-full bg-[var(--panel)] border border-navy-line rounded-[18px] px-4 py-3.5 flex items-center gap-3.5 active:bg-navy-soft transition-colors"
         >
           <span className="text-[var(--mut2)]">
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></svg>
+            <IcClock s={21} />
           </span>
           <span className="text-[14.5px] font-bold flex-1 text-left">{t.historyTitle}</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 5 7 7-7 7" /></svg>
+          <span style={{ color: "var(--ink3)", display: "grid" }}><IcChevR s={16} /></span>
         </button>
 
         <div className="mt-2.5 bg-[var(--panel)] border border-navy-line rounded-[18px] overflow-hidden">
@@ -113,7 +113,7 @@ export default function Profile() {
                 className="w-full text-left px-4 py-3.5 flex items-center gap-3.5 active:bg-navy-soft transition-colors">
                 <span className="text-[var(--mut2)]">{ROW_ICON[r.id]}</span>
                 <span className="text-[14.5px] font-bold flex-1">{r.label}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 5 7 7-7 7" /></svg>
+                <span style={{ color: "var(--ink3)", display: "grid" }}><IcChevR s={16} /></span>
               </button>
             </React.Fragment>
           ))}
@@ -123,10 +123,10 @@ export default function Profile() {
           <button onClick={() => nav('/admin')}
             className="mt-3 w-full bg-[var(--panel)] border border-navy-line rounded-[18px] px-4 py-3.5 flex items-center gap-3.5 active:bg-navy-soft transition-colors">
             <span className="text-[var(--mut2)]">
-              <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="10.5" width="14" height="9.5" rx="2.5" /><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5" /></svg>
+              <IcLock s={21} />
             </span>
             <span className="text-[14.5px] font-bold flex-1 text-left">{t.admin}</span>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--ink3)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="m9 5 7 7-7 7" /></svg>
+            <span style={{ color: "var(--ink3)", display: "grid" }}><IcChevR s={16} /></span>
           </button>
         )}
 

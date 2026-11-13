@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore, pName, pImg, pDesc } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty, IcScale, IcSauce } from '../components/ui'
+import {  TopBar, Qty, IcScale, IcSauce , IcHeart } from '../components/ui'
 
 export default function Product() {
   const { id } = useParams()
@@ -25,7 +25,7 @@ export default function Product() {
         <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover bg-navy-soft" />
         <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
           className="absolute top-3 right-4 w-10 h-10 rounded-full bg-[var(--bg2)]/80 grid place-items-center active:scale-90 transition-transform">
-          <svg width="19" height="19" viewBox="0 0 24 24" fill={fav ? '#E23B52' : 'none'} stroke={fav ? '#E23B52' : 'var(--mut)'} strokeWidth="2"><path d="M12 21C7 16.6 3 13.4 3 9.3 3 6.4 5.2 4 8 4c1.6 0 3.1.8 4 2.1C12.9 4.8 14.4 4 16 4c2.8 0 5 2.4 5 5.3 0 4.1-4 7.3-9 11.7z" /></svg>
+          <IcHeart s={19} on={fav} />
         </button>
         {p.pcs ? <span className="absolute bottom-3 left-4 bg-white/95 text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
       </div>

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, pName, pImg } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty, Empty, BigButton } from '../components/ui'
+import { TopBar, Qty, Empty, BigButton, IcX } from '../components/ui'
 
 export default function Cart() {
   const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add } = useStore()
@@ -45,7 +45,7 @@ export default function Cart() {
                 </div>
                 <div className="flex flex-col justify-between items-end">
                   <button onClick={() => { setQty(l.id, 0); haptic('light') }} className="text-[var(--mut2)] active:text-red-500 p-1">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
+                    <IcX s={15} />
                   </button>
                   <Qty small q={l.q} onInc={() => { setQty(l.id, l.q + 1); haptic() }} onDec={() => { setQty(l.id, l.q - 1); haptic() }} />
                 </div>

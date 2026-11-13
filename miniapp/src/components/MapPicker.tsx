@@ -2,6 +2,7 @@ import React from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { haptic } from '../lib/tg'
+import { IcChevL, IcLocate } from './ui'
 
 type Pt = { lat: number; lon: number }
 
@@ -86,7 +87,7 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
     <div className="fixed inset-0 z-[90] bg-[var(--bg2)] flex flex-col">
       <div className="flex items-center gap-3 px-4 pt-[calc(12px+var(--sat))] pb-3 border-b border-[var(--line)] bg-[var(--bg2)]">
         <button onClick={onClose} className="press w-9 h-9 rounded-full bg-[var(--panel)] text-[var(--ink)] grid place-items-center active:scale-90 transition-transform" aria-label="back">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+          <IcChevL s={17} />
         </button>
         <div className="text-[15px] font-extrabold flex-1 text-[var(--ink)]">{t.mapTitle}</div>
       </div>
@@ -95,7 +96,7 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
         <button onClick={locateMe} aria-label="locate"
           className="absolute left-3 bottom-6 z-[500] w-11 h-11 rounded-xl bg-[var(--panel)] text-[var(--ink)] border border-[var(--line2)] shadow-[0_8px_20px_rgba(0,0,0,.22)] grid place-items-center active:scale-90 transition-transform">
           {locBusy ? <span className="w-4 h-4 border-2 border-[var(--line2)] border-t-[var(--ink)] rounded-full animate-spin" /> : (
-            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3.2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
+            <IcLocate s={19} />
           )}
         </button>
       </div>
