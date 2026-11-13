@@ -319,8 +319,8 @@ export function HeroSlider() {
               className="snap-center shrink-0 w-[88%] lg:w-[calc(100%-30px)] relative h-[196px] lg:h-[250px] rounded-[20px] overflow-hidden cursor-pointer"
               style={{ background: BG[k % 4] }}>
               <img src={sl.img} alt="" loading={k === 0 ? 'eager' : 'lazy'} decoding="async"
-                className="absolute right-4 lg:right-16 top-1/2 -translate-y-1/2 w-[128px] h-[128px] lg:w-[190px] lg:h-[190px] object-cover rounded-[18px] bg-white p-1 lg:p-1.5 shadow-[0_18px_44px_rgba(20,20,40,.14)]" />
-              <div className="relative h-full flex items-center pl-5 lg:pl-12 pr-4 lg:pr-6">
+                className="absolute right-4 lg:right-16 top-1/2 -translate-y-1/2 w-[128px] h-[128px] lg:w-[190px] lg:h-[190px] object-cover rounded-[18px] shadow-[0_14px_34px_rgba(20,20,40,.18)]" />
+              <div className="relative h-full flex items-center pl-6 lg:pl-14 pr-4 lg:pr-6">
                 <div className="max-w-[calc(100%-134px)] sm:max-w-[62%] lg:max-w-[54%]">
                   <span className="inline-block bg-navy text-white px-2.5 py-1 rounded-full text-[9.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
                   <div className="mt-2 lg:mt-3.5 text-[20px] lg:text-[34px] font-extrabold leading-[1.1] tracking-tight text-[#191919]">{(t as any)[sl.ti]}</div>
@@ -330,8 +330,8 @@ export function HeroSlider() {
             </div>
           ))}
         </div>
-        <button onClick={e => { e.stopPropagation(); goTo((i - 1 + n) % n); start() }} className="press hidden lg:grid place-items-center absolute left-9 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-[#191919] shadow-[0_8px_24px_rgba(0,0,0,.12)] hover:shadow-[0_10px_28px_rgba(0,0,0,.18)] transition-shadow"><IcChevL /></button>
-        <button onClick={e => { e.stopPropagation(); goTo((i + 1) % n); start() }} className="press hidden lg:grid place-items-center absolute right-9 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-[#191919] shadow-[0_8px_24px_rgba(0,0,0,.12)] hover:shadow-[0_10px_28px_rgba(0,0,0,.18)] transition-shadow"><IcChevR /></button>
+        <button onClick={e => { e.stopPropagation(); goTo((i - 1 + n) % n); start() }} className="press hidden lg:grid place-items-center absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-[#191919] shadow-[0_8px_24px_rgba(0,0,0,.12)] hover:shadow-[0_10px_28px_rgba(0,0,0,.18)] transition-shadow"><IcChevL /></button>
+        <button onClick={e => { e.stopPropagation(); goTo((i + 1) % n); start() }} className="press hidden lg:grid place-items-center absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-[#191919] shadow-[0_8px_24px_rgba(0,0,0,.12)] hover:shadow-[0_10px_28px_rgba(0,0,0,.18)] transition-shadow"><IcChevR /></button>
       </div>
       <div className="mt-3 flex justify-center gap-1.5">
         {SLIDES.map((_, k) => (
