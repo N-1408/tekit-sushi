@@ -356,7 +356,7 @@ export function InfoTiles() {
   const tiles = [
     { icon: <IcClock />, title: t.freeDelivery, sub: `${t.city} · ${t.dpTimeVal}`, cls: 'bg-[#1B2330] text-[#F2F5F9]', iconCls: 'bg-[#29A8E0]/15 text-[#29A8E0]' },
     { icon: <IcTag />, title: 'TEKIT10', sub: t.promoTileSub, cls: 'bg-[#1B2330] text-[#F2F5F9]', iconCls: 'bg-[#29A8E0]/15 text-[#29A8E0]' },
-    { icon: <IcCash />, title: t.cash, sub: t.dpSoon, cls: 'bg-white text-navy-ink border border-navy-line', iconCls: 'bg-navy text-white' },
+    { icon: <IcCash />, title: t.cash, sub: t.dpSoon, cls: 'bg-[#1B2330] text-[#F2F5F9]', iconCls: 'bg-[#29A8E0]/15 text-[#29A8E0]' },
   ]
   return (
     <div className="px-4 lg:px-0 mt-3 lg:mt-5 flex gap-2.5 overflow-x-auto no-scrollbar snap-x lg:grid lg:grid-cols-3 lg:overflow-visible">
