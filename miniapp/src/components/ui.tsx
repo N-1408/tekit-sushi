@@ -841,7 +841,7 @@ export function FloatingCart() {
   if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
   return (
     <button onClick={() => { haptic(); nav('/cart') }} aria-label="cart"
-      className="press fixed right-4 z-[45] w-14 h-14 rounded-[18px] bg-navy text-white grid place-items-center shadow-[0_14px_30px_-8px_rgba(10,33,148,.6)] active:scale-95 transition-transform lg:!bottom-8"
+      className="floating-quick press fixed right-4 z-[45] w-14 h-14 rounded-[18px] bg-navy text-white grid place-items-center shadow-[0_14px_30px_-8px_rgba(10,33,148,.6)] active:scale-95 transition-transform lg:!bottom-8"
       style={{ bottom: 'calc(92px + var(--sab))' }}>
       <IcBag s={26} />
       {cartCount > 0 && (
@@ -864,7 +864,7 @@ export function ScrollTop() {
   if (!show || loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
   return (
     <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="up"
-      className="press fixed left-4 z-[45] w-12 h-12 rounded-[16px] bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] active:scale-95 transition-transform lg:!bottom-8"
+      className="floating-quick press fixed left-4 z-[45] w-12 h-12 rounded-[16px] bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] active:scale-95 transition-transform lg:!bottom-8"
       style={{ bottom: 'calc(92px + var(--sab))' }}>
       <IcArrowUp s={20} />
     </button>

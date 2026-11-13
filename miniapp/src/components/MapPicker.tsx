@@ -21,6 +21,11 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
   const [locBusy, setLocBusy] = React.useState(false)
 
   React.useEffect(() => {
+    document.body.dataset.mapOpen = open ? '1' : ''
+    return () => { document.body.dataset.mapOpen = '' }
+  }, [open])
+
+  React.useEffect(() => {
     if (!open) return
     if (initial) setPt(initial)
     const t0 = setTimeout(() => {
@@ -28,7 +33,7 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
       if (!mapRef.current) {
         const start = initial || pt
         const m = L.map(boxRef.current, { zoomControl: false, center: [start.lat, start.lon], zoom: 16 })
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap &copy; CARTO' }).addTo(m)
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(m)
         const icon = L.divIcon({
           className: '',
           html: '<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#0A2194;border:3px solid #fff;box-shadow:0 6px 14px rgba(10,33,148,.45)"></div>',
@@ -78,26 +83,26 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
 
   if (!open) return null
   return (
-    <div className="fixed inset-0 z-[80] bg-white flex flex-col">
-      <div className="flex items-center gap-3 px-4 pt-[calc(12px+var(--sat))] pb-3 border-b border-navy-line bg-white">
-        <button onClick={onClose} className="press w-9 h-9 rounded-full bg-navy-soft grid place-items-center active:scale-90 transition-transform" aria-label="back">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0A2194" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
+    <div className="fixed inset-0 z-[90] bg-[var(--bg2)] flex flex-col">
+      <div className="flex items-center gap-3 px-4 pt-[calc(12px+var(--sat))] pb-3 border-b border-[var(--line)] bg-[var(--bg2)]">
+        <button onClick={onClose} className="press w-9 h-9 rounded-full bg-[var(--panel)] text-[var(--ink)] grid place-items-center active:scale-90 transition-transform" aria-label="back">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>
         </button>
-        <div className="text-[15px] font-extrabold flex-1">{t.mapTitle}</div>
+        <div className="text-[15px] font-extrabold flex-1 text-[var(--ink)]">{t.mapTitle}</div>
       </div>
       <div className="flex-1 relative">
         <div ref={boxRef} className="absolute inset-0" />
         <button onClick={locateMe} aria-label="locate"
-          className="absolute left-3 bottom-6 z-[500] w-11 h-11 rounded-xl bg-white text-[#0A2194] shadow-[0_8px_20px_rgba(0,0,0,.22)] grid place-items-center active:scale-90 transition-transform">
-          {locBusy ? <span className="w-4 h-4 border-2 border-[#0A2194]/30 border-t-[#0A2194] rounded-full animate-spin" /> : (
+          className="absolute left-3 bottom-6 z-[500] w-11 h-11 rounded-xl bg-[var(--panel)] text-[var(--ink)] border border-[var(--line2)] shadow-[0_8px_20px_rgba(0,0,0,.22)] grid place-items-center active:scale-90 transition-transform">
+          {locBusy ? <span className="w-4 h-4 border-2 border-[var(--line2)] border-t-[var(--ink)] rounded-full animate-spin" /> : (
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3.2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
           )}
         </button>
       </div>
-      <div className="px-4 pt-3 border-t border-navy-line bg-white" style={{ paddingBottom: 'calc(14px + var(--sab))' }}>
-        <div className="text-[11.5px] font-bold text-[#7A8494] text-center">{err ? '—' : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`}</div>
+      <div className="px-4 pt-3 border-t border-[var(--line)] bg-[var(--bg2)]" style={{ paddingBottom: 'calc(14px + var(--sab))' }}>
+        <div className="text-[11.5px] font-bold text-[var(--mut2)] text-center">{err ? '—' : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`}</div>
         <button onClick={pick} disabled={busy}
-          className="press mt-2.5 w-full py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[.98] transition-transform">
+          className="press mt-2.5 w-full py-3.5 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15px] font-extrabold disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[.98] transition-transform">
           {busy ? '…' : t.mapPick}
         </button>
       </div>
