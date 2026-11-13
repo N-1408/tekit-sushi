@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { cors } from '../_verify.js';
-import { checkPaymentWebhookSecret } from '../_payment.js';
+import { cors } from './_verify.js';
+import { checkPaymentWebhookSecret } from './_payment.js';
 
 let pool;
 function getPool() {
@@ -8,7 +8,7 @@ function getPool() {
   return pool;
 }
 
-export default async (req, res) => {
+export const paymentHandler = async (req, res) => {
   cors(res, 'POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });

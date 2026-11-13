@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
-import { cors } from '../_verify.js';
-import { checkDeliveryWebhookSecret } from '../_delivery.js';
+import { cors } from './_verify.js';
+import { checkDeliveryWebhookSecret } from './_delivery.js';
 
 let pool;
 function getPool() {
@@ -8,7 +8,7 @@ function getPool() {
   return pool;
 }
 
-export default async (req, res) => {
+export const deliveryHandler = async (req, res) => {
   cors(res, 'POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });

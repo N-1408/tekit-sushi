@@ -1,1 +1,22 @@
-{ "buildCommand": "npm run build", "outputDirectory": "dist", "rewrites": [{ "source": "/telegram/webhook", "destination": "/api/telegram" }, { "source": "/((?!api/).*)", "destination": "/index.html" }] }
+{
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "rewrites": [
+    {
+      "source": "/telegram/webhook",
+      "destination": "/api/telegram"
+    },
+    {
+      "source": "/api/webhook/delivery",
+      "destination": "/api/webhook?type=delivery"
+    },
+    {
+      "source": "/api/webhook/payment",
+      "destination": "/api/webhook?type=payment"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
