@@ -290,6 +290,7 @@ export function SearchChips({ q, setQ, sort, setSort }: { q: string; setQ: (s: s
               {(c as any)[lang] || t.catNames[c.id]}
             </button>
           ))}
+          </div>
         </div>
       </div>
     </div>
