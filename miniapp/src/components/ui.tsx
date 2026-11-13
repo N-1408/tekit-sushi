@@ -281,6 +281,14 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
   )
 }
 
+/* ---------- vaqtinchalik rating qiymatlari (ma'lumot kelganda almashtiriladi) ---------- */
+const RSEED = (id: string) => {
+  let h = 0
+  for (let k = 0; k < id.length; k++) h = (h * 31 + id.charCodeAt(k)) % 997
+  return (85 + (h % 16)) / 10
+}
+const IcStar = () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z" /></svg>
+
 /* ---------- promo slayder ---------- */
 const SLIDES: { img: string; b: 'heroB1' | 'heroB2' | 'heroB3' | 'heroB4'; ti: 'heroT1' | 'heroT2' | 'heroT3' | 'heroT4'; s: 'heroS1' | 'heroS2' | 'heroS3' | 'heroS4'; to: string }[] = [
   { img: CDN + '2705b64b-3608-4b1b-bd69-adeb50ff7151', b: 'heroB1', ti: 'heroT1', s: 'heroS1', to: '/' },
@@ -314,7 +322,6 @@ export function HeroSlider() {
     const st = step(); if (!st) return
     setI(Math.max(0, Math.min(n - 1, Math.round(el.scrollLeft / st))))
   }
-  const BG = ['linear-gradient(115deg,#FFE9EC 0%,#FDF2F4 100%)', 'linear-gradient(115deg,#E8EEF7 0%,#F5F8FC 100%)', 'linear-gradient(115deg,#FFF3E4 0%,#FDF8EF 100%)', 'linear-gradient(115deg,#EAF7F0 0%,#F6FBF8 100%)']
   return (
     <div className="mt-3 lg:mt-5 select-none">
       <div className="relative">
@@ -323,15 +330,15 @@ export function HeroSlider() {
           style={{ scrollbarWidth: 'none' }}>
           {SLIDES.map((sl, k) => (
             <div key={k} onClick={() => { haptic(); nav(sl.to) }}
-              className="snap-center shrink-0 w-[88%] lg:w-[calc(100%-30px)] relative h-[196px] lg:h-[250px] rounded-[20px] overflow-hidden cursor-pointer"
-              style={{ background: BG[k % 4] }}>
+              className="snap-center shrink-0 w-[88%] lg:w-[calc(100%-30px)] relative h-[196px] lg:h-[250px] rounded-[20px] overflow-hidden cursor-pointer bg-[#141B26]">
               <img src={sl.img} alt="" loading={k === 0 ? 'eager' : 'lazy'} decoding="async"
-                className="absolute right-4 lg:right-16 top-1/2 -translate-y-1/2 w-[128px] h-[128px] lg:w-[190px] lg:h-[190px] object-cover rounded-[18px] shadow-[0_14px_34px_rgba(20,20,40,.18)]" />
-              <div className="relative h-full flex items-center pl-6 lg:pl-14 pr-4 lg:pr-6">
-                <div className="max-w-[calc(100%-134px)] sm:max-w-[62%] lg:max-w-[54%]">
-                  <span className="inline-block bg-navy text-white px-2.5 py-1 rounded-full text-[9.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
-                  <div className="mt-2 lg:mt-3.5 text-[20px] lg:text-[34px] font-extrabold leading-[1.1] tracking-tight text-[#191919]">{(t as any)[sl.ti]}</div>
-                  <div className="mt-1.5 text-[11.5px] lg:text-[14px] font-medium text-[#5A5A62] leading-snug">{(t as any)[sl.s]}</div>
+                className="absolute inset-0 w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#0B1220]/85 via-[#0B1220]/40 to-transparent" />
+              <div className="relative h-full flex items-end lg:items-center pl-5 lg:pl-10 pr-4 lg:pr-6 pb-4 lg:pb-0">
+                <div className="max-w-[75%] lg:max-w-[55%]">
+                  <span className="inline-block bg-[#29A8E0] text-white px-2.5 py-1 rounded-full text-[9.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
+                  <div className="mt-2 lg:mt-3.5 text-[20px] lg:text-[34px] font-extrabold leading-[1.1] tracking-tight text-white">{(t as any)[sl.ti]}</div>
+                  <div className="mt-1.5 text-[11.5px] lg:text-[14px] font-medium text-white/75 leading-snug">{(t as any)[sl.s]}</div>
                 </div>
               </div>
             </div>
@@ -454,9 +461,13 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           className="absolute top-2 right-2 w-9 h-9 rounded-full bg-[#101821]/80 grid place-items-center active:scale-90 transition-transform">
           <Heart on={fav} s={15} />
         </button>
-        {sale ? (
-          <span className="absolute top-2 left-2 bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
-        ) : p.hit ? <span className="absolute top-2 left-2 bg-[#101821]/85 text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">{t.hit}</span> : null}
+        <span className="absolute top-2 left-2 flex items-center gap-1 bg-[#101821]/85 text-white text-[10.5px] font-extrabold px-1.5 py-1 rounded-[8px]">
+          <IcStar /> {((p as any).rating ?? RSEED(p.id)).toFixed(1)}
+        </span>
+        {sale && (
+          <span className="absolute top-11 left-2 bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
+        )}
+        {!sale && p.hit && <span className="absolute top-11 left-2 bg-[#101821]/85 text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">{t.hit}</span>}
       </div>
       <div className="mt-2.5 text-[14.5px] font-bold leading-snug text-[#F2F5F9] line-clamp-2">{pName(p, lang)}</div>
       <div className="text-[12px] font-medium text-[#7A8494] mt-0.5 min-h-[16px]">{p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')}</div>
