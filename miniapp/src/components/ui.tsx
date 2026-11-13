@@ -149,7 +149,7 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
         <div className="px-5 mt-4 flex gap-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic('light') }}
-              className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-extrabold transition-colors ${lang === l ? 'bg-[#2F2F33] text-white' : 'bg-[#F3F4F6] text-[#6B6B70] active:scale-95'}`}>
+              className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-extrabold transition-colors ${lang === l ? 'bg-navy text-white' : 'bg-[#F3F4F6] text-[#6B6B70] active:scale-95'}`}>
               <span className="text-[15px] leading-none">{FLAGS[l]}</span>{l.toUpperCase()}
             </button>
           ))}
@@ -207,7 +207,7 @@ export function Header() {
           <div className="hidden lg:flex items-center gap-0.5 bg-[#F3F4F6] rounded-xl p-1 ml-2">
             {(['delivery', 'pickup'] as const).map(m => (
               <button key={m} onClick={() => { if (m !== mode) { setMode(m); haptic('light') } }}
-                className={`px-3.5 py-1.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-[#2F2F33] text-white' : 'text-[#6B6B70] hover:text-[#191919]'}`}>
+                className={`px-3.5 py-1.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-navy text-white' : 'text-[#6B6B70] hover:text-[#191919]'}`}>
                 {m === 'delivery' ? t.deliveryMode : t.pickup}
               </button>
             ))}
@@ -336,7 +336,7 @@ export function HeroSlider() {
       <div className="mt-3 flex justify-center gap-1.5">
         {SLIDES.map((_, k) => (
           <button key={k} onClick={e => { e.stopPropagation(); goTo(k); start() }}
-            className={`h-2 rounded-full transition-all duration-300 ${k === i ? 'w-5 bg-[#191919]' : 'w-2 bg-[#D9D9DE]'}`} />
+            className={`h-2 rounded-full transition-all duration-300 ${k === i ? 'w-5 bg-navy' : 'w-2 bg-[#D9D9DE]'}`} />
         ))}
       </div>
     </div>

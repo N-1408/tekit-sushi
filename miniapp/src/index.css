@@ -18,7 +18,7 @@ input, textarea, select { font-size: 16px !important; }
 
 /* katakana brand pattern (navy bg, white outline wordmarks) */
 .tekit-pattern {
-  background-color: #E8462B;
+  background-color: #0A2194;
   background-image: repeating-linear-gradient(0deg, transparent 0 78px, rgba(255,255,255,.09) 78px 79px);
   overflow: hidden; position: relative;
 }
