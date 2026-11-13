@@ -212,6 +212,9 @@ export function Header() {
               </button>
             ))}
           </div>
+          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 px-3 py-2.5 text-[12.5px] font-bold text-[#191919] active:opacity-80 transition-opacity">
+            <IcPin /> {t.city}
+          </button>
           <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 bg-navy text-white rounded-xl px-3.5 py-2.5 text-[12.5px] font-bold active:opacity-80 transition-opacity">
             <IcPin /> {t.spAddr}
           </button>
@@ -233,8 +236,8 @@ export function CityBanner() {
   const [ok, setOk] = useState(() => { try { return localStorage.getItem('tk-city-ok') === '1' } catch { return false } })
   if (ok) return null
   return (
-    <div className="px-4 lg:px-0 mt-3 lg:mt-4">
-      <div className="flex items-center gap-3 bg-white border border-navy-line rounded-[18px] px-4 py-3 shadow-[0_14px_34px_-18px_rgba(0,0,0,.25)]">
+    <div className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(66px + var(--sat))' }}>
+      <div className="flex items-center gap-3 bg-white border border-navy-line rounded-2xl px-4 py-3 shadow-[0_18px_44px_-14px_rgba(0,0,0,.28)]">
         <span className="text-navy shrink-0"><IcPin /></span>
         <div className="flex-1 text-[12.5px] font-bold text-navy-ink leading-snug">{t.cityNote}</div>
         <button onClick={() => { try { localStorage.setItem('tk-city-ok', '1') } catch {}; setOk(true) }}
@@ -354,10 +357,12 @@ export function InfoTiles() {
   return (
     <div className="px-4 lg:px-0 mt-3 lg:mt-5 flex gap-2.5 overflow-x-auto no-scrollbar snap-x lg:grid lg:grid-cols-3 lg:overflow-visible">
       {tiles.map((x, k) => (
-        <div key={k} className={`shrink-0 w-[236px] lg:w-auto snap-start rounded-[20px] p-4 flex flex-col gap-1.5 ${x.cls}`}>
-          <span className={`w-9 h-9 rounded-xl grid place-items-center shrink-0 ${x.iconCls}`}>{x.icon}</span>
-          <div className="text-[14.5px] font-extrabold leading-tight">{x.title}</div>
-          <div className="text-[11.5px] font-medium opacity-70 leading-snug">{x.sub}</div>
+        <div key={k} className={`shrink-0 w-[290px] lg:w-auto snap-start rounded-[20px] px-4 py-4 flex items-center gap-3.5 ${x.cls}`}>
+          <span className={`w-11 h-11 rounded-xl grid place-items-center shrink-0 ${x.iconCls}`}>{x.icon}</span>
+          <div className="min-w-0">
+            <div className="text-[14.5px] font-extrabold leading-tight">{x.title}</div>
+            <div className="text-[11.5px] font-medium opacity-70 leading-snug mt-0.5">{x.sub}</div>
+          </div>
         </div>
       ))}
     </div>
