@@ -19,7 +19,7 @@ export default function Cat() {
         <SearchChips q={q} setQ={setQ} sort={sort} setSort={setSort} />
       </div>
       <div className="lg:max-w-[1240px] lg:mx-auto">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4 px-4 lg:px-6 mt-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7 px-4 lg:px-6 mt-4">
           {items.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
         </div>
         {items.length === 0 && <div className="px-4"><Empty title="Bo'sh" /></div>}

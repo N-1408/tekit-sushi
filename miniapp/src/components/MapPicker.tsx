@@ -18,6 +18,7 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
   const [pt, setPt] = React.useState<Pt>(initial || { lat: 41.3111, lon: 69.2797 })
   const [busy, setBusy] = React.useState(false)
   const [err, setErr] = React.useState(false)
+  const [locBusy, setLocBusy] = React.useState(false)
 
   React.useEffect(() => {
     if (!open) return
@@ -27,7 +28,7 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
       if (!mapRef.current) {
         const start = initial || pt
         const m = L.map(boxRef.current, { zoomControl: false, center: [start.lat, start.lon], zoom: 16 })
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(m)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: 'abcd', attribution: '&copy; OpenStreetMap &copy; CARTO' }).addTo(m)
         const icon = L.divIcon({
           className: '',
           html: '<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#0A2194;border:3px solid #fff;box-shadow:0 6px 14px rgba(10,33,148,.45)"></div>',
@@ -48,6 +49,19 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
     }, 60)
     return () => clearTimeout(t0)
   }, [open])
+
+  function locateMe() {
+    if (locBusy || !navigator.geolocation) return
+    setLocBusy(true)
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const p = { lat: pos.coords.latitude, lon: pos.coords.longitude }
+      setPt(p)
+      mapRef.current?.setView([p.lat, p.lon], 16)
+      mkRef.current?.setLatLng([p.lat, p.lon])
+      haptic('light')
+      setLocBusy(false)
+    }, () => setLocBusy(false), { enableHighAccuracy: true, timeout: 8000 })
+  }
 
   async function pick() {
     if (busy) return
@@ -71,7 +85,15 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
         </button>
         <div className="text-[15px] font-extrabold flex-1">{t.mapTitle}</div>
       </div>
-      <div ref={boxRef} className="flex-1 relative" />
+      <div className="flex-1 relative">
+        <div ref={boxRef} className="absolute inset-0" />
+        <button onClick={locateMe} aria-label="locate"
+          className="absolute left-3 bottom-6 z-[500] w-11 h-11 rounded-xl bg-white text-[#0A2194] shadow-[0_8px_20px_rgba(0,0,0,.22)] grid place-items-center active:scale-90 transition-transform">
+          {locBusy ? <span className="w-4 h-4 border-2 border-[#0A2194]/30 border-t-[#0A2194] rounded-full animate-spin" /> : (
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3.2" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3" /></svg>
+          )}
+        </button>
+      </div>
       <div className="px-4 pt-3 border-t border-navy-line bg-white" style={{ paddingBottom: 'calc(14px + var(--sab))' }}>
         <div className="text-[11.5px] font-bold text-[#7A8494] text-center">{err ? '—' : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`}</div>
         <button onClick={pick} disabled={busy}

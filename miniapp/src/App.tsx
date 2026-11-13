@@ -15,7 +15,7 @@ import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
-import { TabBar, ProductSheet } from './components/ui'
+import { TabBar, ProductSheet, FloatingCart, ScrollTop, FreeDeliveryPopup } from './components/ui'
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 
@@ -51,7 +51,7 @@ export default function App() {
       </Routes>
       </div>
       {!isAdmin && (!user || ob) && <Onboarding />}
-      {!isAdmin && <TabBar />}
+      {!isAdmin && <><TabBar /><FloatingCart /><ScrollTop /><FreeDeliveryPopup /></>}
       {!isAdmin && <ProductSheet />}
       {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-1/2 z-[60] bg-navy text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
     </>

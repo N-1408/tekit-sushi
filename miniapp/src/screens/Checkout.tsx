@@ -9,7 +9,7 @@ import MapPicker from '../components/MapPicker'
 const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[var(--mut2)] mb-1.5">{label}</div>{children}</div>
 
 export default function Checkout() {
-  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser, saveMyOrder, refreshOrders, mode, setMode } = useStore()
+  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser, saveMyOrder, refreshOrders, mode, setMode, deliveryCfg } = useStore()
   const nav = useNavigate()
   const sum = cart.filter(l => l.q > 0).reduce((s, l) => s + l.q * l.price, 0)
   const last = myOrders[0]
@@ -35,6 +35,9 @@ export default function Checkout() {
   const [locBusy, setLocBusy] = React.useState(false)
   const [locMsg, setLocMsg] = React.useState('')
   const discount = promoPct > 0 ? Math.round(sum * promoPct / 100) : 0
+  const threshold = deliveryCfg?.threshold || 200000
+  const dFee = mode === 'delivery' && sum < threshold ? (deliveryCfg?.fee ?? 15000) : 0
+  const grand = sum - discount + dFee
 
   async function detectLoc() {
     setLocBusy(true); setLocMsg('')
@@ -109,7 +112,7 @@ export default function Checkout() {
       if (!r.ok) throw new Error()
       const j = await r.json()
       setDone({ oid: j.order_id })
-      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum, mode, pay, addr: mode === 'delivery' ? addr : '', name, phone: '+998' + phoneD })
+      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum: grand, mode, pay, addr: mode === 'delivery' ? addr : '', name, phone: '+998' + phoneD })
       clearCart()
       setTimeout(refreshOrders, 2500)
       saveUser({ name: name.trim() || user?.name || '', phone: phoneD.length === 9 ? '+998' + phoneD : (user?.phone || ''), addr: mode === 'delivery' && addr.trim() ? addr.trim() : (user?.addr ?? '') })
@@ -211,15 +214,18 @@ export default function Checkout() {
             <div className="lg:w-[400px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4 lg:mt-4">
             <div className="bg-[var(--panel)] border border-navy-line rounded-[18px] p-4">
               <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
-              <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.delivery}</span><span className="text-emerald-600 font-bold">{t.free}</span></div>
+              {mode === 'delivery' && (<>
+                <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.delivery}</span><span className={dFee > 0 ? 'font-bold' : 'text-emerald-600 font-bold'}>{dFee > 0 ? `${fmt(dFee)} UZS` : t.free}</span></div>
+                {dFee > 0 && <div className="text-[11px] font-semibold text-[var(--mut2)] mt-1">{t.fdLeft.replace('{x}', fmt(threshold - sum))} · {t.fdTo}</div>}
+              </>)}
               {discount > 0 && <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.promo} ({promoCode})</span><span className="text-emerald-600 font-bold">−{fmt(discount)} UZS</span></div>}
               <div className="h-px bg-navy-line my-3" />
-              <div className="flex justify-between text-[17px] font-extrabold"><span>{t.total}</span><span>{fmt(sum - discount)} UZS</span></div>
+              <div className="flex justify-between text-[17px] font-extrabold"><span>{t.total}</span><span>{fmt(grand)} UZS</span></div>
             </div>
 
             {err && <div className="text-[13px] font-bold text-red-500 text-center">{err}</div>}
           <div className="px-4 mt-5 lg:px-0">
-            <BigButton disabled={!valid || busy} onClick={submit}>{busy ? '…' : `${t.confirmOrder} · ${fmt(sum - discount)}`}</BigButton>
+            <BigButton disabled={!valid || busy} onClick={submit}>{busy ? '…' : `${t.confirmOrder} · ${fmt(grand)}`}</BigButton>
           </div>
           </div>
           </div>

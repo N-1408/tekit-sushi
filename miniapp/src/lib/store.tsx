@@ -73,6 +73,7 @@ export type Store = {
   setMode: (m: 'delivery' | 'pickup') => void
   theme: ThemeMode
   setTheme: (t: ThemeMode) => void
+  deliveryCfg: { fee: number; threshold: number }
 }
 
 const Ctx = createContext<Store>(null as any)
@@ -119,6 +120,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     onSystemThemeChange(onSys)
   }, [theme])
   const [mode, setModeS] = useState<'delivery' | 'pickup'>(() => (localStorage.getItem('tk-mode') === 'pickup' ? 'pickup' : 'delivery'))
+  const [deliveryCfg, setDeliveryCfg] = useState<{ fee: number; threshold: number }>(() => ({ fee: 15000, threshold: 200000 }))
 
   useEffect(() => { localStorage.setItem('tk-lang', JSON.stringify(lang)) }, [lang])
   useEffect(() => { localStorage.setItem('tk-cart', JSON.stringify(cartMap)) }, [cartMap])
@@ -167,6 +169,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     fetch('/api/menu').then(r => r.ok ? r.json() : null).then(j => {
       if (dead || !j?.ok || !Array.isArray(j.items) || !j.items.length) return
       setProducts(j.items)
+      if (j.delivery) setDeliveryCfg({ fee: Number(j.delivery.fee) || 15000, threshold: Number(j.delivery.threshold) || 200000 })
       try { localStorage.setItem('tk-menu-v2', JSON.stringify(j.items)) } catch {}
     }).catch(() => {})
     return () => { dead = true }
@@ -185,8 +188,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .filter(Boolean) as CartLine[]
     const count = lines.reduce((s, l) => s + l.q, 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, theme, setTheme }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, theme, setTheme])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, theme, setTheme, deliveryCfg }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, theme, setTheme, deliveryCfg])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

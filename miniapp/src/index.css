@@ -9,7 +9,7 @@ html{ background:var(--bg); }@tailwind base;
   --line:#E8ECF2; --line2:#DCE2EB;
   --ink:#101821; --ink2:#3D4859; --ink3:#4A5568;
   --mut:#5A6472; --mut2:#8A93A0; --mut3:#B4BCC9;
-  --btn:#101821; --btn-ink:#FFFFFF; --chip-on:#101821; --chip-on-ink:#FFFFFF;
+  --btn:#0A2194; --btn-ink:#FFFFFF; --chip-on:#0A2194; --chip-on-ink:#FFFFFF;
 }
 [data-theme='dark']{
   --bg:#0F1720; --bg2:#101821; --panel:#1B2330; --sheet:#141B26; --soft:#1B2330;

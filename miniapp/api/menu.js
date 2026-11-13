@@ -148,7 +148,7 @@ export default async (req, res) => {
       const e = effPrice(r, catPct[r.cat] || 0);
       return { ...r, price: e.price, old_price: e.old, sale_percent: e.pct, sale_active: e.old != null };
     });
-    return res.status(200).json({ ok: true, cats, items });
+    return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE || 15000), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) },  cats, items });
   } catch (e) {
     console.error('menu error', e);
     return res.status(500).json({ ok: false, error: 'Server xatosi' });

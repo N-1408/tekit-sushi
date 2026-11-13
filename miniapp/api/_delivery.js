@@ -55,3 +55,27 @@ export function checkDeliveryWebhookSecret(secret) {
   const expected = process.env.DELIVERY_WEBHOOK_SECRET;
   return expected && secret === expected;
 }
+
+// Yetkazib berish narxi: Millennium/Noor API so'rovi (shartnoma + env to'ldirilgach avtomatik ishlaydi).
+// Shartnoma API shakli noma'lum bo'lgani uchun umumiy REST taxmin: POST <base>/quote {address, subtotal} -> {price}.
+// Env bo'lmasa yoki xatolik bo'lsa: DELIVERY_FEE (standart 15000).
+export async function quoteDelivery(payload) {
+  const provider = (process.env.DELIVERY_PROVIDER || 'own').trim().toLowerCase();
+  const url = provider === 'millennium' ? process.env.MILLENNIUM_API_URL : provider === 'noor' ? process.env.NOOR_API_URL : null;
+  if (url) {
+    try {
+      const token = provider === 'millennium' ? process.env.MILLENNIUM_TOKEN : process.env.NOOR_TOKEN;
+      const r = await fetch(String(url).replace(/\/$/, '') + '/quote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload),
+      });
+      if (r.ok) {
+        const j = await r.json().catch(() => ({}));
+        const price = Number(j.price ?? j.fee ?? j.amount ?? j.cost);
+        if (price > 0) return { provider, price, source: 'api' };
+      }
+    } catch (e) { console.error('delivery quote', e?.message); }
+  }
+  return { provider, price: Number(process.env.DELIVERY_FEE || 15000), source: 'default' };
+}

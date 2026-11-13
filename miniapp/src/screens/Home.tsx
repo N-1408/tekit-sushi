@@ -1,6 +1,6 @@
 import React from 'react'
 import { useStore, pName, CATS, type Product } from '../lib/store'
-import { Header, SearchChips, CityBanner, HeroSlider, InfoTiles, ProductCard } from '../components/ui'
+import { Header, SearchChips, CityBanner, HeroSlider, InfoTiles, ProductCard, AddressBox } from '../components/ui'
 
 type SortT = 'none' | 'asc' | 'desc'
 
@@ -13,7 +13,7 @@ function Section({ title, items, sort }: { title: string; items: Product[]; sort
         <h2 className="text-[26px] lg:text-[34px] font-extrabold tracking-tight">{title}</h2>
         <span className="text-[11px] font-extrabold text-[var(--mut2)]">{items.length}</span>
       </div>
-      <div className="px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
+      <div className="px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7">
         {list.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
       </div>
     </section>
@@ -35,13 +35,14 @@ export default function Home() {
         <SearchChips q={q} setQ={setQ} sort={sort} setSort={setSort} />
       </div>
       <div className="lg:max-w-[1240px] lg:mx-auto">
+        <div className="px-4 lg:hidden"><AddressBox mobile /></div>
         <CityBanner />
         {found ? (
           <section className="px-4 lg:px-6 mt-4">
             {found.length === 0 ? (
               <div className="py-10 text-center text-[14px] font-semibold text-[var(--mut2)]">— {t.noResults} —</div>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7">
                 {(sort === 'none' ? found : [...found].sort((a, b) => sort === 'asc' ? a.price - b.price : b.price - a.price)).map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
               </div>
             )}

@@ -1,29 +1,43 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useStore, pName, pImg, CATS, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser } from '../lib/tg'
+import MapPicker from './MapPicker'
+import { List as PhList, Bag as PhBag, User as PhUser, MapPin as PhMapPin, Clock as PhClock, Tag as PhTag, Money as PhMoney, MagnifyingGlass as PhSearch, X as PhX, CaretLeft as PhCaretL, CaretRight as PhCaretR, Plus as PhPlus, ArrowsDownUp as PhSort, Sun as PhSun, Moon as PhMoon, ForkKnife as PhFork, Truck as PhTruck, Storefront as PhStore, ArrowUp as PhArrowUp, Crosshair as PhCross } from '@phosphor-icons/react'
 
 const CDN = 'https://cdn.delever.uz/delever/'
 
-/* ---------- ikonkalar (bitta stil: chiziqli, yumaloq uchli) ---------- */
-export const IcBurger = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M4 7h16M4 12h16M4 17h10" /></svg>
-export const IcBag = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8h12l-1.1 11.1a2 2 0 0 1-2 1.9H9.1a2 2 0 0 1-2-1.9L6 8Z" /><path d="M9 8V6.5A3 3 0 0 1 12 3.5a3 3 0 0 1 3 3V8" /></svg>
-export const IcUser = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="8" r="3.4" /><path d="M5 20c1-3.6 3.8-5.6 7-5.6s6 2 7 5.6" /></svg>
-export const IcPin = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11Z" /><circle cx="12" cy="10" r="2.6" /></svg>
-export const IcClock = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="8.5" /><path d="M12 7.5V12l3 2" /></svg>
-export const IcTag = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 12V4h8l9 9-8 8-9-9Z" /><circle cx="7.5" cy="7.5" r="1.4" /></svg>
-export const IcCash = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><rect x="2.5" y="6" width="19" height="12" rx="2.5" /><circle cx="12" cy="12" r="2.6" /><path d="M6 9.5v.01M18 14.5v.01" /></svg>
-export const IcSearch = () => <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
-export const IcX = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round"><path d="M18 6 6 18M6 6l12 12" /></svg>
-export const IcChevL = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="m14 6-6 6 6 6" /></svg>
-export const IcChevR = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"><path d="m10 6 6 6-6 6" /></svg>
-export const IcPlus = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
-export const IcScale = () => <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v16M5 8l7-4 7 4" /><path d="M4 20h16" /><path d="M5 8 2.5 13a3 3 0 0 0 5 0L5 8ZM19 8l-2.5 5a3 3 0 0 0 5 0L19 8Z" /></svg>
-export const IcSauce = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6v4c1.8 1.2 3 3.2 3 5.5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-7.5C6 10.2 7.2 8.2 9 7V3Z" /><path d="M6 13h12" /></svg>
-export const IcPlate = () => <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="4.5" /></svg>
+/* ---------- ikonkalar (Phosphor — yagona uslub) ---------- */
+export const IcBurger = ({ s = 18 }: { s?: number }) => <PhList size={s} weight="bold" />
+export const IcBag = ({ s = 18 }: { s?: number }) => <PhBag size={s} weight="bold" />
+export const IcUser = ({ s = 18 }: { s?: number }) => <PhUser size={s} weight="bold" />
+export const IcPin = ({ s = 15 }: { s?: number }) => <PhMapPin size={s} weight="bold" />
+export const IcClock = ({ s = 18 }: { s?: number }) => <PhClock size={s} weight="bold" />
+export const IcTag = ({ s = 18 }: { s?: number }) => <PhTag size={s} weight="bold" />
+export const IcCash = ({ s = 18 }: { s?: number }) => <PhMoney size={s} weight="bold" />
+export const IcSearch = ({ s = 17 }: { s?: number }) => <PhSearch size={s} weight="bold" />
+export const IcX = ({ s = 14 }: { s?: number }) => <PhX size={s} weight="bold" />
+export const IcChevL = ({ s = 18 }: { s?: number }) => <PhCaretL size={s} weight="bold" />
+export const IcChevR = ({ s = 18 }: { s?: number }) => <PhCaretR size={s} weight="bold" />
+export const IcPlus = ({ s = 16 }: { s?: number }) => <PhPlus size={s} weight="bold" />
+export const IcScale = ({ s = 15 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 4v16M5 8l7-4 7 4" /><path d="M4 20h16" /><path d="M5 8 2.5 13a3 3 0 0 0 5 0L5 8ZM19 8l-2.5 5a3 3 0 0 0 5 0L19 8Z" /></svg>
+)
+export const IcSauce = ({ s = 16 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 3h6v4c1.8 1.2 3 3.2 3 5.5V20a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1v-7.5C6 10.2 7.2 8.2 9 7V3Z" /><path d="M6 13h12" /></svg>
+)
+export const IcPlate = ({ s = 34 }: { s?: number }) => <PhFork size={s} weight="regular" />
+export const IcSort = ({ s = 18 }: { s?: number }) => <PhSort size={s} weight="bold" />
+export const IcSun = ({ s = 14 }: { s?: number }) => <PhSun size={s} weight="bold" />
+export const IcMoon = ({ s = 14 }: { s?: number }) => <PhMoon size={s} weight="fill" />
+export const IcTruck = ({ s = 15 }: { s?: number }) => <PhTruck size={s} weight="bold" />
+export const IcStore = ({ s = 15 }: { s?: number }) => <PhStore size={s} weight="bold" />
+export const IcArrowUp = ({ s = 20 }: { s?: number }) => <PhArrowUp size={s} weight="bold" />
+export const IcLocate = ({ s = 16 }: { s?: number }) => <PhCross size={s} weight="bold" />
+
 const Heart = ({ on, s = 16 }: { on: boolean; s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill={on ? '#E23B52' : 'none'} stroke={on ? '#E23B52' : 'var(--mut)'} strokeWidth="2"><path d="M12 21C7 16.6 3 13.4 3 9.3 3 6.4 5.2 4 8 4c1.6 0 3.1.8 4 2.1C12.9 4.8 14.4 4 16 4c2.8 0 5 2.4 5 5.3 0 4.1-4 7.3-9 11.7z" /></svg>
 )
@@ -56,7 +70,31 @@ export function CartBtn() {
 }
 
 /* ---------- til tanlash (bayroqchali) ---------- */
-const FLAGS: Record<string, string> = { uz: '🇺🇿', ru: '🇷🇺', en: '🇬🇧' }
+const FlagUZ = ({ s = 15 }: { s?: number }) => (
+  <svg width={s} height={Math.round((s * 2) / 3)} viewBox="0 0 30 20" className="rounded-[2px] shrink-0">
+    <rect width="30" height="20" fill="#F4F4F4" />
+    <rect width="30" height="6.7" fill="#0099B5" /><rect y="13.3" width="30" height="6.7" fill="#1EB53A" />
+    <rect y="6.4" width="30" height="0.6" fill="#CE1126" /><rect y="13" width="30" height="0.6" fill="#CE1126" />
+    <circle cx="5" cy="3.3" r="2.1" fill="#fff" /><circle cx="5.9" cy="2.8" r="1.85" fill="#0099B5" />
+    <circle cx="9.4" cy="1.7" r="0.55" fill="#fff" /><circle cx="10.6" cy="2.7" r="0.55" fill="#fff" /><circle cx="10.2" cy="4.3" r="0.55" fill="#fff" /><circle cx="8.8" cy="4.7" r="0.55" fill="#fff" /><circle cx="8.2" cy="3.2" r="0.55" fill="#fff" />
+  </svg>
+)
+const FlagRU = ({ s = 15 }: { s?: number }) => (
+  <svg width={s} height={Math.round((s * 2) / 3)} viewBox="0 0 30 20" className="rounded-[2px] shrink-0">
+    <rect width="30" height="20" fill="#fff" /><rect y="6.7" width="30" height="6.6" fill="#0039A6" /><rect y="13.3" width="30" height="6.7" fill="#D52B1E" />
+  </svg>
+)
+const FlagEN = ({ s = 15 }: { s?: number }) => (
+  <svg width={s} height={Math.round((s * 2) / 3)} viewBox="0 0 30 20" className="rounded-[2px] shrink-0">
+    <rect width="30" height="20" fill="#012169" />
+    <path d="M0,0 30,20M30,0 0,20" stroke="#fff" strokeWidth="4" />
+    <path d="M0,0 30,20M30,0 0,20" stroke="#C8102E" strokeWidth="1.6" />
+    <rect x="12.2" width="5.6" height="20" fill="#fff" /><rect y="7.2" width="30" height="5.6" fill="#fff" />
+    <rect x="13.4" width="3.2" height="20" fill="#C8102E" /><rect y="8.4" width="30" height="3.2" fill="#C8102E" />
+  </svg>
+)
+const FLAGS: Record<string, (p: { s?: number }) => React.ReactElement> = { uz: FlagUZ, ru: FlagRU, en: FlagEN }
+const FlagOf = ({ l, s = 15 }: { l: string; s?: number }) => { const F = FLAGS[l] || FlagUZ; return <F s={s} /> }
 const LANG_NAME: Record<string, string> = { uz: "O'zbekcha", ru: 'Русский', en: 'English' }
 
 function LangPicker({ dark }: { dark?: boolean }) {
@@ -66,14 +104,14 @@ function LangPicker({ dark }: { dark?: boolean }) {
     <>
       <button onClick={() => setOpen(true)}
         className={`press flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[12px] font-extrabold active:scale-95 transition-transform ${dark ? 'bg-[var(--panel)] text-[var(--ink)]' : 'bg-navy-soft text-navy-ink'}`}>
-        <span className="text-[15px] leading-none">{FLAGS[lang]}</span>{lang.toUpperCase()}
+        <FlagOf l={lang} s={15} />{lang.toUpperCase()}
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title={t.language}>
         <div className="space-y-2 pb-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic(); setOpen(false) }}
               className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-navy text-white border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.4)]' : 'bg-[var(--panel)] border-navy-line'}`}>
-              <span className="text-[22px]">{FLAGS[l]}</span>
+              <FlagOf l={l} s={22} />
               <span className="text-[15px] font-extrabold flex-1">{LANG_NAME[l]}</span>
               {lang === l && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>}
             </button>
@@ -86,16 +124,16 @@ function LangPicker({ dark }: { dark?: boolean }) {
 
 
 /* ---------- mavzu almashtirish tugmasi ---------- */
-export const IcSun = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.2M12 19.3v2.2M4.6 4.6l1.6 1.6M17.8 17.8l1.6 1.6M2.5 12h2.2M19.3 12h2.2M4.6 19.4l1.6-1.6M17.8 6.2l1.6-1.6" /></svg>)
-export const IcMoon = () => (<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"><path d="M20.5 14.2A8.6 8.6 0 0 1 9.8 3.5a8.6 8.6 0 1 0 10.7 10.7Z" /></svg>)
 
 export function ThemeToggle() {
   const { theme, setTheme } = useStore()
   const dark = theme === 'dark'
   return (
     <button aria-label="theme" onClick={() => { haptic('light'); setTheme(dark ? 'light' : 'dark') }}
-      className={`press shrink-0 w-10 h-10 rounded-full bg-[var(--soft)] text-[var(--ink)] grid place-items-center active:scale-95 transition-transform`}>
-      {dark ? <IcSun /> : <IcMoon />}
+      className={`press relative shrink-0 w-[52px] h-[30px] rounded-full border border-[var(--line2)] transition-colors ${dark ? 'bg-[var(--soft)]' : 'bg-[#E4E9F2]'}`}>
+      <span className={`absolute top-[3px] w-6 h-6 rounded-full grid place-items-center shadow-[0_2px_6px_rgba(0,0,0,.25)] transition-all duration-300 ${dark ? 'left-[25px] bg-[#2A3442] text-[#E9EDF1]' : 'left-[3px] bg-white text-[#0A2194]'}`}>
+        {dark ? <IcMoon s={13} /> : <IcSun s={13} />}
+      </span>
     </button>
   )
 }
@@ -123,7 +161,6 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
         {right ?? (
           <div className="flex items-center gap-2">
             <ThemeToggle />
-            <CartBtn />
             <LangPicker dark />
           </div>
         )}
@@ -162,7 +199,7 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic('light') }}
               className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-extrabold transition-colors ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--panel)] text-[var(--mut2)] active:scale-95'}`}>
-              <span className="text-[15px] leading-none">{FLAGS[l]}</span>{l.toUpperCase()}
+              <FlagOf l={l} s={15} />{l.toUpperCase()}
             </button>
           ))}
         </div>
@@ -219,23 +256,17 @@ export function Header() {
           <div className="hidden lg:flex items-center gap-1.5 ml-2">
             {(['delivery', 'pickup'] as const).map(m => (
               <button key={m} onClick={() => { if (m !== mode) { setMode(m); haptic('light') } }}
-                className={`px-4 py-2 rounded-full text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
-                {m === 'delivery' ? t.deliveryMode : t.pickup}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
+                <span className="flex items-center gap-1.5">{m === 'delivery' ? <IcTruck s={14} /> : <IcStore s={14} />}{m === 'delivery' ? t.deliveryMode : t.pickup}</span>
               </button>
             ))}
           </div>
-          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 px-3 py-2.5 text-[12.5px] font-bold text-[var(--ink)] active:opacity-80 transition-opacity">
-            <IcPin /> {t.city}
-          </button>
-          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 border border-[var(--line2)] rounded-xl px-3.5 py-2.5 text-[12.5px] font-bold text-[var(--ink)] active:opacity-80 transition-opacity">
-            <IcPin /> {t.spAddr}
-          </button>
+          <AddressBox />
           <div className="flex-1" />
           <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-2 px-3 py-2.5 text-[12.5px] font-bold active:opacity-80 transition-opacity">
             <IcUser /> {user?.name ? user.name.split(' ')[0] : t.tabProfile}
           </button>
           <ThemeToggle />
-          <CartBtn />
         </div>
       </header>
       <Drawer open={drawer} onClose={() => setDrawer(false)} />
@@ -267,8 +298,6 @@ export function CityBanner() {
 }
 
 /* ---------- qidiruv + kategoriya chip-lari ---------- */
-export const IcSort = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 5v13M8 18l-3.2-3.2M8 18l3.2-3.2M16 19V6M16 6l-3.2 3.2M16 6l3.2 3.2" /></svg>
-
 export function SearchChips({ q, setQ, sort, setSort }: { q: string; setQ: (s: string) => void; sort: 'none' | 'asc' | 'desc'; setSort: (s: 'none' | 'asc' | 'desc') => void }) {
   const { t, lang } = useStore()
   const nav = useNavigate()
@@ -475,49 +504,53 @@ export function QtyPill({ p, small }: { p: { id: string }; small?: boolean }) {
 
 /* ---------- mahsulot kartochkasi ---------- */
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const { cart, add, setQty, lang, favs, toggleFav, showToast, t, openP } = useStore()
+  const { cart, add, setQty, lang, favs, toggleFav, t, openP } = useStore()
   const fav = favs.includes(p.id)
   const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
   const sale = p.sale_active && (p.old_price ?? 0) > p.price
+  const wtxt = p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')
   return (
     <article onClick={() => { haptic(); openP(p) }}
-      className="anim-up cursor-pointer"
+      className="anim-up cursor-pointer flex flex-col h-full"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
-      <div className="relative aspect-[11/10] rounded-[12px] overflow-hidden bg-[var(--sheet)]">
+      <div className="relative aspect-[11/10] rounded-[12px] overflow-hidden bg-[var(--sheet)] shrink-0">
         <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         <button onClick={e => { e.stopPropagation(); toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
-          className="absolute top-2 right-2 w-9 h-9 rounded-full bg-[ KEEP var(--bg2)]/80 grid place-items-center active:scale-90 transition-transform">
+          className="absolute top-2 right-2 w-9 h-9 rounded-full bg-[var(--bg2)]/80 grid place-items-center active:scale-90 transition-transform">
           <Heart on={fav} s={15} />
         </button>
-        <span className="absolute top-2 left-2 flex items-center gap-1 bg-[ KEEP var(--bg2)]/85 text-white text-[10.5px] font-extrabold px-1.5 py-1 rounded-[8px]">
+        <span className="absolute top-2 left-2 flex items-center gap-1 bg-[var(--bg2)]/85 text-white text-[10.5px] font-extrabold px-1.5 py-1 rounded-[8px]">
           <IcStar /> {((p as any).rating ?? RSEED(p.id)).toFixed(1)}
         </span>
-        {sale && (
-          <span className="absolute top-11 left-2 bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
-        )}
-        {!sale && p.hit && <span className="absolute top-11 left-2 bg-[ KEEP var(--bg2)]/85 text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">{t.hit}</span>}
+        {sale ? (
+          <span className="absolute top-11 left-2 flex flex-col items-start gap-1">
+            <span className="bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
+            <span className="bg-black/45 text-white text-[10px] font-bold px-2 py-0.5 rounded-[8px] line-through">{fmt(p.old_price)} UZS</span>
+          </span>
+        ) : p.hit ? <span className="absolute top-11 left-2 bg-[var(--bg2)]/85 text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">{t.hit}</span> : null}
+        {wtxt && <span className="absolute bottom-2 left-2 bg-black/45 text-white text-[10.5px] font-bold px-2 py-1 rounded-[8px] backdrop-blur-[2px]">{wtxt}</span>}
       </div>
-      <div className="mt-2.5 text-[14.5px] font-bold leading-snug text-[var(--ink)] line-clamp-2">{pName(p, lang)}</div>
-      <div className="text-[12px] font-medium text-[var(--mut2)] mt-0.5 min-h-[16px]">{p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')}</div>
-      {q > 0 ? (
-        <div className="mt-2.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-between px-1.5">
-          <button onClick={e => { e.stopPropagation(); setQty(p.id, q - 1); haptic('light') }}
-            className="press w-9 h-9 rounded-[9px] grid place-items-center active:scale-90 transition-transform">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
-          </button>
-          <span className="text-[14px] font-extrabold">{q}</span>
+      <div className="mt-auto pt-2 flex flex-col">
+        <div className="text-[14.5px] font-bold leading-snug text-[var(--ink)] line-clamp-2">{pName(p, lang)}</div>
+        {q > 0 ? (
+          <div className="mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-between px-1.5">
+            <button onClick={e => { e.stopPropagation(); setQty(p.id, q - 1); haptic('light') }}
+              className="press w-9 h-9 rounded-[9px] grid place-items-center active:scale-90 transition-transform">
+              <IcX s={14} />
+            </button>
+            <span className="text-[14px] font-extrabold">{q}</span>
+            <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium') }}
+              className="press w-9 h-9 rounded-[9px] grid place-items-center active:scale-90 transition-transform">
+              <IcPlus s={15} />
+            </button>
+          </div>
+        ) : (
           <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium') }}
-            className="press w-9 h-9 rounded-[9px] grid place-items-center active:scale-90 transition-transform">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+            className="press mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-center gap-2 text-[14.5px] font-extrabold active:scale-[.98] transition-transform">
+            <IcBag s={17} /> {fmt(p.price)} <span className="text-[11px] font-bold opacity-70">UZS</span>
           </button>
-        </div>
-      ) : (
-        <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
-          className="press mt-2.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-center gap-2 text-[14.5px] font-extrabold active:scale-[.98] transition-transform">
-          <IcBag /> {fmt(p.price)} <span className="text-[11px] font-bold text-[#5A6472]">UZS</span>
-        </button>
-      )}
-      {sale && <div className="mt-1 text-[11px] font-bold text-[var(--mut2)] line-through">{fmt(p.old_price)} UZS</div>}
+        )}
+      </div>
     </article>
   )
 }
@@ -681,7 +714,7 @@ export function ProductSheet() {
         <div className="relative rounded-[18px] overflow-hidden bg-navy-soft">
           <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover" />
           <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
-            className="absolute top-2.5 right-2.5 w-10 h-10 rounded-full bg-[ KEEP var(--bg2)]/80 grid place-items-center active:scale-90 transition-transform">
+            className="absolute top-2.5 right-2.5 w-10 h-10 rounded-full bg-[var(--bg2)]/80 grid place-items-center active:scale-90 transition-transform">
             <Heart on={fav} s={19} />
           </button>
           {p.pcs ? <span className="absolute bottom-2.5 left-3 bg-white/95 text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
@@ -752,5 +785,140 @@ export function ProductSheet() {
         <p className="mt-2.5 text-[13.5px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
       </div>
     </Sheet>
+  )
+}
+
+
+/* ---------- manzil box (bosh sahifa: xaritadan tanlash + avto-aniqlash) ---------- */
+export function AddressBox({ mobile }: { mobile?: boolean }) {
+  const { t, user, saveUser } = useStore()
+  const [open, setOpen] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const addr = user?.addr || ''
+  async function detect() {
+    if (busy) return
+    setBusy(true)
+    try {
+      const mod = (await import('../lib/tg')) as any
+      const loc = await mod.requestLocation()
+      if (loc?.lat) {
+        const r = await fetch(`/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
+        const j = r.ok ? await r.json() : null
+        saveUser(j?.ok && j.addr ? { addr: j.addr, lat: loc.lat, lon: loc.lon } : { lat: loc.lat, lon: loc.lon })
+      }
+    } catch {}
+    setBusy(false)
+  }
+  const box = mobile
+    ? 'press flex items-center gap-2 w-full bg-[var(--panel)] border border-[var(--line2)] rounded-xl pl-3 pr-1.5 py-1.5 lg:hidden'
+    : 'hidden lg:flex items-center gap-1.5 border border-[var(--line2)] rounded-xl pl-3 pr-1 py-1 min-w-0 w-[240px] xl:w-[300px]'
+  return (
+    <>
+      <div className={box}>
+        <span className="text-[var(--mut2)] shrink-0"><IcPin /></span>
+        <span onClick={() => setOpen(true)} className="flex-1 min-w-0 truncate text-[12.5px] font-bold text-[var(--ink)] cursor-pointer py-1.5">{addr || t.addrPick}</span>
+        <button onClick={detect} aria-label="locate" className="press w-8 h-8 rounded-lg grid place-items-center text-[#29A8E0] shrink-0 active:scale-90 transition-transform">
+          {busy ? <span className="w-3.5 h-3.5 border-2 border-[#29A8E0]/30 border-t-[#29A8E0] rounded-full animate-spin" /> : <IcLocate s={15} />}
+        </button>
+      </div>
+      <MapPicker
+        open={open}
+        initial={user?.lat && user?.lon ? { lat: user.lat, lon: user.lon } : null}
+        onPick={(a, lat, lon) => { saveUser({ addr: a, lat, lon }) }}
+        onClose={() => setOpen(false)}
+        t={t}
+      />
+    </>
+  )
+}
+
+/* ---------- suzuvchi savat tugmasi ---------- */
+export function FloatingCart() {
+  const { cartCount } = useStore()
+  const nav = useNavigate()
+  const loc = useLocation()
+  if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
+  return (
+    <button onClick={() => { haptic(); nav('/cart') }} aria-label="cart"
+      className="press fixed right-4 z-[45] w-14 h-14 rounded-[18px] bg-navy text-white grid place-items-center shadow-[0_14px_30px_-8px_rgba(10,33,148,.6)] active:scale-95 transition-transform lg:!bottom-8"
+      style={{ bottom: 'calc(92px + var(--sab))' }}>
+      <IcBag s={26} />
+      {cartCount > 0 && (
+        <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 rounded-full bg-[#E8462B] text-white text-[11px] font-extrabold grid place-items-center leading-none border-2 border-[var(--bg)]">{cartCount}</span>
+      )}
+    </button>
+  )
+}
+
+/* ---------- yuqoriga chiqish tugmasi ---------- */
+export function ScrollTop() {
+  const [show, setShow] = useState(false)
+  const loc = useLocation()
+  useEffect(() => {
+    const fn = () => setShow(window.scrollY > 480)
+    window.addEventListener('scroll', fn, { passive: true })
+    fn()
+    return () => window.removeEventListener('scroll', fn)
+  }, [loc.pathname])
+  if (!show || loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
+  return (
+    <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="up"
+      className="press fixed left-4 z-[45] w-12 h-12 rounded-[16px] bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] active:scale-95 transition-transform lg:!bottom-8"
+      style={{ bottom: 'calc(92px + var(--sab))' }}>
+      <IcArrowUp s={20} />
+    </button>
+  )
+}
+
+/* ---------- bepul yetkazib berish progress popup ---------- */
+export function FreeDeliveryPopup() {
+  const { cartSum, t, deliveryCfg } = useStore()
+  const [open, setOpen] = useState(false)
+  const [sum, setSum] = useState(0)
+  const prev = useRef<number | null>(null)
+  const timer = useRef<number | null>(null)
+  useEffect(() => {
+    if (prev.current == null) { prev.current = cartSum; return }
+    if (cartSum > prev.current) {
+      setSum(cartSum); setOpen(true); haptic('medium')
+      if (timer.current) clearTimeout(timer.current)
+      timer.current = window.setTimeout(() => setOpen(false), 4200)
+    }
+    prev.current = cartSum
+  }, [cartSum])
+  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
+  if (!open) return null
+  const threshold = deliveryCfg?.threshold || 200000
+  const pct = Math.min(1, sum / threshold)
+  const left = Math.max(0, threshold - sum)
+  const R = 26, C = 2 * Math.PI * R
+  const close = () => { if (timer.current) clearTimeout(timer.current); setOpen(false) }
+  return createPortal(
+    <div className="fixed inset-0 z-[75] grid place-items-center px-6">
+      <div className="absolute inset-0 bg-black/45 anim-fade" onClick={close} />
+      <div className="relative anim-pop bg-[var(--sheet)] rounded-[26px] px-6 py-7 w-full max-w-[360px] text-center shadow-[0_30px_80px_rgba(0,0,0,.35)]">
+        <button onClick={close} className="press absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--panel)] grid place-items-center text-[var(--mut2)]"><IcX /></button>
+        <div className="relative w-16 h-16 mx-auto">
+          <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
+            <circle cx="32" cy="32" r={R} fill="none" stroke="var(--line2)" strokeWidth="5" />
+            <circle cx="32" cy="32" r={R} fill="none" stroke="#0A2194" strokeWidth="5" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} style={{ transition: 'stroke-dashoffset .6s cubic-bezier(.32,.72,0,1)' }} />
+          </svg>
+          <span className="absolute inset-0 grid place-items-center text-[#0A2194]"><IcTruck s={24} /></span>
+        </div>
+        {left > 0 ? (
+          <>
+            <div className="mt-3 text-[17px] font-extrabold text-[var(--ink)]">{t.fdLeft.replace('{x}', fmt(left))}</div>
+            <div className="mt-0.5 text-[12.5px] font-semibold text-[var(--mut2)]">{t.fdTo}</div>
+          </>
+        ) : (
+          <>
+            <div className="mt-3 text-[17px] font-extrabold text-[var(--ink)]">{t.fdDone}</div>
+            <div className="mt-0.5 text-[12.5px] font-semibold text-[var(--mut2)]">{t.fdDoneSub}</div>
+          </>
+        )}
+        <button onClick={close} className="press mt-4 w-full py-3 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[14px] font-extrabold">{t.cityOk}</button>
+      </div>
+    </div>,
+    document.body
   )
 }

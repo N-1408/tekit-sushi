@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { cors, rateLimit } from './_verify.js';
-import { createDelivery } from './_delivery.js';
+import { createDelivery, quoteDelivery } from './_delivery.js';
 import { notifyUser } from './_notify.js';
 
 let pool;
@@ -43,6 +43,7 @@ function ensureSchema() {
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_provider text;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_external_id text;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_status text;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_fee int DEFAULT 0;
        CREATE TABLE IF NOT EXISTS settings (key text PRIMARY KEY, value text NOT NULL);`
     ).then(() => true).catch(e => { console.error('ensureSchema', e); return false; });
   }
@@ -104,11 +105,23 @@ export default async (req, res) => {
       } catch (pe) { console.error('promo check', pe); }
     }
     const finalTotal = Math.max(0, total - discount);
+    // Yetkazib berish narxi: 200 000 so'mdan yuqorida bepul, pastida Millennium/Noor API (yoki standart narx)
+    let deliveryFee = 0;
+    if ((o.delivery_type || 'delivery') === 'delivery') {
+      const threshold = Number(process.env.DELIVERY_FREE_THRESHOLD || 200000);
+      if (finalTotal < threshold) {
+        try {
+          const q = await quoteDelivery({ address: o.address || '', subtotal: finalTotal });
+          deliveryFee = Math.max(0, Math.round(Number(q.price) || 0));
+        } catch (qe) { console.error('delivery quote', qe?.message); deliveryFee = Number(process.env.DELIVERY_FEE || 15000); }
+      }
+    }
+    const grandTotal = finalTotal + deliveryFee;
     const pool = getPool();
     const changeAmount = o.change_amount != null ? Math.max(0, Math.round(Number(o.change_amount) || 0)) : null;
     const result = await pool.query(
-      `INSERT INTO orders (tg_user_id, name, phone, address, branch, delivery_type, payment, items, total, note, delivery_time, promo_code, discount, change_amount, payment_status, delivery_provider)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16) RETURNING id, created_at`,
+      `INSERT INTO orders (tg_user_id, name, phone, address, branch, delivery_type, payment, items, total, note, delivery_time, promo_code, discount, change_amount, payment_status, delivery_provider, delivery_fee)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17) RETURNING id, created_at`,
       [
         o.tg_user_id || null,
         String(o.name),
@@ -126,6 +139,7 @@ export default async (req, res) => {
         changeAmount,
         o.payment === 'cash' || o.payment === 'transfer' ? 'pending' : 'pending',
         (process.env.DELIVERY_PROVIDER || 'own').trim().toLowerCase(),
+        deliveryFee,
       ]
     );
     const row = result.rows[0];
@@ -142,9 +156,9 @@ export default async (req, res) => {
       const payTxt = o.payment === 'cash'
         ? (changeAmount ? `Naqd pul, qaytim ${changeAmount.toLocaleString('ru-RU')} so'm` : 'Naqd pul')
         : 'Kartaga o\u02bbtkazish';
-      void notifyUser(o.tg_user_id, `<b>Buyurtma #${row.id} qabul qilindi</b>\n${lines}\n\nJami: ${finalTotal.toLocaleString('ru-RU')} so'm\nTo'lov: ${payTxt}\n\nTasdiqlash haqida alohida xabar beramiz. Rahmat! \u2764\uFE0F`).catch(() => {});
+      void notifyUser(o.tg_user_id, `<b>Buyurtma #${row.id} qabul qilindi</b>\n${lines}\n\nJami: ${grandTotal.toLocaleString('ru-RU')} so'm${deliveryFee ? `\nYetkazib berish: ${deliveryFee.toLocaleString('ru-RU')} so'm` : ''}\nTo'lov: ${payTxt}\n\nTasdiqlash haqida alohida xabar beramiz. Rahmat! \u2764\uFE0F`).catch(() => {});
     }
-    return res.status(201).json({ ok: true, order_id: row.id, created_at: row.created_at });
+    return res.status(201).json({ ok: true, order_id: row.id, created_at: row.created_at, total: grandTotal, delivery_fee: deliveryFee });
   } catch (e) {
     console.error('order insert error', e);
     return res.status(500).json({ ok: false, error: 'Server xatosi' });
