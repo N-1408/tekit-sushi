@@ -905,7 +905,7 @@ export function StatusChip({ status, label }: { status: string; label: string })
 }
 
 export function ProductSheet() {
-  const { sheetP, closeP, lang, t, add, setQty, cart, products, favs, toggleFav, showToast } = useStore()
+  const { sheetP, closeP, lang, t, add, setQty, cart, products, favs, toggleFav, } = useStore()
   const [q, setQ] = React.useState(1)
   React.useEffect(() => { setQ(1) }, [sheetP?.id])
   if (!sheetP) return null
@@ -919,7 +919,7 @@ export function ProductSheet() {
       foot={
         <div className="flex gap-2.5 items-center">
           <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
-          <button onClick={() => { add(p.id, q); haptic('medium'); showToast(t.added); closeP() }}
+          <button onClick={() => { add(p.id, q); haptic('medium'); closeP() }}
             className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform">
             {t.addCart} · {fmt(p.price * q)}
           </button>
@@ -973,7 +973,7 @@ export function ProductSheet() {
                         <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
                       </div>
                     )}
-                    <button onClick={() => { if (sq > 0) { setQty(sa.id, sq + 1); haptic() } else { add(sa.id, 1); haptic('light'); showToast(t.added) } }}
+                    <button onClick={() => { if (sq > 0) { setQty(sa.id, sq + 1); haptic() } else { add(sa.id, 1); haptic('light') } }}
                       className="press w-7 h-7 rounded-full bg-navy text-white text-[15px] font-extrabold grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">+</button>
                   </div>
                 )
