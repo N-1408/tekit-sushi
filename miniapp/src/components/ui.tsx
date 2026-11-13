@@ -255,14 +255,13 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
   const chip = (on: boolean) => `press shrink-0 px-4 h-9 rounded-full text-[12.5px] font-extrabold whitespace-nowrap transition-colors active:scale-95 ${on ? 'bg-navy text-white shadow-[0_4px_12px_-4px_rgba(10,33,148,.5)]' : 'bg-white text-navy-ink border border-navy-line'}`
   return (
     <div className="bg-paper/95 backdrop-blur-md border-b border-navy-line">
-      <div className="max-w-[1240px] mx-auto px-4 lg:px-6 pt-2.5 pb-2 flex items-center gap-2.5">
-        <div className="relative flex-1 lg:max-w-[340px]">
+      <div className="max-w-[1240px] mx-auto px-4 lg:px-6 pt-2.5 pb-2 lg:flex lg:items-center lg:gap-4">
+        <div className="relative mb-2.5 lg:mb-0 lg:w-[320px] lg:shrink-0">
           <input value={q} onChange={e => setQ(e.target.value)} placeholder={t.search}
             className="w-full bg-white border border-navy-line rounded-full py-2.5 pl-10 pr-4 text-[13.5px] font-medium placeholder:text-[#A2A9C6] outline-none focus:border-navy focus:ring-2 focus:ring-navy/10" />
           <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A2A9C6]"><IcSearch /></span>
         </div>
-        <div className="flex-1 hidden lg:block" />
-        <div className="flex gap-2 overflow-x-auto no-scrollbar lg:flex-1 lg:overflow-visible lg:justify-end">
+        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
           <button className={chip(!activeCat)} onClick={() => { if (loc !== '/') { haptic(); nav('/') } else window.scrollTo({ top: 0 }) }}>{t.all}</button>
           {CATS.map(c => (
             <button key={c.id} className={chip(activeCat === c.id)} onClick={() => { haptic(); nav(`/cat/${c.id}`) }}>
@@ -277,7 +276,7 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
 
 /* ---------- promo slayder ---------- */
 const SLIDES: { img: string; b: 'heroB1' | 'heroB2' | 'heroB3' | 'heroB4'; ti: 'heroT1' | 'heroT2' | 'heroT3' | 'heroT4'; s: 'heroS1' | 'heroS2' | 'heroS3' | 'heroS4'; to: string }[] = [
-  { img: CDN + '84e69b73-e7ac-4ee5-8b80-3bb4af7ed0f9', b: 'heroB1', ti: 'heroT1', s: 'heroS1', to: '/' },
+  { img: CDN + '2705b64b-3608-4b1b-bd69-adeb50ff7151', b: 'heroB1', ti: 'heroT1', s: 'heroS1', to: '/' },
   { img: CDN + '0c72e513-3fb1-43e1-9577-f89b156d45eb', b: 'heroB2', ti: 'heroT2', s: 'heroS2', to: '/' },
   { img: CDN + '4f6ef42a-e6ed-424d-80d2-8ae96078d201', b: 'heroB3', ti: 'heroT3', s: 'heroS3', to: '/cat/hit' },
   { img: CDN + '4dd85d27-a179-4483-816e-99ddede741e8', b: 'heroB4', ti: 'heroT4', s: 'heroS4', to: '/cat/set' },
@@ -303,7 +302,7 @@ export function HeroSlider() {
               onTouchEnd={e => { if (x0.current == null) return; const dx = e.changedTouches[0].clientX - x0.current; x0.current = null; if (Math.abs(dx) > 44) go(dx < 0 ? 1 : -1) }}
               onClick={() => { haptic(); nav(sl.to) }}>
               <div className="absolute inset-0 wm opacity-[.13] pointer-events-none" />
-              <div className="relative h-full flex items-center pl-5 lg:pl-10 pr-4 lg:pr-6">
+              <div className="relative h-full flex items-center pl-5 lg:pl-24 pr-4 lg:pr-6">
                 <div className="max-w-[calc(100%-118px)] sm:max-w-[60%] lg:max-w-[56%]">
                   <span className="inline-block bg-white/15 px-2.5 py-1 rounded-full text-[9.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
                   <div className="mt-2 lg:mt-4 text-[21px] lg:text-[42px] font-extrabold leading-[1.08] tracking-tight">{(t as any)[sl.ti]}</div>
