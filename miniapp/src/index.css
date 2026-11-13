@@ -44,3 +44,11 @@ input, textarea, select { font-size: 16px !important; }
 @media (hover:hover) and (pointer:fine){
   .hov:hover{ background:#F2F4FB; }
 }
+
+/* yangi dizayn: hero slayder, drawer */
+.hero-bg { background: linear-gradient(115deg, #0B1440 0%, #0A2194 58%, #1646C9 100%); }
+.wm { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='340' height='150'><text x='0' y='60' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.5' font-family='Arial'>TEKIT ティキット</text><text x='170' y='130' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.5' font-family='Arial'>TEKIT ティキット</text></svg>"); background-size: 340px 150px; }
+@keyframes drawerIn { from { transform: translateX(-100%) } to { transform: none } }
+.anim-drawer { animation: drawerIn .4s cubic-bezier(.32,.72,0,1) both; }
+@keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+.anim-fade { animation: fadeIn .25s ease-out both; }

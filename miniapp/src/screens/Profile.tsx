@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import type { Lang } from '../lib/i18n'
-import { TopBar, Sheet } from '../components/ui'
+import { TopBar, IcPin, Sheet } from '../components/ui'
 
 const ROW_ICON: Record<string, React.ReactNode> = {
   branches: <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 21s-7-5.6-7-11a7 7 0 0 1 14 0c0 5.4-7 11-7 11z" /><circle cx="12" cy="10" r="2.6" /></svg>,
@@ -36,7 +36,7 @@ export default function Profile() {
         return (
           <div className="bg-white border border-navy-line rounded-[18px] p-4">
             <div className="flex items-center gap-3">
-              <span className="w-10 h-10 rounded-xl bg-navy-soft grid place-items-center text-[18px]">📍</span>
+              <span className="w-10 h-10 rounded-xl bg-navy-soft grid place-items-center text-navy"><IcPin /></span>
               <div>
                 <div className="text-[14.5px] font-extrabold">{t.branchName}</div>
                 <div className="text-[12px] font-semibold text-[#8A93B8] mt-0.5">{t.branchSoon}</div>

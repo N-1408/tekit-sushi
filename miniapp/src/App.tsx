@@ -28,7 +28,7 @@ export default function App() {
   const wide = !isAdmin && !loc.pathname.startsWith('/p/')
   return (
     <>
-      <div className={wide ? 'lg:pl-[220px]' : undefined}>
+      <div className={wide ? 'lg:max-w-[1240px] lg:mx-auto' : undefined}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/cat/:cat" element={<Cat />} />
@@ -53,7 +53,7 @@ export default function App() {
       {!isAdmin && (!user || ob) && <Onboarding />}
       {!isAdmin && <TabBar />}
       {!isAdmin && <ProductSheet />}
-      {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-[calc(50%+110px)] z-[60] bg-navy-deep text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
+      {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-1/2 z-[60] bg-navy-deep text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
     </>
   )
 }

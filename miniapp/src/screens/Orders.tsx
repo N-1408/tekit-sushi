@@ -80,7 +80,7 @@ export default function Orders() {
         </div>
         <div className="mt-1.5 flex items-center gap-2">
           <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${CHIP_STYLE[o.status] || 'bg-navy-soft text-navy'}`}>
-            {o.status === 'cooking' ? '👩‍🍳 ' : o.status === 'delivering' ? '🛵 ' : o.status === 'done' ? '✅ ' : o.status === 'cancelled' ? '✕ ' : ''}
+            {o.status === 'done' ? '✓ ' : ''}
             {statusLabel(o.status, t)}
           </span>
           <span className="text-[11px] font-semibold text-[#8A93B8]">{o.mode === 'delivery' ? t.deliveryMode : t.pickup} · {o.pay === 'cash' ? t.cash : t.cardTransfer}</span>

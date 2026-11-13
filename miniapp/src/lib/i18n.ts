@@ -59,6 +59,12 @@ export const T = {
     sauces: 'Qo\u02bbshimcha souslar', sAsk: 'Sous ham qo\u02bbshamizmi?', sSub: 'Sushining eng yaxshi do\u02bbsti — bir tegish bilan savatga tushadi', mapBtn: 'Xaritadan tanlash', mapTitle: 'Manzilni xaritada tanlang', mapPick: 'Shu manzilni tanlash',
     aKcalF: 'Calories (kcal / 100 g)', aProtF: 'Protein (g / 100 g)', aFatF: 'Fat (g / 100 g)', aCarbF: 'Carbs (g / 100 g)',
     aNewOrderA: 'Yangi buyurtma!', aSavedA: 'Saqlandi', aDeletedA: 'O\u02bbchirildi', aCloseX: 'Bekor', aCopy: 'Nusxa olish',
+    cityNote: 'Yetkazib berish faqat Toshkent bo\u02bbylab', cityOk: 'Tushunarli', spAddr: 'Manzilni ko\u02bbrsatish',
+    heroB1: 'Chegirma', heroT1: 'Birinchi buyurtmaga \u221210%', heroS1: 'TEKIT10 promokodini ishlating',
+    heroB2: 'Yetkazish', heroT2: 'Yetkazib berish bepul', heroS2: 'Toshkent bo\u02bbylab 30\u201345 daqiqa',
+    heroB3: 'Xit', heroT3: 'Hit taomlar', heroS3: 'Mijozlar sevimlilari',
+    heroB4: 'Setlar', heroT4: 'Katta setlar', heroS4: "Do\u02bbstlar uchun",
+    promoTileSub: 'Birinchi buyurtmaga 10% chegirma',
   },
   ru: {
     brand: 'Tekit Sushi', tagline: 'Японская кухня · Ташкент',
@@ -117,6 +123,12 @@ export const T = {
     sauces: 'Добавить соусы', sAsk: 'Добавим соус?', sSub: 'Лучший друг суши — одно касание, и он в корзине', mapBtn: 'Выбрать на карте', mapTitle: 'Выберите место на карте', mapPick: 'Выбрать это место',
     aKcalF: 'Calories (kcal / 100 g)', aProtF: 'Protein (g / 100 g)', aFatF: 'Fat (g / 100 g)', aCarbF: 'Carbs (g / 100 g)',
     aNewOrderA: 'Новый заказ!', aSavedA: 'Сохранено', aDeletedA: 'Удалено', aCloseX: 'Отмена', aCopy: 'Копировать',
+    cityNote: 'Доставка только по Ташкенту', cityOk: 'Понятно', spAddr: 'Указать адрес',
+    heroB1: 'Скидка', heroT1: '−10% на первый заказ', heroS1: 'Промокод TEKIT10',
+    heroB2: 'Доставка', heroT2: 'Доставка бесплатно', heroS2: 'По Ташкенту за 30–45 минут',
+    heroB3: 'Хиты', heroT3: 'Хиты меню', heroS3: 'Любимые блюда гостей',
+    heroB4: 'Сеты', heroT4: 'Большие сеты', heroS4: 'Для всей компании',
+    promoTileSub: '−10% на первый заказ',
   },
   en: {
     brand: 'Tekit Sushi', tagline: 'Japanese food · Tashkent',
@@ -175,6 +187,12 @@ export const T = {
     sauces: 'Extra sauces', sAsk: "Add a sauce?", sSub: "Sushi's best friend — one tap and it's in your cart", mapBtn: 'Pick on map', mapTitle: 'Choose your location', mapPick: 'Use this location',
     aKcalF: 'Calories (kcal / 100 g)', aProtF: 'Protein (g / 100 g)', aFatF: 'Fat (g / 100 g)', aCarbF: 'Carbs (g / 100 g)',
     aNewOrderA: 'New order!', aSavedA: 'Saved', aDeletedA: 'Deleted', aCloseX: 'Cancel', aCopy: 'Copy',
+    cityNote: 'We deliver only within Tashkent', cityOk: 'Got it', spAddr: 'Set address',
+    heroB1: 'Promo', heroT1: '10% off your first order', heroS1: 'Use promo code TEKIT10',
+    heroB2: 'Delivery', heroT2: 'Free delivery', heroS2: 'Across Tashkent in 30–45 minutes',
+    heroB3: 'Best sellers', heroT3: 'Top hits', heroS3: 'Guest favourites',
+    heroB4: 'Sets', heroT4: 'Big sets', heroS4: 'For the whole company',
+    promoTileSub: '10% off your first order',
   },
 } as const
 

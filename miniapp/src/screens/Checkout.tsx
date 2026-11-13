@@ -9,7 +9,7 @@ import MapPicker from '../components/MapPicker'
 const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{label}</div>{children}</div>
 
 export default function Checkout() {
-  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser, saveMyOrder, refreshOrders } = useStore()
+  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser, saveMyOrder, refreshOrders, mode, setMode } = useStore()
   const nav = useNavigate()
   const sum = cart.filter(l => l.q > 0).reduce((s, l) => s + l.q * l.price, 0)
   const last = myOrders[0]
@@ -18,7 +18,6 @@ export default function Checkout() {
   const digitsOf = (v: string) => { let d = (v || '').replace(/\D/g, ''); if (d.startsWith('998')) d = d.slice(3); return d.slice(-9) }
   const [phoneD, setPhoneD] = React.useState(digitsOf(last?.phone || user?.phone || ''))
   const fmtPhone = (d: string) => [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean).join(' ')
-  const [mode, setMode] = React.useState<'delivery' | 'pickup'>('delivery')
   const [addr, setAddr] = React.useState(last?.addr || user?.addr || '')
   const pay = 'cash' as const
   const [changeAmt, setChangeAmt] = React.useState('')
@@ -126,7 +125,7 @@ export default function Checkout() {
       <TopBar title={t.checkout} />
       {done ? (
         <div className="px-4 pt-16 text-center lg:max-w-[560px] lg:mx-auto">
-          <div className="tekit-pattern w-24 h-24 rounded-[26px] mx-auto grid place-items-center text-[42px] shadow-lg">✅</div>
+          <div className="tekit-pattern w-24 h-24 rounded-[26px] mx-auto grid place-items-center text-white shadow-lg"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
           <h2 className="mt-4 text-[20px] font-extrabold">{t.orderPlaced}</h2>
           <p className="mt-1.5 text-[13.5px] text-[#8A93B8] font-medium">{t.orderPlacedSub}</p>
           <div className="mt-4 inline-block bg-white border border-navy-line rounded-xl px-4 py-2.5 text-[14px] font-extrabold">#{done.oid}</div>
@@ -189,7 +188,7 @@ export default function Checkout() {
               </div>
               {pay === 'cash' && (
                 <div className="mt-2.5 space-y-2.5">
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[11.5px] font-semibold text-amber-800 leading-snug">⚠️ {t.cashWarn}</div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[11.5px] font-semibold text-amber-800 leading-snug">{t.cashWarn}</div>
                   <input className={input} value={changeAmt} onChange={e => setChangeAmt(e.target.value.replace(/[^0-9 ]/g, ''))}
                     placeholder={t.changePlaceholder} inputMode="numeric" />
                   <div className="text-[11px] font-semibold text-[#A2A9C6] -mt-1.5">{t.changeLabel} · {t.changeHint}</div>

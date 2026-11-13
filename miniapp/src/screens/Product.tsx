@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore, pName, pImg, pDesc } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty } from '../components/ui'
+import { TopBar, Qty, IcScale, IcSauce } from '../components/ui'
 
 export default function Product() {
   const { id } = useParams()
@@ -36,7 +36,7 @@ export default function Product() {
         </div>
         {p.weight ? (
           <div className="mt-3 flex items-center gap-1.5 bg-white border border-navy-line rounded-xl px-3 py-2.5 w-fit">
-            <span className="text-[15px]">⚖️</span>
+            <span className="text-navy"><IcScale /></span>
             <span className="text-[13px] font-bold">{p.weight}</span>
           </div>
         ) : null}
@@ -66,7 +66,7 @@ export default function Product() {
         {p.cat !== 'sous' && sauces.length > 0 && (
           <div className="mt-4 bg-navy-soft/60 rounded-3xl p-3.5">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-[15px] shrink-0 shadow-sm">🍣</span>
+              <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-navy shrink-0 shadow-sm"><IcSauce /></span>
               <div className="flex-1 min-w-0">
                 <div className="text-[13.5px] font-extrabold text-navy leading-tight">{t.sAsk}</div>
                 <div className="text-[10.5px] font-semibold text-[#8A93B8] leading-tight mt-0.5">{t.sSub}</div>

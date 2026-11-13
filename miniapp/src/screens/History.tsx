@@ -21,7 +21,7 @@ export default function History() {
           {arc.map(o => (
             <div key={o.oid} className="bg-white border border-navy-line rounded-[18px] px-4 py-3.5 flex items-center gap-3">
               <div className={`w-9 h-9 rounded-xl grid place-items-center text-[15px] shrink-0 ${o.status === 'done' ? 'bg-emerald-100' : 'bg-rose-100'}`}>
-                {o.status === 'done' ? '✅' : '✕'}
+                {o.status === 'done' ? '✓' : '✕'}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">

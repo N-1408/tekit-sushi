@@ -49,7 +49,7 @@ export default function Onboarding() {
       <div className="min-h-full flex flex-col">
         <div className="px-5 pt-[calc(env(safe-area-inset-top)+var(--tg-csa-top,0px)+var(--tg-extra,0px)+22px)] pb-7 text-white lg:max-w-[620px] lg:mx-auto lg:pt-10">
           <div className="flex items-center justify-between">
-            <div className="tekit-pattern w-12 h-12 rounded-2xl grid place-items-center text-[22px] shadow-lg">🐋</div>
+            <div className="tekit-pattern w-12 h-12 rounded-2xl grid place-items-center shadow-lg"><img src="/logo.png" alt="" className="w-8 h-8 rounded-lg" /></div>
             <div className="flex gap-1.5">
               {[0, 1].map(i => (
                 <span key={i} className={`w-2 h-2 rounded-full transition-all ${i <= step ? 'bg-white' : 'bg-white/25'}`} />
