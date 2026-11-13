@@ -235,17 +235,21 @@ export function CityBanner() {
   const { t } = useStore()
   const [ok, setOk] = useState(() => { try { return localStorage.getItem('tk-city-ok') === '1' } catch { return false } })
   if (ok) return null
+  const close = () => { try { localStorage.setItem('tk-city-ok', '1') } catch {}; setOk(true) }
   return (
-    <div className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(66px + var(--sat))' }}>
+    <>
+      <div className="fixed inset-0 z-[44]" onClick={close} />
+      <div className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(66px + var(--sat))' }}>
       <div className="flex items-center gap-3 bg-white border border-navy-line rounded-2xl px-4 py-3 shadow-[0_18px_44px_-14px_rgba(0,0,0,.28)]">
         <span className="text-navy shrink-0"><IcPin /></span>
         <div className="flex-1 text-[12.5px] font-bold text-navy-ink leading-snug">{t.cityNote}</div>
-        <button onClick={() => { try { localStorage.setItem('tk-city-ok', '1') } catch {}; setOk(true) }}
+        <button onClick={close}
           className="press shrink-0 bg-navy text-white text-[12px] font-extrabold px-3.5 py-2 rounded-xl active:scale-95 transition-transform">
           {t.cityOk}
         </button>
       </div>
     </div>
+    </>
   )
 }
 
