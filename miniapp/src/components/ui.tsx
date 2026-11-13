@@ -304,7 +304,7 @@ export function HeroSlider() {
               onClick={() => { haptic(); nav(sl.to) }}>
               <div className="absolute inset-0 wm opacity-[.13] pointer-events-none" />
               <div className="relative h-full flex items-center pl-5 lg:pl-10 pr-4 lg:pr-6">
-                <div className="max-w-[60%] lg:max-w-[56%]">
+                <div className="max-w-[calc(100%-118px)] sm:max-w-[60%] lg:max-w-[56%]">
                   <span className="inline-block bg-white/15 px-2.5 py-1 rounded-full text-[9.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
                   <div className="mt-2 lg:mt-4 text-[21px] lg:text-[42px] font-extrabold leading-[1.08] tracking-tight">{(t as any)[sl.ti]}</div>
                   <div className="mt-1.5 lg:mt-3 text-[11.5px] lg:text-[15px] font-medium text-white/75 leading-snug">{(t as any)[sl.s]}</div>
@@ -318,7 +318,7 @@ export function HeroSlider() {
         <div className="absolute bottom-3 lg:bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5">
           {SLIDES.map((_, k) => (
             <button key={k} onClick={e => { e.stopPropagation(); go(k - i) }}
-              className={`h-1.5 rounded-full transition-all duration-300 ${k === i ? 'w-5 bg-white' : 'w-1.5 bg-white/40'}`} />
+              className={`h-2 rounded-full transition-all duration-300 ${k === i ? 'w-5 bg-white' : 'w-2 h-2 bg-white/55'}`} />
           ))}
         </div>
         <button onClick={e => { e.stopPropagation(); go(-1) }} className="press hidden lg:grid place-items-center absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/12 hover:bg-white/25 transition-colors"><IcChevL /></button>
