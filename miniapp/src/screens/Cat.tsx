@@ -14,7 +14,7 @@ export default function Cat() {
   if (sort !== 'none') items = [...items].sort((a, b) => sort === 'asc' ? a.price - b.price : b.price - a.price)
   return (
     <div className="pb-28 lg:pb-12">
-      <div className="sticky top-0 z-30" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
+      <div className="sticky top-0 z-30 bg-[#0F1720]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
         <TopBar flat title={(c as any)?.[lang] || c?.id || cat} />
         <SearchChips q={q} setQ={setQ} sort={sort} setSort={setSort} />
       </div>

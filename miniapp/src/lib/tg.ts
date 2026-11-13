@@ -6,8 +6,8 @@ export function initTelegram() {
   try {
     TGA.ready()
     TGA.expand()
-    TGA.setHeaderColor?.('#F6F7FB')
-    TGA.setBackgroundColor?.('#F6F7FB')
+    TGA.setHeaderColor?.('#0F1720')
+    TGA.setBackgroundColor?.('#0F1720')
     TGA.disableVerticalSwipes?.()
     TGA.requestFullscreen?.()
     const applyInsets = () => {

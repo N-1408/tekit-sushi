@@ -30,7 +30,7 @@ export default function Home() {
 
   return (
     <div className="pb-28 lg:pb-12">
-      <div className="sticky top-0 z-30" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
+      <div className="sticky top-0 z-30 bg-[#0F1720]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
         <Header />
         <SearchChips q={q} setQ={setQ} sort={sort} setSort={setSort} />
       </div>

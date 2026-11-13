@@ -120,7 +120,7 @@ export function TopBar({ title, right, back = true, flat }: { title?: string; ri
     </div>
   )
   if (flat) return inner
-  return <header className="sticky top-0 z-30" style={{ paddingTop: 'calc(6px + var(--sat))' }}>{inner}</header>
+  return <header className="sticky top-0 z-30 bg-[#0F1720]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>{inner}</header>
 }
 
 /* ---------- hamburger menyu ---------- */
