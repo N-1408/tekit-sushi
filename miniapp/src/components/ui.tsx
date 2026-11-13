@@ -581,8 +581,6 @@ export function HeroSlider() {
     start()
   }
 
-  if (!w) return <div className="mt-3 lg:mt-5 h-[196px] lg:h-[250px] rounded-[20px] bg-[var(--sheet)]" />
-
   const big = w >= 1024
   const P = big ? 24 : 14   // har ikki chetdagi ko'rinadigan qism
   const G = big ? 12 : 10
@@ -593,7 +591,8 @@ export function HeroSlider() {
 
   return (
     <div className="mt-3 lg:mt-5 select-none">
-      <div ref={wrapRef} className="relative h-[196px] lg:h-[250px] overflow-hidden">
+      <div ref={wrapRef} className="relative h-[196px] lg:h-[250px] overflow-hidden rounded-[20px] bg-[var(--sheet)]">
+        {w > 0 && (
         <div
           onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
           onTransitionEnd={onEnd}
@@ -616,13 +615,16 @@ export function HeroSlider() {
             </div>
           ))}
         </div>
+        )}
       </div>
+      {w > 0 && (
       <div className="mt-3 flex justify-center gap-1.5">
         {SLIDES.map((_, k) => (
           <button key={k} onClick={e => { e.stopPropagation(); go(k + 1) }}
             className={`h-2 rounded-full transition-all duration-300 ${k === dot ? 'w-5 bg-navy' : 'w-2 bg-[var(--line2)]'}`} />
         ))}
       </div>
+      )}
     </div>
   )
 }
@@ -1094,7 +1096,7 @@ export function FloatingBonus() {
   return (
     <>
       <button onClick={() => { haptic('light'); setOpen(true) }} aria-label="bonus"
-        className="floating-quick press fixed right-4 z-[45] w-11 h-11 rounded-[15px] bg-[var(--panel)] border border-[var(--line2)] text-[#29A8E0] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] active:scale-95 transition-transform lg:!bottom-8"
+        className="floating-quick press fixed right-4 z-[45] w-11 h-11 rounded-[15px] bg-[var(--panel)] border border-[var(--line2)] text-[#29A8E0] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] active:scale-95 transition-transform lg:!bottom-[100px]"
         style={{ bottom: 'calc(164px + var(--sab))' }}>
         <IcBonus s={21} />
       </button>
