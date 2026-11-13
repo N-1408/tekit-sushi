@@ -8,7 +8,7 @@ function Section({ title, items }: { title: string; items: Product[] }) {
     <section className="mt-7">
       <div className="flex items-center justify-between px-4 lg:px-6 mb-3">
         <h2 className="text-[19px] lg:text-[22px] font-extrabold tracking-tight">{title}</h2>
-        <span className="text-[11px] font-extrabold text-[#A2A9C6]">{items.length}</span>
+        <span className="text-[11px] font-extrabold text-[#6E7787]">{items.length}</span>
       </div>
       <div className="px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
         {items.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
@@ -35,7 +35,7 @@ export default function Home() {
         {found ? (
           <section className="px-4 lg:px-6 mt-4">
             {found.length === 0 ? (
-              <div className="py-10 text-center text-[14px] font-semibold text-[#8A93B8]">— {t.noResults} —</div>
+              <div className="py-10 text-center text-[14px] font-semibold text-[#7A8494]">— {t.noResults} —</div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
                 {found.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}

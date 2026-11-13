@@ -7,7 +7,7 @@ html { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior-y: none; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  background: #F7F7F8; color: #191919; letter-spacing: -0.01em;
+  background: #0F1720; color: #F2F5F9; letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
 }
 button, a, [role="button"] { touch-action: manipulation; -webkit-user-select: none; user-select: none; }

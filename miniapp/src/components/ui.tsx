@@ -48,7 +48,7 @@ export function CartBtn() {
       className="press relative w-10 h-10 rounded-xl grid place-items-center shrink-0 active:scale-95 transition-transform">
       <IcBag />
       {cartCount > 0 && (
-        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-navy text-white text-[10.5px] font-extrabold grid place-items-center leading-none">{cartCount}</span>
+        <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8462B] text-white text-[10.5px] font-extrabold grid place-items-center leading-none">{cartCount}</span>
       )}
     </button>
   )
@@ -64,14 +64,14 @@ function LangPicker({ dark }: { dark?: boolean }) {
   return (
     <>
       <button onClick={() => setOpen(true)}
-        className={`press flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[12px] font-extrabold active:scale-95 transition-transform ${dark ? 'bg-[#F3F4F6] text-[#191919]' : 'bg-navy-soft text-navy-ink'}`}>
+        className={`press flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[12px] font-extrabold active:scale-95 transition-transform ${dark ? 'bg-[#1B2330] text-[#F2F5F9]' : 'bg-navy-soft text-navy-ink'}`}>
         <span className="text-[15px] leading-none">{FLAGS[lang]}</span>{lang.toUpperCase()}
       </button>
       <Sheet open={open} onClose={() => setOpen(false)} title={t.language}>
         <div className="space-y-2 pb-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic(); setOpen(false) }}
-              className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-navy text-white border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.4)]' : 'bg-white border-navy-line'}`}>
+              className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-navy text-white border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.4)]' : 'bg-[#1B2330] border-navy-line'}`}>
               <span className="text-[22px]">{FLAGS[l]}</span>
               <span className="text-[15px] font-extrabold flex-1">{LANG_NAME[l]}</span>
               {lang === l && <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>}
@@ -89,12 +89,12 @@ export function TopBar({ title, right, back = true, flat }: { title?: string; ri
   const nav = useNavigate()
   useNativeBack(!!title && back)
   const inner = (
-    <div className="bg-white text-[#191919] border-b border-[#ECECEE]">
+    <div className="bg-[#0F1720] text-[#F2F5F9] border-b border-[#1E2631]">
       <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 pb-2.5 pt-1">
         {title ? (
           <>
             {back && (
-              <button onClick={() => { haptic('light'); nav(-1) }} className="press w-10 h-10 rounded-xl bg-[#F3F4F6] grid place-items-center shrink-0 active:scale-95 transition-transform">
+              <button onClick={() => { haptic('light'); nav(-1) }} className="press w-10 h-10 rounded-xl bg-[#1B2330] grid place-items-center shrink-0 active:scale-95 transition-transform">
                 <IcChevL />
               </button>
             )}
@@ -105,7 +105,7 @@ export function TopBar({ title, right, back = true, flat }: { title?: string; ri
             <WhaleMark />
             <div className="flex-1 min-w-0">
               <div className="text-[15px] font-extrabold leading-tight">{t.brand}</div>
-              <div className="text-[10.5px] font-semibold text-[#9A9AA0] leading-tight truncate">{hiName(t, user)}</div>
+              <div className="text-[10.5px] font-semibold text-[#8B94A3] leading-tight truncate">{hiName(t, user)}</div>
             </div>
           </>
         )}
@@ -136,47 +136,47 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
   return createPortal(
     <div className="fixed inset-0 z-[70]">
       <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px] anim-fade" onClick={onClose} />
-      <aside className="absolute left-0 top-0 bottom-0 w-[302px] lg:w-[340px] bg-white text-[#191919] flex flex-col anim-drawer shadow-2xl"
+      <aside className="absolute left-0 top-0 bottom-0 w-[302px] lg:w-[340px] bg-[#101821] text-[#F2F5F9] flex flex-col anim-drawer shadow-2xl"
         style={{ paddingTop: 'calc(16px + var(--sat))', paddingBottom: 'calc(16px + var(--sab))' }}>
         <div className="flex items-center justify-between px-5">
           <div className="flex items-center gap-2.5">
             <img src="/logo.png" alt="" className="w-10 h-10 rounded-[12px]" />
             <span className="text-[15px] font-extrabold tracking-[0.08em]">TEKIT SUSHI</span>
           </div>
-          <button onClick={onClose} className="press w-9 h-9 rounded-xl bg-[#F3F4F6] grid place-items-center text-[#6B6B70] active:scale-95 transition-transform"><IcX /></button>
+          <button onClick={onClose} className="press w-9 h-9 rounded-xl bg-[#1B2330] grid place-items-center text-[#9AA3B2] active:scale-95 transition-transform"><IcX /></button>
         </div>
 
         <div className="px-5 mt-4 flex gap-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic('light') }}
-              className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-extrabold transition-colors ${lang === l ? 'bg-navy text-white' : 'bg-[#F3F4F6] text-[#6B6B70] active:scale-95'}`}>
+              className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-extrabold transition-colors ${lang === l ? 'bg-white text-[#101821]' : 'bg-[#1B2330] text-[#9AA3B2] active:scale-95'}`}>
               <span className="text-[15px] leading-none">{FLAGS[l]}</span>{l.toUpperCase()}
             </button>
           ))}
         </div>
 
-        <div className="px-5 mt-5 mb-1.5 text-[10px] uppercase tracking-[0.14em] text-[#A5A5AA] font-extrabold">{t.menuT}</div>
+        <div className="px-5 mt-5 mb-1.5 text-[10px] uppercase tracking-[0.14em] text-[#6E7787] font-extrabold">{t.menuT}</div>
         <nav className="flex-1 overflow-y-auto no-scrollbar px-3">
           {CATS.map(c => (
             <button key={c.id} onClick={() => { haptic(); onClose(); nav(`/cat/${c.id}`) }}
-              className="press w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-bold text-[#191919] active:bg-[#F3F4F6] transition-colors">
+              className="press w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-bold text-[#F2F5F9] active:bg-[#1B2330] transition-colors">
               {(c as any)[lang] || t.catNames[c.id]}
-              <span className="text-[#C9C9CE]"><IcChevR /></span>
+              <span className="text-[#3A4454]"><IcChevR /></span>
             </button>
           ))}
         </nav>
 
-        <div className="px-5 pt-3 mt-2 border-t border-[#EFEFF1] space-y-0.5">
-          <button onClick={() => { onClose(); nav('/orders') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#191919] active:opacity-70">
+        <div className="px-5 pt-3 mt-2 border-t border-[#1E2631] space-y-0.5">
+          <button onClick={() => { onClose(); nav('/orders') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#F2F5F9] active:opacity-70">
             <IcBag /> {t.tabOrders}
           </button>
-          <button onClick={() => { onClose(); nav('/profile') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#191919] active:opacity-70">
+          <button onClick={() => { onClose(); nav('/profile') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#F2F5F9] active:opacity-70">
             <IcUser /> {t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
           </button>
-          <a href="tel:+998951550549" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#191919]">
+          <a href="tel:+998951550549" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#F2F5F9]">
             <IcCash /> {t.ctPhoneVal}
           </a>
-          <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#191919]">
+          <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[#F2F5F9]">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.25.25-.45.45-.9.45l.3-4.6L18.2 6.8c.35-.3-.1-.5-.55-.2L7.7 13.1l-4.4-1.4c-1-.3-1-1 .2-1.45L20.6 3.3c.8-.3 1.5.2 1.3 1.3Z" /></svg>
             {t.ctTgVal}
           </a>
@@ -194,28 +194,28 @@ export function Header() {
   const [drawer, setDrawer] = useState(false)
   return (
     <>
-      <header className="bg-white text-[#191919] border-b border-[#ECECEE]">
+      <header className="bg-[#0F1720] text-[#F2F5F9] border-b border-[#1E2631]">
         <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 pb-2.5 pt-1">
           <button aria-label="menu" onClick={() => { haptic(); setDrawer(true) }}
-            className="press w-10 h-10 rounded-xl bg-[#F3F4F6] grid place-items-center shrink-0 active:scale-95 transition-transform">
+            className="press w-10 h-10 rounded-xl bg-[#1B2330] grid place-items-center shrink-0 active:scale-95 transition-transform">
             <IcBurger />
           </button>
           <button onClick={() => nav('/')} className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
             <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px]" />
             <span className="text-[14.5px] font-extrabold tracking-[0.08em] whitespace-nowrap hidden min-[400px]:block">TEKIT SUSHI</span>
           </button>
-          <div className="hidden lg:flex items-center gap-0.5 bg-[#F3F4F6] rounded-xl p-1 ml-2">
+          <div className="hidden lg:flex items-center gap-0.5 bg-[#141B26] rounded-xl p-1 ml-2">
             {(['delivery', 'pickup'] as const).map(m => (
               <button key={m} onClick={() => { if (m !== mode) { setMode(m); haptic('light') } }}
-                className={`px-3.5 py-1.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-navy text-white' : 'text-[#6B6B70] hover:text-[#191919]'}`}>
+                className={`px-3.5 py-1.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-white text-[#0F1720]' : 'text-[#9AA3B2] hover:text-white'}`}>
                 {m === 'delivery' ? t.deliveryMode : t.pickup}
               </button>
             ))}
           </div>
-          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 px-3 py-2.5 text-[12.5px] font-bold text-[#191919] active:opacity-80 transition-opacity">
+          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 px-3 py-2.5 text-[12.5px] font-bold text-[#F2F5F9] active:opacity-80 transition-opacity">
             <IcPin /> {t.city}
           </button>
-          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 bg-navy text-white rounded-xl px-3.5 py-2.5 text-[12.5px] font-bold active:opacity-80 transition-opacity">
+          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-1.5 border border-[#2A3442] rounded-xl px-3.5 py-2.5 text-[12.5px] font-bold text-[#F2F5F9] active:opacity-80 transition-opacity">
             <IcPin /> {t.spAddr}
           </button>
           <div className="flex-1" />
@@ -240,11 +240,11 @@ export function CityBanner() {
     <>
       <div className="fixed inset-0 z-[44]" onClick={close} />
       <div className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(66px + var(--sat))' }}>
-      <div className="flex items-center gap-3 bg-white border border-navy-line rounded-2xl px-4 py-3 shadow-[0_18px_44px_-14px_rgba(0,0,0,.28)]">
-        <span className="text-navy shrink-0"><IcPin /></span>
-        <div className="flex-1 text-[12.5px] font-bold text-navy-ink leading-snug">{t.cityNote}</div>
+      <div className="flex items-center gap-3 bg-[#1B2330] border border-[#2A3442] rounded-2xl px-4 py-3 shadow-[0_18px_44px_-14px_rgba(0,0,0,.6)]">
+        <span className="text-[#29A8E0] shrink-0"><IcPin /></span>
+        <div className="flex-1 text-[12.5px] font-bold text-[#F2F5F9] leading-snug">{t.cityNote}</div>
         <button onClick={close}
-          className="press shrink-0 bg-navy text-white text-[12px] font-extrabold px-3.5 py-2 rounded-xl active:scale-95 transition-transform">
+          className="press shrink-0 bg-white text-[#0F1720] text-[12px] font-extrabold px-3.5 py-2 rounded-xl active:scale-95 transition-transform">
           {t.cityOk}
         </button>
       </div>
@@ -259,14 +259,14 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
   const nav = useNavigate()
   const loc = window.location.pathname
   const activeCat = loc.startsWith('/cat/') ? loc.slice(5) : null
-  const chip = (on: boolean) => `press shrink-0 px-4 h-9 rounded-full text-[12.5px] font-extrabold whitespace-nowrap transition-colors active:scale-95 ${on ? 'bg-navy text-white shadow-[0_4px_12px_-4px_rgba(10,33,148,.5)]' : 'bg-white text-navy-ink border border-navy-line'}`
+  const chip = (on: boolean) => `press shrink-0 px-4 h-9 rounded-full text-[12.5px] font-extrabold whitespace-nowrap transition-colors active:scale-95 ${on ? 'bg-white text-[#0F1720]' : 'bg-[#1B2330] text-[#C7CFDB]'}`
   return (
     <div className="bg-paper/95 backdrop-blur-md border-b border-navy-line">
       <div className="max-w-[1240px] mx-auto px-4 lg:px-6 pt-2.5 pb-2 lg:flex lg:items-center lg:gap-4">
         <div className="relative mb-2.5 lg:mb-0 lg:w-[320px] lg:shrink-0">
           <input value={q} onChange={e => setQ(e.target.value)} placeholder={t.search}
-            className="w-full bg-white border border-navy-line rounded-full py-2.5 pl-10 pr-4 text-[13.5px] font-medium placeholder:text-[#A2A9C6] outline-none focus:border-navy focus:ring-2 focus:ring-navy/10" />
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#A2A9C6]"><IcSearch /></span>
+            className="w-full bg-[#1B2330] border border-[#2A3442] rounded-full py-2.5 pl-10 pr-4 text-[13.5px] font-medium text-[#F2F5F9] placeholder:text-[#6E7787] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
+          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6E7787]"><IcSearch /></span>
         </div>
         <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
           <button className={chip(!activeCat)} onClick={() => { if (loc !== '/') { haptic(); nav('/') } else window.scrollTo({ top: 0 }) }}>{t.all}</button>
@@ -354,8 +354,8 @@ export function HeroSlider() {
 export function InfoTiles() {
   const { t } = useStore()
   const tiles = [
-    { icon: <IcClock />, title: t.freeDelivery, sub: `${t.city} · ${t.dpTimeVal}`, cls: 'bg-white text-navy-ink border border-navy-line', iconCls: 'bg-navy text-white' },
-    { icon: <IcTag />, title: 'TEKIT10', sub: t.promoTileSub, cls: 'bg-white text-navy-ink border border-navy-line', iconCls: 'bg-navy text-white' },
+    { icon: <IcClock />, title: t.freeDelivery, sub: `${t.city} · ${t.dpTimeVal}`, cls: 'bg-[#1B2330] text-[#F2F5F9]', iconCls: 'bg-[#29A8E0]/15 text-[#29A8E0]' },
+    { icon: <IcTag />, title: 'TEKIT10', sub: t.promoTileSub, cls: 'bg-[#1B2330] text-[#F2F5F9]', iconCls: 'bg-[#29A8E0]/15 text-[#29A8E0]' },
     { icon: <IcCash />, title: t.cash, sub: t.dpSoon, cls: 'bg-white text-navy-ink border border-navy-line', iconCls: 'bg-navy text-white' },
   ]
   return (
@@ -393,18 +393,18 @@ export function TabBar() {
     { id: 'profile', to: '/profile', label: t.tabProfile, icon: 'profile' },
   ]
   return (
-    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line lg:hidden"
+    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-[#0F1720] border-t border-[#1E2631] lg:hidden"
       style={{ paddingBottom: 'calc(8px + var(--sab))' }}>
       <div className="flex">
         {tabs.map(tb => {
           const on = loc === tb.to
           return (
             <button key={tb.id} onClick={() => { if (!on) { haptic(); nav(tb.to) } }}
-              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${on ? 'text-navy' : 'text-[#A2A9C6]'}`}>
+              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${on ? 'text-white' : 'text-[#6E7787]'}`}>
               <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${on ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
                 <svg width="23" height="23" viewBox="0 0 24 24" fill={on ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{ICONS(on)[tb.icon]}</svg>
                 {tb.id === 'cart' && cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-navy text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-white">{cartCount}</span>
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-[#E8462B] text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-[#0F1720]">{cartCount}</span>
                 )}
               </span>
               {tb.label}
@@ -426,10 +426,10 @@ export function QtyPill({ p, small }: { p: { id: string }; small?: boolean }) {
         ? 'absolute bottom-1.5 right-1.5 flex items-center gap-0.5 bg-white rounded-full p-0.5 shadow-[0_6px_14px_-4px_rgba(10,33,148,.45)]'
         : 'absolute bottom-2 right-2 flex items-center gap-0.5 bg-white rounded-full p-1 shadow-[0_6px_14px_-4px_rgba(10,33,148,.45)]'}>
       <button onClick={() => { setQty(p.id, q - 1); haptic('light') }}
-        className={`press ${sW} rounded-full bg-navy-soft text-navy grid place-items-center active:scale-90 transition-transform`}>
+        className={`press ${sW} rounded-full bg-navy-soft text-[#29A8E0] grid place-items-center active:scale-90 transition-transform`}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
       </button>
-      <span className={`text-[12px] font-extrabold text-navy ${small ? 'w-3.5' : 'w-4'} text-center`}>{q}</span>
+      <span className={`text-[12px] font-extrabold text-[#29A8E0] ${small ? 'w-3.5' : 'w-4'} text-center`}>{q}</span>
       <button onClick={() => { add(p.id); haptic('medium') }}
         className={`press ${sW} rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform`}>
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
@@ -440,40 +440,45 @@ export function QtyPill({ p, small }: { p: { id: string }; small?: boolean }) {
 
 /* ---------- mahsulot kartochkasi ---------- */
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const { cart, add, lang, favs, toggleFav, showToast, t, openP } = useStore()
+  const { cart, add, setQty, lang, favs, toggleFav, showToast, t, openP } = useStore()
   const fav = favs.includes(p.id)
   const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
   const sale = p.sale_active && (p.old_price ?? 0) > p.price
   return (
     <article onClick={() => { haptic(); openP(p) }}
-      className="anim-up bg-white rounded-[20px] overflow-hidden cursor-pointer active:scale-[.975] transition-transform duration-200 shadow-[0_2px_12px_rgba(14,24,57,.05)]"
+      className="anim-up cursor-pointer"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
-      <div className="relative aspect-[4/3] bg-navy-soft">
+      <div className="relative aspect-[4/3.4] rounded-[14px] overflow-hidden bg-[#141B26]">
         <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         <button onClick={e => { e.stopPropagation(); toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
-          className="absolute top-2 right-2 w-9 h-9 rounded-full bg-white/95 grid place-items-center shadow-sm active:scale-90 transition-transform">
+          className="absolute top-2 right-2 w-9 h-9 rounded-full bg-[#101821]/80 grid place-items-center active:scale-90 transition-transform">
           <Heart on={fav} s={15} />
         </button>
         {sale ? (
-          <span className="absolute top-2 left-2 bg-red-600 text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg shadow">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
-        ) : p.hit ? <span className="absolute top-2 left-2 bg-navy text-white text-[9.5px] font-extrabold tracking-wide uppercase px-2 py-1 rounded-lg">{t.hit}</span> : null}
+          <span className="absolute top-2 left-2 bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
+        ) : p.hit ? <span className="absolute top-2 left-2 bg-[#101821]/85 text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">{t.hit}</span> : null}
       </div>
-      <div className="p-3">
-        <div className="text-[13.5px] font-bold leading-snug line-clamp-2 min-h-[38px]">{pName(p, lang)}</div>
-        <div className="text-[11px] font-semibold text-[#8A93B8] mt-0.5 min-h-[15px]">{p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')}</div>
-        <div className="mt-2 flex items-end justify-between gap-2">
-          <div className="leading-tight min-w-0">
-            <div className="text-[15px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)} <span className="text-[10px] font-bold text-[#8A93B8]">UZS</span></div>
-            {sale && <div className="text-[11px] font-bold text-[#A2A9C6] line-through whitespace-nowrap">{fmt(p.old_price)} UZS</div>}
-          </div>
-          {q > 0 ? <QtyPill p={p} /> : (
-            <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
-              className="press shrink-0 w-10 h-10 rounded-[14px] bg-navy text-white grid place-items-center shadow-[0_6px_14px_-4px_rgba(10,33,148,.55)] active:scale-90 transition-transform">
-              <IcBag />
-            </button>
-          )}
+      <div className="mt-2.5 text-[14.5px] font-bold leading-snug text-[#F2F5F9] line-clamp-2">{pName(p, lang)}</div>
+      <div className="text-[12px] font-medium text-[#7A8494] mt-0.5 min-h-[16px]">{p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')}</div>
+      {q > 0 ? (
+        <div className="mt-2.5 w-full h-[44px] rounded-[12px] bg-[#E9EDF1] text-[#101821] flex items-center justify-between px-1.5">
+          <button onClick={e => { e.stopPropagation(); setQty(p.id, q - 1); haptic('light') }}
+            className="press w-9 h-9 rounded-[9px] grid place-items-center active:scale-90 transition-transform">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M5 12h14" /></svg>
+          </button>
+          <span className="text-[14px] font-extrabold">{q}</span>
+          <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium') }}
+            className="press w-9 h-9 rounded-[9px] grid place-items-center active:scale-90 transition-transform">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+          </button>
         </div>
-      </div>
+      ) : (
+        <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium'); showToast(t.added) }}
+          className="press mt-2.5 w-full h-[44px] rounded-[12px] bg-[#E9EDF1] text-[#101821] flex items-center justify-center gap-2 text-[14.5px] font-extrabold active:scale-[.98] transition-transform">
+          <IcBag /> {fmt(p.price)} <span className="text-[11px] font-bold text-[#5A6472]">UZS</span>
+        </button>
+      )}
+      {sale && <div className="mt-1 text-[11px] font-bold text-[#7A8494] line-through">{fmt(p.old_price)} UZS</div>}
     </article>
   )
 }
@@ -547,16 +552,16 @@ export function Sheet({ open, onClose, title, children, foot }: {
       <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" onClick={onClose}
         style={{ opacity: Math.max(0, 1 - dy / 420), transition: drag ? 'none' : 'opacity .3s' }} />
       <div
-        className={`${!entered && !moving ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-white rounded-t-[26px] max-h-[90dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none lg:top-0 lg:animate-none lg:h-fit lg:w-[480px] lg:mx-auto lg:rounded-[26px] lg:shadow-[0_24px_60px_rgba(10,15,50,.3)]`}
+        className={`${!entered && !moving ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-[#141B26] rounded-t-[26px] max-h-[90dvh] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none lg:top-0 lg:animate-none lg:h-fit lg:w-[480px] lg:mx-auto lg:rounded-[26px] lg:shadow-[0_24px_60px_rgba(10,15,50,.3)]`}
         style={{ transform: `translateY(${dy}px)`, transition: drag ? 'none' : 'transform .32s cubic-bezier(.32,.72,0,1)' }}>
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
           style={{ touchAction: 'none' }}>
           <div className="pt-2.5 pb-1">
-            <div className="w-10 h-1.5 rounded-full bg-[#D8DCEA] mx-auto" />
+            <div className="w-10 h-1.5 rounded-full bg-[#2A3442] mx-auto" />
           </div>
           <div className="flex items-center justify-between px-5 pt-1.5 pb-1">
             <h3 className="text-[18px] font-extrabold">{title}</h3>
-            <button onClick={onClose} className="press w-8 h-8 rounded-full bg-navy-soft grid place-items-center text-[#8A93B8]"><IcX /></button>
+            <button onClick={onClose} className="press w-8 h-8 rounded-full bg-navy-soft grid place-items-center text-[#7A8494]"><IcX /></button>
           </div>
         </div>
         <div className="overflow-y-auto no-scrollbar px-5 py-3 flex-1 overscroll-contain">{children}</div>
@@ -575,7 +580,7 @@ export function Empty({ emoji, title, sub, action }: { emoji?: string; title: st
         <div className="relative tekit-pattern w-28 h-28 rounded-[30px] grid place-items-center text-white shadow-[0_16px_34px_-14px_rgba(10,33,148,.45)]"><IcPlate /></div>
       </div>
       <div className="mt-5 text-[17px] font-extrabold">{title}</div>
-      {sub && <div className="mt-1.5 text-[13px] font-medium text-[#8A93B8] max-w-[280px] mx-auto leading-relaxed">{sub}</div>}
+      {sub && <div className="mt-1.5 text-[13px] font-medium text-[#7A8494] max-w-[280px] mx-auto leading-relaxed">{sub}</div>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   )
@@ -596,7 +601,7 @@ export function BigButton({ children, onClick, disabled, ghost, type }: {
 export function Qty({ q, onInc, onDec, small }: { q: number; onInc: () => void; onDec: () => void; small?: boolean }) {
   const b = small ? 'w-8 h-8' : 'w-9 h-9'
   return (
-    <div className="flex items-center bg-white border border-navy-line rounded-[13px] p-1">
+    <div className="flex items-center bg-[#1B2330] border border-navy-line rounded-[13px] p-1">
       <button onClick={onDec} className={`${b} rounded-[10px] grid place-items-center text-[18px] font-bold active:bg-navy-soft active:scale-90 transition-transform`}>−</button>
       <span className="min-w-[30px] text-center text-[15px] font-extrabold">{q}</span>
       <button onClick={onInc} className={`${b} rounded-[10px] grid place-items-center text-[18px] font-bold active:bg-navy-soft active:scale-90 transition-transform`}>+</button>
@@ -637,7 +642,7 @@ export function ProductSheet() {
         <div className="relative rounded-[18px] overflow-hidden bg-navy-soft">
           <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover" />
           <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
-            className="absolute top-2.5 right-2.5 w-10 h-10 rounded-full bg-white grid place-items-center shadow-md active:scale-90 transition-transform">
+            className="absolute top-2.5 right-2.5 w-10 h-10 rounded-full bg-[#101821]/80 grid place-items-center active:scale-90 transition-transform">
             <Heart on={fav} s={19} />
           </button>
           {p.pcs ? <span className="absolute bottom-2.5 left-3 bg-white/95 text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
@@ -645,12 +650,12 @@ export function ProductSheet() {
         <div className="mt-3 flex items-start justify-between gap-3">
           <div className="text-[19px] font-extrabold leading-tight flex-1">{pName(p, lang)}</div>
           <div className="text-right">
-            {(p.old_price ?? 0) > p.price && <div className="text-[12px] font-bold text-[#8A93B8] line-through">{fmt(p.old_price)} UZS</div>}
-            <div className="text-[18px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[12px] text-[#8A93B8]"> UZS</span></div>
+            {(p.old_price ?? 0) > p.price && <div className="text-[12px] font-bold text-[#7A8494] line-through">{fmt(p.old_price)} UZS</div>}
+            <div className="text-[18px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[12px] text-[#7A8494]"> UZS</span></div>
           </div>
         </div>
         {p.weight ? (
-          <div className="mt-2 flex items-center gap-1.5 bg-white border border-navy-line rounded-xl px-3 py-2 w-fit text-navy">
+          <div className="mt-2 flex items-center gap-1.5 bg-[#1B2330] border border-navy-line rounded-xl px-3 py-2 w-fit text-[#29A8E0]">
             <IcScale />
             <span className="text-[12.5px] font-bold">{p.weight}</span>
           </div>
@@ -658,26 +663,26 @@ export function ProductSheet() {
         {p.cat !== 'sous' && sauces.length > 0 && (
           <div className="mt-3 bg-navy-soft/60 rounded-3xl p-3.5">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-navy shrink-0 shadow-sm"><IcSauce /></span>
+              <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-[#29A8E0] shrink-0 shadow-sm"><IcSauce /></span>
               <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-extrabold text-navy leading-tight">{t.sAsk}</div>
-                <div className="text-[10.5px] font-semibold text-[#8A93B8] leading-tight mt-0.5">{t.sSub}</div>
+                <div className="text-[13.5px] font-extrabold text-[#29A8E0] leading-tight">{t.sAsk}</div>
+                <div className="text-[10.5px] font-semibold text-[#7A8494] leading-tight mt-0.5">{t.sSub}</div>
               </div>
             </div>
             <div className="mt-3 flex gap-2 overflow-x-auto pb-1 -mx-3.5 px-3.5 snap-x">
               {sauces.map(sa => {
                 const sq = qtyOf(sa.id)
                 return (
-                  <div key={sa.id} className={'shrink-0 snap-start flex items-center gap-2 rounded-full bg-white border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
+                  <div key={sa.id} className={'shrink-0 snap-start flex items-center gap-2 rounded-full bg-[#1B2330] border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
                     <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
                     <div className="pr-0.5">
                       <div className="text-[11.5px] font-extrabold leading-none whitespace-nowrap">{pName(sa, lang)}</div>
-                      <div className="text-[10px] font-bold text-[#8A93B8] mt-1 leading-none">{fmt(sa.price)}</div>
+                      <div className="text-[10px] font-bold text-[#7A8494] mt-1 leading-none">{fmt(sa.price)}</div>
                     </div>
                     {sq > 0 && (
                       <div className="flex items-center gap-1 ml-0.5">
                         <button onClick={() => { setQty(sa.id, sq - 1); haptic() }}
-                          className="press w-6 h-6 rounded-full bg-white border border-navy-line text-navy text-[12px] font-extrabold grid place-items-center active:scale-90 transition-transform">−</button>
+                          className="press w-6 h-6 rounded-full bg-[#1B2330] border border-navy-line text-[#29A8E0] text-[12px] font-extrabold grid place-items-center active:scale-90 transition-transform">−</button>
                         <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
                       </div>
                     )}
@@ -690,22 +695,22 @@ export function ProductSheet() {
           </div>
         )}
         {hasKbju && (
-          <div className="mt-3.5 bg-white border border-navy-line rounded-2xl px-3.5 py-3">
+          <div className="mt-3.5 bg-[#1B2330] border border-navy-line rounded-2xl px-3.5 py-3">
             <div className="flex items-center justify-between">
-              <span className="text-[10.5px] font-extrabold text-[#8A93B8] uppercase tracking-widest">КБЖУ</span>
-              <span className="text-[10.5px] font-bold text-[#A2A9C6]">{t.per100}</span>
+              <span className="text-[10.5px] font-extrabold text-[#7A8494] uppercase tracking-widest">КБЖУ</span>
+              <span className="text-[10.5px] font-bold text-[#6E7787]">{t.per100}</span>
             </div>
             <div className="mt-2 grid grid-cols-4 gap-1.5">
               {([[t.nKcal, p.kcal], [t.nProt, p.protein], [t.nFat, p.fat], [t.nCarb, p.carbs]] as const).map(([label, val]) => (
                 <div key={label} className="bg-navy-soft/70 rounded-xl py-2 text-center">
-                  <div className="text-[15px] font-extrabold text-navy leading-none">{val != null ? val : '—'}</div>
-                  <div className="mt-1 text-[9.5px] font-bold text-[#8A93B8] leading-none">{label}</div>
+                  <div className="text-[15px] font-extrabold text-[#29A8E0] leading-none">{val != null ? val : '—'}</div>
+                  <div className="mt-1 text-[9.5px] font-bold text-[#7A8494] leading-none">{label}</div>
                 </div>
               ))}
             </div>
           </div>
         )}
-        <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#4A5270] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
+        <p className="mt-2.5 text-[13.5px] leading-relaxed text-[#8B94A3] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
       </div>
     </Sheet>
   )

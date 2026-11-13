@@ -43,10 +43,10 @@ function Stepper({ o, t }: { o: MyOrder; t: any }) {
           <div key={s} className="relative flex-1 flex flex-col items-center gap-1.5">
             <span
               className={`w-[13px] h-[13px] rounded-full border-[3px] transition-all duration-300 ${
-                i < stage ? 'bg-navy border-navy' : i === stage ? 'bg-navy border-navy/25 animate-pulse' : 'bg-white border-navy-line'
+                i < stage ? 'bg-navy border-navy' : i === stage ? 'bg-navy border-navy/25 animate-pulse' : 'bg-[#1B2330] border-navy-line'
               }`}
             />
-            <span className={`text-[8.5px] font-bold leading-none ${i <= stage ? 'text-navy' : 'text-[#A2A9C6]'}`}>
+            <span className={`text-[8.5px] font-bold leading-none ${i <= stage ? 'text-navy' : 'text-[#6E7787]'}`}>
               {statusLabel(s, t)}
             </span>
           </div>
@@ -73,17 +73,17 @@ export default function Orders() {
     const shown = o.items.slice(0, 3)
     const rest = o.items.length - shown.length
     return (
-      <div className="bg-white border border-navy-line rounded-[20px] p-4 shadow-[0_2px_10px_-6px_rgba(10,33,148,.15)]">
+      <div className="bg-[#1B2330] border border-navy-line rounded-[20px] p-4 shadow-[0_2px_10px_-6px_rgba(10,33,148,.15)]">
         <div className="flex items-center justify-between">
           <span className="text-[15px] font-extrabold">#{o.oid}</span>
-          <span className="text-[11px] font-semibold text-[#A2A9C6]">{ago(o.at, t)}</span>
+          <span className="text-[11px] font-semibold text-[#6E7787]">{ago(o.at, t)}</span>
         </div>
         <div className="mt-1.5 flex items-center gap-2">
           <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${CHIP_STYLE[o.status] || 'bg-navy-soft text-navy'}`}>
             {o.status === 'done' ? '✓ ' : ''}
             {statusLabel(o.status, t)}
           </span>
-          <span className="text-[11px] font-semibold text-[#8A93B8]">{o.mode === 'delivery' ? t.deliveryMode : t.pickup} · {o.pay === 'cash' ? t.cash : t.cardTransfer}</span>
+          <span className="text-[11px] font-semibold text-[#7A8494]">{o.mode === 'delivery' ? t.deliveryMode : t.pickup} · {o.pay === 'cash' ? t.cash : t.cardTransfer}</span>
         </div>
         <Stepper o={o} t={t} />
         <div className="mt-3.5 flex flex-wrap gap-1.5">
@@ -92,11 +92,11 @@ export default function Orders() {
               {it.q}× {it.title}
             </span>
           ))}
-          {rest > 0 && <span className="text-[11.5px] font-bold bg-white border border-navy-line text-[#8A93B8] px-2.5 py-1.5 rounded-lg">+{rest} {t.ordMore}</span>}
+          {rest > 0 && <span className="text-[11.5px] font-bold bg-[#1B2330] border border-navy-line text-[#7A8494] px-2.5 py-1.5 rounded-lg">+{rest} {t.ordMore}</span>}
         </div>
         <div className="h-px bg-navy-line my-3" />
         <div className="flex justify-between items-center">
-          <span className="text-[11.5px] font-semibold text-[#8A93B8]">{o.items.length} {t.ordItemsN}</span>
+          <span className="text-[11.5px] font-semibold text-[#7A8494]">{o.items.length} {t.ordItemsN}</span>
           <span className="text-[16px] font-extrabold">{fmt(o.sum)} UZS</span>
         </div>
       </div>

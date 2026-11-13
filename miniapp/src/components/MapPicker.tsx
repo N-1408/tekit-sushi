@@ -73,7 +73,7 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
       </div>
       <div ref={boxRef} className="flex-1 relative" />
       <div className="px-4 pt-3 border-t border-navy-line bg-white" style={{ paddingBottom: 'calc(14px + var(--sab))' }}>
-        <div className="text-[11.5px] font-bold text-[#8A93B8] text-center">{err ? '—' : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`}</div>
+        <div className="text-[11.5px] font-bold text-[#7A8494] text-center">{err ? '—' : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`}</div>
         <button onClick={pick} disabled={busy}
           className="press mt-2.5 w-full py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[.98] transition-transform">
           {busy ? '…' : t.mapPick}
