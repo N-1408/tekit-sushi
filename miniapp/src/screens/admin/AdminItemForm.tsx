@@ -167,11 +167,11 @@ function Body() {
               </select>
             </Field>
           </div>
-          <div className="flex items-center justify-between bg-navy-soft/60 rounded-xl px-3.5 py-2.5">
+          <div className="flex items-center justify-between bg-[var(--line)] rounded-xl px-3.5 py-2.5">
             <span className="text-[13px] font-extrabold">{t.aHitF}</span>
             <Toggle on={!!f.hit} onChange={v => set('hit', v)} />
           </div>
-          <div className="flex items-center justify-between bg-navy-soft/60 rounded-xl px-3.5 py-2.5">
+          <div className="flex items-center justify-between bg-[var(--line)] rounded-xl px-3.5 py-2.5">
             <span className="text-[13px] font-extrabold">{t.aActiveA}</span>
             <Toggle on={!!f.active} onChange={v => set('active', v)} />
           </div>
@@ -183,7 +183,7 @@ function Body() {
               <span className="text-[15px]">🔥</span>
               <div>
                 <div className="text-[13.5px] font-extrabold">{t.aSaleA}</div>
-                <div className="text-[10.5px] font-semibold text-[#8A93B8]">{t.aSaleHint}</div>
+                <div className="text-[10.5px] font-semibold text-[var(--mut)]">{t.aSaleHint}</div>
               </div>
             </div>
             <Toggle on={!!f.sale_active} onChange={v => { set('sale_active', v); if (v && !f.sale_percent && !f.sale_price) set('sale_percent', 10) }} />
@@ -199,7 +199,7 @@ function Body() {
                 </Field>
               </div>
               <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
-                <span className="text-[12px] font-bold text-[#8A93B8] line-through">{fmt(f.price)}</span>
+                <span className="text-[12px] font-bold text-[var(--mut)] line-through">{fmt(f.price)}</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E23B52" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
                 <span className="text-[15px] font-extrabold text-red-600">{fmt(effPreview)} UZS</span>
                 {f.sale_percent > 0 && <span className="ml-auto text-[11px] font-extrabold bg-red-600 text-white rounded-lg px-2 py-0.5">−{f.sale_percent}%</span>}
@@ -220,7 +220,7 @@ function Body() {
       </div>
 
       <Modal open={delOpen} onClose={() => setDelOpen(false)} title={t.aDelete}>
-        <div className="text-[13px] font-semibold text-[#4A5270]">"{f.t_uz}" — {t.aDeleteQ}</div>
+        <div className="text-[13px] font-semibold text-[var(--mut3)]">"{f.t_uz}" — {t.aDeleteQ}</div>
         <div className="mt-3 flex gap-2">
           <Btn kind="ghost" onClick={() => setDelOpen(false)}>{t.aCloseX}</Btn>
           <Btn kind="danger" disabled={busy} onClick={del}>{t.aDelete}</Btn>

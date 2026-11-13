@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState, useCall
 import menu from '../data/menu.json'
 import { T, type Lang, type Trans } from './i18n'
 export type { Lang } from './i18n'
-import { tgUser, haptic, TGA } from './tg'
+import { tgUser, haptic, TGA, resolveTheme, applyTheme, onSystemThemeChange, type ThemeMode } from './tg'
 
 export type Product = {
   id: string; slug: string; cat: string; price: number; img: string
@@ -71,6 +71,8 @@ export type Store = {
   closeOb: () => void
   mode: 'delivery' | 'pickup'
   setMode: (m: 'delivery' | 'pickup') => void
+  theme: ThemeMode
+  setTheme: (t: ThemeMode) => void
 }
 
 const Ctx = createContext<Store>(null as any)
@@ -102,6 +104,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return null
   })
   const [ob, setOb] = useState(false)
+  const [theme, setThemeS] = useState<ThemeMode>(() => resolveTheme())
+  const setTheme = useCallback((next: ThemeMode) => {
+    try { localStorage.setItem('tk-theme', next) } catch {}
+    applyTheme(next)
+    setThemeS(next)
+  }, [])
+  useEffect(() => {
+    applyTheme(theme)
+    const onSys = () => {
+      try { if (localStorage.getItem('tk-theme')) return } catch {}
+      setThemeS(resolveTheme())
+    }
+    onSystemThemeChange(onSys)
+  }, [theme])
   const [mode, setModeS] = useState<'delivery' | 'pickup'>(() => (localStorage.getItem('tk-mode') === 'pickup' ? 'pickup' : 'delivery'))
 
   useEffect(() => { localStorage.setItem('tk-lang', JSON.stringify(lang)) }, [lang])
@@ -169,8 +185,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .filter(Boolean) as CartLine[]
     const count = lines.reduce((s, l) => s + l.q, 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, theme, setTheme }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, theme, setTheme])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

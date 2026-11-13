@@ -11,7 +11,7 @@ function Section({ title, items, sort }: { title: string; items: Product[]; sort
     <section className="mt-7">
       <div className="flex items-center justify-between px-4 lg:px-6 mb-3">
         <h2 className="text-[26px] lg:text-[34px] font-extrabold tracking-tight">{title}</h2>
-        <span className="text-[11px] font-extrabold text-[#6E7787]">{items.length}</span>
+        <span className="text-[11px] font-extrabold text-[var(--mut2)]">{items.length}</span>
       </div>
       <div className="px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
         {list.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
@@ -30,7 +30,7 @@ export default function Home() {
 
   return (
     <div className="pb-28 lg:pb-12">
-      <div className="sticky top-0 z-30 bg-[#0F1720]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
+      <div className="sticky top-0 z-30 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
         <Header />
         <SearchChips q={q} setQ={setQ} sort={sort} setSort={setSort} />
       </div>
@@ -39,7 +39,7 @@ export default function Home() {
         {found ? (
           <section className="px-4 lg:px-6 mt-4">
             {found.length === 0 ? (
-              <div className="py-10 text-center text-[14px] font-semibold text-[#7A8494]">— {t.noResults} —</div>
+              <div className="py-10 text-center text-[14px] font-semibold text-[var(--mut2)]">— {t.noResults} —</div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 lg:gap-4">
                 {(sort === 'none' ? found : [...found].sort((a, b) => sort === 'asc' ? a.price - b.price : b.price - a.price)).map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}

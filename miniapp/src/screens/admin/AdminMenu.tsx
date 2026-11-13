@@ -46,13 +46,13 @@ function Body() {
       } />
       <div className="px-4 mt-3">
         <input value={q} onChange={e => setQ(e.target.value)} placeholder={t.aSearchI}
-          className="w-full bg-white border border-navy-line rounded-2xl py-2.5 px-4 text-[13.5px] font-medium outline-none focus:border-navy placeholder:text-[#A2A9C6]" />
+          className="w-full bg-white border border-navy-line rounded-2xl py-2.5 px-4 text-[13.5px] font-medium outline-none focus:border-navy placeholder:text-[var(--ink3)]" />
       </div>
       {!q.trim() && (
         <div className="flex gap-2 px-4 mt-3 overflow-x-auto no-scrollbar">
           {catsWith.map(c => (
             <button key={c.slug} onClick={() => nav(`/admin/menu/${c.slug}`)}
-              className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${cur === c.slug ? 'bg-navy text-white shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-white text-[#8A93B8] border border-navy-line'}`}>
+              className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${cur === c.slug ? 'bg-navy text-white shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
               {(c as any)['title_' + lang] || c.title_uz} · {countIn(c.slug)}
               {c.sale_active && c.sale_percent > 0 && <span className="ml-1 text-[10px]">%</span>}
             </button>
@@ -63,7 +63,7 @@ function Body() {
       {!a.ready && items.length === 0 ? (
           <div className="px-4 mt-3 space-y-2">{[0, 1, 2, 3].map(i => <div key={i} className="h-[68px] rounded-[18px] bg-white border border-navy-line animate-pulse" />)}</div>
         ) : shown.length === 0 ? (
-          <div className="px-4 mt-10 text-center text-[14px] font-semibold text-[#8A93B8]">— {t.aNoItems} —</div>
+          <div className="px-4 mt-10 text-center text-[14px] font-semibold text-[var(--mut)]">— {t.aNoItems} —</div>
         ) : (
           <div className="px-4 mt-3 space-y-2">
             {shown.map(it => {
@@ -78,15 +78,15 @@ function Body() {
                     <div className="flex-1 min-w-0">
                       <div className="text-[13.5px] font-extrabold leading-snug line-clamp-1">{it.t_uz}</div>
                       <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
-                        <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md ${it.active ? 'bg-emerald-100 text-emerald-700' : 'bg-[#ECEEF5] text-[#8A93B8]'}`}>
+                        <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md ${it.active ? 'bg-emerald-100 text-emerald-700' : 'bg-[var(--line2)] text-[var(--mut)]'}`}>
                           {it.active ? t.aActiveA : t.aHidden}
                         </span>
                         {onSale && <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-red-100 text-red-600">🔥 {t.aSaleA}{it.sale_price > 0 && it.sale_price < it.price ? '' : ` −${it.sale_percent}%`}</span>}
                         {it.hit && <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-navy-soft text-navy-ink">{t.hit}</span>}
                       </div>
                       <div className="mt-0.5 text-[13px] font-extrabold">
-                        {fmt(eff)} <span className="text-[10px] text-[#8A93B8]">UZS</span>
-                        {onSale && <span className="ml-1.5 text-[11px] font-bold text-[#8A93B8] line-through">{fmt(it.price)}</span>}
+                        {fmt(eff)} <span className="text-[10px] text-[var(--mut)]">UZS</span>
+                        {onSale && <span className="ml-1.5 text-[11px] font-bold text-[var(--mut)] line-through">{fmt(it.price)}</span>}
                       </div>
                     </div>
                   </button>

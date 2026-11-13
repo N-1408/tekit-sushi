@@ -93,7 +93,7 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
       <div className="pb-28">
         <div className="px-4 mt-8">
           <div className="tekit-pattern w-20 h-20 rounded-[22px] mx-auto grid place-items-center text-[36px] shadow-lg">🔐</div>
-          <p className="mt-4 text-center text-[14px] font-semibold text-[#4A5270]">{t.adminPass}</p>
+          <p className="mt-4 text-center text-[14px] font-semibold text-[var(--mut3)]">{t.adminPass}</p>
           <input value={input} onChange={e => setInput(e.target.value)} type="password"
             className="mt-4 w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-navy" placeholder="••••••••" />
           <button onClick={async () => { const ok = await verify(input); if (ok) { setKey(input); haptic('success') } else { setErr('x'); haptic('error') } }}
@@ -124,7 +124,7 @@ export function AdminTopBar({ title, right, back }: { title: string; right?: Rea
 export function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button onClick={e => { e.stopPropagation(); onChange(!on); haptic() }}
-      className={`press relative w-[46px] h-[28px] rounded-full transition-colors duration-200 ${on ? 'bg-navy' : 'bg-[#D8DCEA]'}`}>
+      className={`press relative w-[46px] h-[28px] rounded-full transition-colors duration-200 ${on ? 'bg-navy' : 'bg-[var(--line2)]'}`}>
       <span className={`absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white shadow transition-all duration-200 ${on ? 'left-[21px]' : 'left-[3px]'}`} />
     </button>
   )
@@ -133,19 +133,19 @@ export function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) =
 export function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <div className="text-[11.5px] font-extrabold uppercase tracking-wide text-[#8A93B8] mb-1.5">{label}</div>
+      <div className="text-[11.5px] font-extrabold uppercase tracking-wide text-[var(--mut)] mb-1.5">{label}</div>
       {children}
     </label>
   )
 }
-export const inputCls = "w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 placeholder:text-[#A2A9C6]"
+export const inputCls = "w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 placeholder:text-[var(--ink3)]"
 
 export function Btn({ children, onClick, kind = 'primary', disabled, small }: {
   children: React.ReactNode; onClick?: () => void; kind?: 'primary' | 'ghost' | 'danger' | 'soft'; disabled?: boolean; small?: boolean
 }) {
   const cls = {
     primary: 'bg-navy text-white shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]',
-    ghost: 'bg-white text-navy-ink border border-navy-line',
+    ghost: 'bg-[var(--panel)] text-navy-ink border border-navy-line',
     soft: 'bg-navy-soft text-navy-ink',
     danger: 'bg-red-50 text-red-600 border border-red-200',
   }[kind]
@@ -160,10 +160,10 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
   if (!open) return null
   return createPortal(
     <div className="fixed inset-0 z-50">
-      <div className="absolute inset-0 bg-navy-deep/45 backdrop-blur-[2px]" onClick={onClose} />
+      <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
       <div className="anim-sheet absolute inset-x-0 bottom-0 bg-paper rounded-t-[26px] px-5 pt-3 shadow-[0_-18px_40px_-20px_rgba(10,33,148,.35)]"
         style={{ paddingBottom: 'calc(20px + var(--sab))' }}>
-        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[#D8DCEA]" />
+        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line2)]" />
         <div className="text-[17px] font-extrabold">{title}</div>
         <div className="mt-3">{children}</div>
       </div>
@@ -173,9 +173,9 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
 export function StatTile({ label, value, accent, sub }: { label: string; value: string; accent?: boolean; sub?: string }) {
   return (
     <div className={`rounded-[20px] p-4 ${accent ? 'tekit-pattern text-white shadow-[0_12px_28px_-12px_rgba(10,33,148,.5)]' : 'bg-white border border-navy-line'}`}>
-      <div className={`text-[11.5px] font-bold uppercase tracking-wide ${accent ? 'text-white/75' : 'text-[#8A93B8]'}`}>{label}</div>
+      <div className={`text-[11.5px] font-bold uppercase tracking-wide ${accent ? 'text-white/75' : 'text-[var(--mut)]'}`}>{label}</div>
       <div className="mt-1.5 text-[21px] font-extrabold tracking-tight leading-none">{value}</div>
-      {sub && <div className={`mt-1 text-[11.5px] font-semibold ${accent ? 'text-white/75' : 'text-[#8A93B8]'}`}>{sub}</div>}
+      {sub && <div className={`mt-1 text-[11.5px] font-semibold ${accent ? 'text-white/75' : 'text-[var(--mut)]'}`}>{sub}</div>}
     </div>
   )
 }
@@ -216,7 +216,7 @@ function AdminSidebar() {
         <img src="/logo.png" className="w-10 h-10 rounded-xl bg-navy-soft" alt="" />
         <div>
           <div className="text-[15px] font-extrabold text-navy leading-tight">Tekit</div>
-          <div className="text-[10px] font-extrabold text-[#8A93B8] uppercase tracking-[0.18em] mt-0.5">Admin panel</div>
+          <div className="text-[10px] font-extrabold text-[var(--mut)] uppercase tracking-[0.18em] mt-0.5">Admin panel</div>
         </div>
       </div>
       <nav className="flex-1 px-3 space-y-1">
@@ -224,8 +224,8 @@ function AdminSidebar() {
           const act = on(it.to)
           return (
             <button key={it.id} onClick={() => { if (!act) { haptic(); nav(it.to) } }}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-[13.5px] font-extrabold transition-colors ${act ? 'bg-navy text-white shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]' : 'text-[#4A5270] hover:bg-navy-soft'}`}>
-              <span className={act ? 'text-white' : 'text-[#8A93B8]'}>{it.icon}</span>
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-[13.5px] font-extrabold transition-colors ${act ? 'bg-navy text-white shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]' : 'text-[var(--mut3)] hover:bg-navy-soft'}`}>
+              <span className={act ? 'text-white' : 'text-[var(--mut)]'}>{it.icon}</span>
               <span className="flex-1 text-left">{it.label}</span>
               {it.id === 'orders' && !!pending && (
                 <span className="min-w-[19px] h-[19px] px-1 rounded-full bg-red-600 text-white text-[10.5px] font-extrabold grid place-items-center leading-none">{pending}</span>
@@ -234,7 +234,7 @@ function AdminSidebar() {
           )
         })}
       </nav>
-      <div className="px-5 py-4 text-[10.5px] font-bold text-[#A2A9C6]">Tekit Sushi · v1.0</div>
+      <div className="px-5 py-4 text-[10.5px] font-bold text-[var(--ink3)]">Tekit Sushi · v1.0</div>
     </aside>
   )
 }
@@ -261,7 +261,7 @@ function AdminTabBar() {
           const act = on(tb.to)
           return (
             <button key={tb.id} onClick={() => { if (!act) { haptic(); nav(tb.to) } }}
-              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${act ? 'text-navy' : 'text-[#A2A9C6]'}`}>
+              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${act ? 'text-navy' : 'text-[var(--ink3)]'}`}>
               <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${act ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
                 {TAB_ICON[tb.id]}
                 {tb.id === 'orders' && !!pending && (

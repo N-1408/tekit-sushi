@@ -53,7 +53,7 @@ export default function App() {
       {!isAdmin && (!user || ob) && <Onboarding />}
       {!isAdmin && <TabBar />}
       {!isAdmin && <ProductSheet />}
-      {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-1/2 z-[60] bg-navy-deep text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
+      {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-1/2 z-[60] bg-navy text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
     </>
   )
 }

@@ -97,8 +97,8 @@ function Body() {
             <div className="flex-1 min-w-0">
               <div className="text-[14px] font-extrabold leading-tight">{(c as any)['title_' + lang] || c.title_uz}</div>
               <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
-                <span className="text-[11px] font-semibold text-[#8A93B8]">{counts[c.slug] || 0} {t.aCatItems}</span>
-                {!c.active && <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-[#ECEEF5] text-[#8A93B8]">{t.aHidden}</span>}
+                <span className="text-[11px] font-semibold text-[var(--mut)]">{counts[c.slug] || 0} {t.aCatItems}</span>
+                {!c.active && <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--line2)] text-[var(--mut)]">{t.aHidden}</span>}
                 {c.sale_active && c.sale_percent > 0 && <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-red-100 text-red-600">−{c.sale_percent}%</span>}
               </div>
             </div>
@@ -123,7 +123,7 @@ function Body() {
       <Modal open={!!del} onClose={() => setDel(null)} title={t.aCatDelT}>
         {delCount > 0 ? (
           <div className="space-y-3">
-            <p className="text-[13px] font-semibold text-[#5C6285] leading-snug">{t.aCatMoveN}</p>
+            <p className="text-[13px] font-semibold text-[var(--mut3)] leading-snug">{t.aCatMoveN}</p>
             <Field label={t.aCategoryF}>
               <select value={moveTo} onChange={e => setMoveTo(e.target.value)} className={inputCls}>
                 <option value="">—</option>
@@ -136,7 +136,7 @@ function Body() {
           </div>
         ) : (
           <div>
-            <p className="text-[13px] font-semibold text-[#5C6285] leading-snug">{t.aCatDelQ}</p>
+            <p className="text-[13px] font-semibold text-[var(--mut3)] leading-snug">{t.aCatDelQ}</p>
             <div className="mt-4"><Btn onClick={doDelete} disabled={delBusy}>{delBusy ? '…' : t.aDelete}</Btn></div>
           </div>
         )}
@@ -149,15 +149,15 @@ function Body() {
             <input value={f.title_ru} onChange={e => set('title_ru', e.target.value)} placeholder="Русский" className={inputCls} />
             <input value={f.title_en} onChange={e => set('title_en', e.target.value)} placeholder="English" className={`${inputCls} mt-2`} />
           </Field>
-          <div className="flex items-center justify-between bg-navy-soft/60 rounded-xl px-3.5 py-2.5">
+          <div className="flex items-center justify-between bg-[var(--line)] rounded-xl px-3.5 py-2.5">
             <span className="text-[13px] font-extrabold">{t.aActiveA}</span>
             <Toggle on={!!f.active} onChange={v => set('active', v)} />
           </div>
-          <div className={`rounded-xl p-3.5 ${f.sale_active ? 'bg-red-50 border border-red-100' : 'bg-navy-soft/60'}`}>
+          <div className={`rounded-xl p-3.5 ${f.sale_active ? 'bg-red-50 border border-red-100' : 'bg-[var(--line)]'}`}>
             <div className="flex items-center justify-between">
               <div>
                 <div className="text-[13px] font-extrabold">{t.aCatSale}</div>
-                <div className="text-[10.5px] font-semibold text-[#8A93B8]">{t.aAppliedAll}</div>
+                <div className="text-[10.5px] font-semibold text-[var(--mut)]">{t.aAppliedAll}</div>
               </div>
               <Toggle on={!!f.sale_active} onChange={v => { set('sale_active', v); if (v && !f.sale_percent) set('sale_percent', 10) }} />
             </div>

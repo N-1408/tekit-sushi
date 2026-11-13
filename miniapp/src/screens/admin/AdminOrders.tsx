@@ -142,12 +142,12 @@ function Body() {
             </div>
           ))}
         </div>
-        <div className="space-y-1.5 text-[12.5px] font-medium text-[#4A5270]">
+        <div className="space-y-1.5 text-[12.5px] font-medium text-[var(--mut3)]">
           {o.address && <div className="flex gap-1.5"><span>📍</span><span>{o.address}</span></div>}
           {o.delivery_time && <div className="flex gap-1.5"><span>🕒</span><span>{o.delivery_time}</span></div>}
           {o.note && <div className="flex gap-1.5"><span>💬</span><span>{o.note}</span></div>}
           {o.promo_code && <div className="flex gap-1.5"><span>🎁</span><span>{o.promo_code} · −{fmt(o.discount || 0)} UZS</span></div>}
-          {o.status_note && <div className="text-[11.5px] font-semibold text-[#8A93B8]">{o.status_note}</div>}
+          {o.status_note && <div className="text-[11.5px] font-semibold text-[var(--mut)]">{o.status_note}</div>}
         </div>
       </div>
     )
@@ -164,23 +164,23 @@ function Body() {
     <div className="pb-28 lg:pb-10">
       <AdminTopBar title={t.aTabO} right={
         <button onClick={toggleMute} aria-label={muted ? t.aSoundOn : t.aSoundOff} title={muted ? t.aSoundOn : t.aSoundOff}
-          className={`press w-9 h-9 rounded-xl grid place-items-center border transition-colors ${muted ? 'bg-white border-navy-line text-[#A2A9C6]' : 'bg-navy text-white border-navy shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]'}`}>
+          className={`press w-9 h-9 rounded-xl grid place-items-center border transition-colors ${muted ? 'bg-white border-navy-line text-[var(--ink3)]' : 'bg-navy text-white border-navy shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]'}`}>
           {muted ? bellOn : bellOff}
         </button>
       } />
 
       <div className="px-4 mt-3 lg:max-w-[1200px] lg:mx-auto lg:px-8">
         <input value={q} onChange={e => setQ(e.target.value)} placeholder={t.aSearchO}
-          className="w-full bg-white border border-navy-line rounded-2xl py-2.5 px-4 text-[13.5px] font-medium outline-none focus:border-navy placeholder:text-[#A2A9C6]" />
+          className="w-full bg-white border border-navy-line rounded-2xl py-2.5 px-4 text-[13.5px] font-medium outline-none focus:border-navy placeholder:text-[var(--ink3)]" />
       </div>
       <div className="flex gap-2 px-4 mt-3 overflow-x-auto no-scrollbar lg:max-w-[1200px] lg:mx-auto lg:px-8 lg:flex-wrap">
         <button onClick={() => setFilter('all')}
-          className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === 'all' ? 'bg-navy text-white' : 'bg-white text-[#8A93B8] border border-navy-line'}`}>
+          className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === 'all' ? 'bg-navy text-white' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
           {t.all} {counts.all || 0}
         </button>
         {STATUSES.map(s => (
           <button key={s} onClick={() => setFilter(s)}
-            className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === s ? 'bg-navy text-white shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-white text-[#8A93B8] border border-navy-line'}`}>
+            className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === s ? 'bg-navy text-white shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
             {t['st_' + s]} {counts[s] || 0}
           </button>
         ))}
@@ -188,7 +188,7 @@ function Body() {
 
       {err === 'auth' ? <div className="px-4 mt-8 text-center text-[13.5px] font-bold text-red-500">{t.wrongPass}</div> :
         shown.length === 0 ? (
-          <div className="px-4 mt-10 text-center text-[14px] font-semibold text-[#8A93B8]">— {t.aNoOrdersA} —</div>
+          <div className="px-4 mt-10 text-center text-[14px] font-semibold text-[var(--mut)]">— {t.aNoOrdersA} —</div>
         ) : (
           <>
             {/* Mobile: accordion cards */}
@@ -206,23 +206,23 @@ function Body() {
                           <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-red-100 text-red-600">⚠ {a.data.risk[String(o.phone)]} cancelled</span>
                         )}
                         <span className="flex-1" />
-                        <span className="text-[11px] font-semibold text-[#8A93B8]">{fmtDT(o.created_at)}</span>
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8A93B8" strokeWidth="2.4" strokeLinecap="round" className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
+                        <span className="text-[11px] font-semibold text-[var(--mut)]">{fmtDT(o.created_at)}</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--mut)" strokeWidth="2.4" strokeLinecap="round" className={`transition-transform duration-200 ${open ? 'rotate-180' : ''}`}><path d="m6 9 6 6 6-6" /></svg>
                       </div>
                       <div className="mt-1.5 flex items-center gap-2 text-[13px] font-bold">
                         <span className="truncate">{o.name}</span>
-                        <span className="text-[#8A93B8] font-medium">·</span>
+                        <span className="text-[var(--mut)] font-medium">·</span>
                         <a href={`tel:${o.phone}`} onClick={e => e.stopPropagation()} className="text-navy underline decoration-navy/30 underline-offset-2 whitespace-nowrap">{o.phone}</a>
                       </div>
                       <div className="mt-1 flex items-center gap-2">
                         <span className="text-[15px] font-extrabold tracking-tight">{fmt(o.total)} UZS</span>
-                        <span className="text-[11px] font-semibold text-[#8A93B8]">
+                        <span className="text-[11px] font-semibold text-[var(--mut)]">
                           {o.delivery_type === 'pickup' ? t.pickup : t.deliveryMode} · {o.payment === 'transfer' || o.payment === 'card' ? t.cardTransfer : t.cash}{o.change_amount ? ` · ${t.changeLabel} ${fmt(o.change_amount)}` : ''}
                         </span>
                       </div>
                     </button>
                     {open && (
-                      <div className="px-4 pb-4 border-t border-navy-line/70 pt-3">
+                      <div className="px-4 pb-4 border-t border-[var(--line)] pt-3">
                         {detail(o)}
                         <div className="mt-3.5 flex flex-wrap gap-2">
                           {nx.map(s => nextBtn(o, s))}
@@ -237,7 +237,7 @@ function Body() {
             {/* Desktop / tablet: table */}
             <div className="hidden lg:block px-8 mt-4 max-w-[1200px] mx-auto">
               <div className="bg-white border border-navy-line rounded-[22px] overflow-hidden shadow-[0_2px_14px_-8px_rgba(10,33,148,.15)]">
-                <div className="grid grid-cols-[110px_minmax(0,1.1fr)_minmax(0,1.3fr)_110px_120px_250px] gap-4 px-5 py-3 border-b border-navy-line bg-paper text-[10px] font-extrabold uppercase tracking-[0.12em] text-[#8A93B8]">
+                <div className="grid grid-cols-[110px_minmax(0,1.1fr)_minmax(0,1.3fr)_110px_120px_250px] gap-4 px-5 py-3 border-b border-navy-line bg-paper text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--mut)]">
                   <div>{t.aColNo}</div>
                   <div>{t.aColCust}</div>
                   <div>{t.aColItems}</div>
@@ -253,19 +253,19 @@ function Body() {
                   return (
                     <React.Fragment key={o.id}>
                       <div onClick={() => { setOpenId(open ? null : o.id) }}
-                        className={`grid grid-cols-[110px_minmax(0,1.1fr)_minmax(0,1.3fr)_110px_120px_250px] gap-4 px-5 py-3.5 border-b border-navy-line/60 items-center cursor-pointer transition-colors hover:bg-paper ${o.status === 'new' ? 'bg-amber-50/70' : ''}`}>
+                        className={`grid grid-cols-[110px_minmax(0,1.1fr)_minmax(0,1.3fr)_110px_120px_250px] gap-4 px-5 py-3.5 border-b border-[var(--line)] items-center cursor-pointer transition-colors hover:bg-[var(--bg)] ${o.status === 'new' ? 'bg-amber-50/70' : ''}`}>
                         <div>
                           <div className="text-[13.5px] font-extrabold">#{o.id}</div>
-                          <div className="text-[10.5px] font-semibold text-[#8A93B8] mt-0.5">{fmtDT(o.created_at)}</div>
+                          <div className="text-[10.5px] font-semibold text-[var(--mut)] mt-0.5">{fmtDT(o.created_at)}</div>
                         </div>
                         <div className="min-w-0">
                           <div className="text-[13px] font-bold truncate">{o.name}</div>
                           <a href={`tel:${o.phone}`} onClick={e => e.stopPropagation()} className="text-[11.5px] font-semibold text-navy underline decoration-navy/30 underline-offset-2">{o.phone}</a>
-                          <div className="text-[10.5px] font-semibold text-[#8A93B8] mt-0.5">
+                          <div className="text-[10.5px] font-semibold text-[var(--mut)] mt-0.5">
                             {o.delivery_type === 'pickup' ? t.pickup : t.deliveryMode} · {o.payment === 'transfer' || o.payment === 'card' ? t.cardTransfer : t.cash}{o.change_amount ? ` · ${t.changeLabel} ${fmt(o.change_amount)}` : ''}
                           </div>
                         </div>
-                        <div className="text-[12px] font-semibold text-[#4A5270] truncate">{sum}</div>
+                        <div className="text-[12px] font-semibold text-[var(--mut3)] truncate">{sum}</div>
                         <div className="text-right text-[14px] font-extrabold tracking-tight whitespace-nowrap">{fmt(o.total)}</div>
                         <div className="flex items-center gap-1.5">
                           <Chip s={o.status} />
@@ -273,11 +273,11 @@ function Body() {
                         </div>
                         <div onClick={e => e.stopPropagation()} className="flex flex-wrap gap-2 justify-end">
                           {nx.map(s => nextBtn(o, s))}
-                          {!nx.length && <span className="text-[11px] font-semibold text-[#A2A9C6] self-center">—</span>}
+                          {!nx.length && <span className="text-[11px] font-semibold text-[var(--ink3)] self-center">—</span>}
                         </div>
                       </div>
                       {open && (
-                        <div className="px-5 py-4 border-b border-navy-line/60 bg-paper/70">
+                        <div className="px-5 py-4 border-b border-[var(--line)] bg-[var(--bg)]">
                           {detail(o)}
                         </div>
                       )}
@@ -290,7 +290,7 @@ function Body() {
         )}
 
       <Modal open={!!cancelO} onClose={() => setCancelO(null)} title={t.aCancelQ}>
-        <div className="text-[13px] font-semibold text-[#4A5270]">#{cancelO?.id} · {cancelO?.name}</div>
+        <div className="text-[13px] font-semibold text-[var(--mut3)]">#{cancelO?.id} · {cancelO?.name}</div>
         <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)} rows={2} placeholder={t.aCancelReason}
           className="mt-2.5 w-full bg-white border border-navy-line rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium outline-none focus:border-navy" />
         <div className="mt-3 flex gap-2">
@@ -300,7 +300,7 @@ function Body() {
       </Modal>
 
       <Modal open={!!cashO} onClose={() => setCashO(null)} title={t.aCashQ}>
-        <div className="text-[13px] font-semibold text-[#4A5270]">#{cashO?.id} · {cashO?.name} · {cashO?.phone}</div>
+        <div className="text-[13px] font-semibold text-[var(--mut3)]">#{cashO?.id} · {cashO?.name} · {cashO?.phone}</div>
         <div className="mt-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[12px] font-semibold text-amber-800 leading-snug">{t.aCashRisk}</div>
         {(a.data?.risk?.[String(cashO?.phone)] || 0) >= 1 && (
           <div className="mt-2 text-[12.5px] font-extrabold text-red-600">⚠ {a.data.risk[String(cashO?.phone || '')]} cancelled orders from this number</div>

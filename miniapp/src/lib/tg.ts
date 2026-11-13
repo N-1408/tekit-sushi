@@ -1,13 +1,52 @@
 import React from 'react'
 export const TGA: any = (window as any).Telegram?.WebApp
 
+
+/* ---------- mavzu (dark/light) ---------- */
+export type ThemeMode = 'dark' | 'light'
+export const THEME_BG: Record<ThemeMode, string> = { dark: '#0F1720', light: '#F6F7FB' }
+
+export function resolveTheme(): ThemeMode {
+  try {
+    const m = localStorage.getItem('tk-theme')
+    if (m === 'light' || m === 'dark') return m
+  } catch {}
+  try {
+    const cs = TGA?.colorScheme
+    if (cs === 'light' || cs === 'dark') return cs
+  } catch {}
+  try {
+    if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark'
+    if (window.matchMedia?.('(prefers-color-scheme: light)').matches) return 'light'
+  } catch {}
+  return 'dark'
+}
+
+export function applyTheme(t: ThemeMode) {
+  try { document.documentElement.dataset.theme = t } catch {}
+  try {
+    TGA?.setHeaderColor?.(THEME_BG[t])
+    TGA?.setBackgroundColor?.(THEME_BG[t])
+  } catch {}
+  const meta = document.querySelector('meta[name="theme-color"]')
+  if (meta) meta.setAttribute('content', THEME_BG[t])
+}
+
+export function onSystemThemeChange(cb: () => void) {
+  try { TGA?.onEvent?.('themeChanged', cb) } catch {}
+  try { window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', cb) } catch {}
+}
+
 export function initTelegram() {
   if (!TGA) return
   try {
     TGA.ready()
     TGA.expand()
-    TGA.setHeaderColor?.('#0F1720')
-    TGA.setBackgroundColor?.('#0F1720')
+    applyTheme(resolveTheme())
+    try { TGA.onEvent?.('themeChanged', () => {
+      try { if (localStorage.getItem('tk-theme')) return } catch {}
+      applyTheme(resolveTheme())
+    }) } catch {}
     TGA.disableVerticalSwipes?.()
     TGA.requestFullscreen?.()
     const applyInsets = () => {

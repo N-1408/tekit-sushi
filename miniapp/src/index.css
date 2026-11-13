@@ -1,13 +1,29 @@
-@tailwind base;
+html{ background:var(--bg); }@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+
+/* ---------- mavzu (dark = standart, light = yorug') ---------- */
+:root{
+  --bg:#F6F7FB; --bg2:#FFFFFF; --panel:#FFFFFF; --sheet:#FFFFFF; --soft:#ECEFF5;
+  --line:#E8ECF2; --line2:#DCE2EB;
+  --ink:#101821; --ink2:#3D4859; --ink3:#4A5568;
+  --mut:#5A6472; --mut2:#8A93A0; --mut3:#B4BCC9;
+  --btn:#101821; --btn-ink:#FFFFFF; --chip-on:#101821; --chip-on-ink:#FFFFFF;
+}
+[data-theme='dark']{
+  --bg:#0F1720; --bg2:#101821; --panel:#1B2330; --sheet:#141B26; --soft:#1B2330;
+  --line:#1E2631; --line2:#2A3442;
+  --ink:#F2F5F9; --ink2:#C7CFDB; --ink3:#A2A9C6;
+  --mut:#8A93B8; --mut2:#6E7787; --mut3:#4A5270;
+  --btn:#E9EDF1; --btn-ink:#101821; --chip-on:#FFFFFF; --chip-on-ink:#0F1720;
+}
 :root { --sat: max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
 html { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior-y: none; }
 body {
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, sans-serif;
-  background: #0F1720; color: #F2F5F9; letter-spacing: -0.01em;
+  background: var(--bg); color: var(--ink); letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
 }
 button, a, [role="button"] { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
@@ -42,7 +58,7 @@ input, textarea, select { font-size: 16px !important; }
 
 /* hover faqat sichqoncha/sensorli panel bilan */
 @media (hover:hover) and (pointer:fine){
-  .hov:hover{ background:#F5F5F6; }
+  .hov:hover{ background:var(--panel); }
 }
 
 /* yangi dizayn: hero slayder, drawer */
