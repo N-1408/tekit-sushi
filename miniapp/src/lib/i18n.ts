@@ -66,6 +66,7 @@ export const T = {
     heroB3: 'Xit', heroT3: 'Hit taomlar', heroS3: 'Mijozlar sevimlilari',
     heroB4: 'Setlar', heroT4: 'Katta setlar', heroS4: "Do\u02bbstlar uchun",
     promoTileSub: 'Birinchi buyurtmaga 10% chegirma',
+    bonusT: 'Bonus va sovg\u02bbalar', bonusSub: 'Promokodni nusxa olib, buyurtma berishda kiritish', bonusCopied: 'Nusxalandi',
   },
   ru: {
     brand: 'Tekit Sushi', tagline: 'Японская кухня · Ташкент',
@@ -131,6 +132,7 @@ export const T = {
     heroB3: 'Хиты', heroT3: 'Хиты меню', heroS3: 'Любимые блюда гостей',
     heroB4: 'Сеты', heroT4: 'Большие сеты', heroS4: 'Для всей компании',
     promoTileSub: '−10% на первый заказ',
+    bonusT: 'Бонусы и подарки', bonusSub: 'Скопируйте код и введите его при заказе', bonusCopied: 'Скопировано',
   },
   en: {
     brand: 'Tekit Sushi', tagline: 'Japanese food · Tashkent',
@@ -196,6 +198,7 @@ export const T = {
     heroB3: 'Best sellers', heroT3: 'Top hits', heroS3: 'Guest favourites',
     heroB4: 'Sets', heroT4: 'Big sets', heroS4: 'For the whole company',
     promoTileSub: '10% off your first order',
+    bonusT: 'Bonuses & gifts', bonusSub: 'Copy the code and enter it at checkout', bonusCopied: 'Copied',
   },
 } as const
 

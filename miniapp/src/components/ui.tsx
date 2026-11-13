@@ -324,7 +324,7 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
   useNativeBack(!!title)
   const inner = (
     <div className="bg-[var(--bg)] text-[var(--ink)] border-b border-[var(--line)]">
-      <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 pb-2.5 pt-1">
+      <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 py-2">
         {title ? (
           <>
             <div className="text-[16px] font-extrabold flex-1 truncate">{title}</div>
@@ -424,7 +424,7 @@ export function Header() {
   return (
     <>
       <header className="bg-[var(--bg)] text-[var(--ink)] border-b border-[var(--line)]">
-        <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 pb-2.5 pt-1">
+        <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 py-2">
           <button aria-label="menu" onClick={() => { haptic(); setDrawer(true) }}
             className="press w-12 h-12 rounded-2xl bg-[var(--btn)] text-[var(--bg2)] grid place-items-center shrink-0 active:scale-95 transition-transform">
             <IcBurger />
@@ -533,41 +533,77 @@ const SLIDES: { img: string; b: 'heroB1' | 'heroB2' | 'heroB3' | 'heroB4'; ti: '
   { img: CDN + '4dd85d27-a179-4483-816e-99ddede741e8', b: 'heroB4', ti: 'heroT4', s: 'heroS4', to: '/cat/set' },
 ]
 
+/* ---------- markazda almashib turadigan cheksiz karusel ---------- */
 export function HeroSlider() {
   const { t } = useStore()
   const nav = useNavigate()
-  const ref = useRef<HTMLDivElement>(null)
-  const [i, setI] = useState(0)
-  const n = SLIDES.length
+  const wrapRef = useRef<HTMLDivElement>(null)
+  const [w, setW] = useState(0)
+  const [i, setI] = useState(1) // 1..n, klonlar: [oxirgi, ...slaydlar, birinchi]
+  const [anim, setAnim] = useState(true)
   const timer = useRef<number | null>(null)
-  const step = () => {
-    const el = ref.current
-    if (!el || el.children.length < 2) return 0
-    return (el.children[1] as HTMLElement).offsetLeft - (el.children[0] as HTMLElement).offsetLeft
+  const touch = useRef<{ x: number; y: number } | null>(null)
+  const n = SLIDES.length
+
+  useEffect(() => {
+    const el = wrapRef.current
+    if (!el) return
+    const ro = new ResizeObserver(() => setW(el.clientWidth))
+    ro.observe(el); setW(el.clientWidth)
+    return () => ro.disconnect()
+  }, [])
+
+  const stop = () => { if (timer.current) { clearInterval(timer.current); timer.current = null } }
+  const start = () => { stop(); timer.current = window.setInterval(() => setI(v => Math.min(v + 1, n + 1)), 5200) }
+  useEffect(() => { start(); return stop }, [])
+
+  const go = (k: number) => { setI(Math.max(0, Math.min(n + 1, k))); start() }
+
+  // klonlardan haqiqiy slaydga sakrash
+  const onEnd = () => {
+    if (i === n + 1) { setAnim(false); setI(1) }
+    else if (i === 0) { setAnim(false); setI(n) }
   }
-  const goTo = (k: number) => { const el = ref.current; if (el) el.scrollTo({ left: k * step(), behavior: 'smooth' }) }
-  const start = () => { if (timer.current) clearInterval(timer.current); timer.current = window.setInterval(() => {
-    const el = ref.current; if (!el) return
-    const max = el.scrollWidth - el.clientWidth - 4
-    if (el.scrollLeft >= max) el.scrollTo({ left: 0, behavior: 'smooth' })
-    else el.scrollBy({ left: step(), behavior: 'smooth' })
-  }, 5200) }
-  useEffect(() => { start(); return () => { if (timer.current) clearInterval(timer.current) } }, [])
-  const onScroll = () => {
-    const el = ref.current; if (!el) return
-    const st = step(); if (!st) return
-    setI(Math.max(0, Math.min(n - 1, Math.round(el.scrollLeft / st))))
+  useEffect(() => {
+    if (anim) return
+    const id = requestAnimationFrame(() => requestAnimationFrame(() => setAnim(true)))
+    return () => cancelAnimationFrame(id)
+  }, [anim])
+
+  const onTouchStart = (e: React.TouchEvent) => { stop(); touch.current = { x: e.touches[0].clientX, y: e.touches[0].clientY } }
+  const onTouchEnd = (e: React.TouchEvent) => {
+    const t0 = touch.current; touch.current = null
+    if (t0) {
+      const dx = e.changedTouches[0].clientX - t0.x
+      const dy = e.changedTouches[0].clientY - t0.y
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) { setI(v => Math.max(0, Math.min(n + 1, v + (dx < 0 ? 1 : -1)))); haptic('light') }
+    }
+    start()
   }
+
+  if (!w) return <div className="mt-3 lg:mt-5 h-[196px] lg:h-[250px] rounded-[20px] bg-[var(--sheet)]" />
+
+  const big = w >= 1024
+  const P = big ? 24 : 14   // har ikki chetdagi ko'rinadigan qism
+  const G = big ? 12 : 10
+  const slideW = Math.max(0, w - 2 * P)
+  const offset = P - i * (slideW + G)
+  const shown = [SLIDES[n - 1], ...SLIDES, SLIDES[0]]
+  const dot = ((i - 1) % n + n) % n
+
   return (
     <div className="mt-3 lg:mt-5 select-none">
-      <div className="relative">
-        <div ref={ref} onScroll={onScroll}
-          className="flex gap-2.5 overflow-x-auto no-scrollbar snap-x snap-mandatory px-3 lg:px-5"
-          style={{ scrollbarWidth: 'none' }}>
-          {SLIDES.map((sl, k) => (
-            <div key={k} onClick={() => { haptic(); nav(sl.to) }}
-              className="snap-center shrink-0 w-[88%] lg:w-[calc(100%-30px)] relative h-[196px] lg:h-[250px] rounded-[20px] overflow-hidden cursor-pointer bg-[var(--sheet)]">
-              <img src={sl.img} alt="" loading={k === 0 ? 'eager' : 'lazy'} decoding="async"
+      <div ref={wrapRef} className="relative h-[196px] lg:h-[250px] overflow-hidden">
+        <div
+          onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
+          onTransitionEnd={onEnd}
+          className="flex h-full will-change-transform"
+          style={{ gap: G, transform: `translateX(${offset}px)`, transition: anim ? 'transform 520ms cubic-bezier(.22,.61,.36,1)' : 'none' }}
+        >
+          {shown.map((sl, k) => (
+            <div key={k} style={{ width: slideW }} onClick={() => { haptic(); nav(sl.to) }}
+              className="shrink-0 h-full relative rounded-[20px] overflow-hidden cursor-pointer bg-[var(--sheet)]">
+              <img src={sl.img} alt="" loading={k === 1 ? 'eager' : 'lazy'} decoding="async"
                 className="absolute inset-0 w-full h-full object-cover" />
               <div className="absolute inset-0 bg-gradient-to-r from-[#0B1220]/85 via-[#0B1220]/40 to-transparent" />
               <div className="relative h-full flex items-end lg:items-center pl-5 lg:pl-10 pr-4 lg:pr-6 pb-4 lg:pb-0">
@@ -580,13 +616,11 @@ export function HeroSlider() {
             </div>
           ))}
         </div>
-        <button onClick={e => { e.stopPropagation(); goTo((i - 1 + n) % n); start() }} className="press hidden lg:grid place-items-center absolute left-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-[#191919] shadow-[0_8px_24px_rgba(0,0,0,.12)] hover:shadow-[0_10px_28px_rgba(0,0,0,.18)] transition-shadow"><IcChevL /></button>
-        <button onClick={e => { e.stopPropagation(); goTo((i + 1) % n); start() }} className="press hidden lg:grid place-items-center absolute right-2 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white text-[#191919] shadow-[0_8px_24px_rgba(0,0,0,.12)] hover:shadow-[0_10px_28px_rgba(0,0,0,.18)] transition-shadow"><IcChevR /></button>
       </div>
       <div className="mt-3 flex justify-center gap-1.5">
         {SLIDES.map((_, k) => (
-          <button key={k} onClick={e => { e.stopPropagation(); goTo(k); start() }}
-            className={`h-2 rounded-full transition-all duration-300 ${k === i ? 'w-5 bg-navy' : 'w-2 bg-[#D9D9DE]'}`} />
+          <button key={k} onClick={e => { e.stopPropagation(); go(k + 1) }}
+            className={`h-2 rounded-full transition-all duration-300 ${k === dot ? 'w-5 bg-navy' : 'w-2 bg-[var(--line2)]'}`} />
         ))}
       </div>
     </div>
@@ -1007,6 +1041,64 @@ export function AddressBox({ mobile }: { mobile?: boolean }) {
         onClose={() => setOpen(false)}
         t={t}
       />
+    </>
+  )
+}
+
+export const IcBonus = ({ s = 20 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12.667 22V17.3333H19.667C20.9557 17.3333 22.0003 18.378 22.0003 19.6667C22.0003 20.9553 20.9557 22 19.667 22H12.667Z" />
+      <path d="M3.73879 6.66667C2.66699 8.52308 2.66699 11.0154 2.66699 16C2.66699 20.9846 2.66699 23.4769 3.73879 25.3333C4.44094 26.5495 5.45084 27.5594 6.66699 28.2615C8.5234 29.3333 11.0157 29.3333 16.0003 29.3333C20.9849 29.3333 23.4773 29.3333 25.3337 28.2615C26.5498 27.5594 27.5597 26.5495 28.2619 25.3333C29.3337 23.4769 29.3337 20.9846 29.3337 16C29.3337 11.0154 29.3337 8.52308 28.2619 6.66667C27.5597 5.45052 26.5498 4.44061 25.3337 3.73847C23.4773 2.66667 20.9849 2.66667 16.0003 2.66667C11.0157 2.66667 8.5234 2.66667 6.66699 3.73847C5.45084 4.44061 4.44094 5.45052 3.73879 6.66667ZM6.66699 8.33334C6.66699 7.41286 7.41318 6.66667 8.33366 6.66667H22.3337C23.2541 6.66667 24.0003 7.41287 24.0003 8.33334C24.0003 9.25381 23.2541 10 22.3337 10L12.667 10V14H19.667C22.7966 14 25.3337 16.5371 25.3337 19.6667C25.3337 22.7963 22.7966 25.3333 19.667 25.3333H11.0003C10.0799 25.3333 9.33366 24.5871 9.33366 23.6667V17.3333H8.33366C7.41318 17.3333 6.66699 16.5871 6.66699 15.6667C6.66699 14.7462 7.41318 14 8.33366 14H9.33366V10H8.33366C7.41318 10 6.66699 9.25381 6.66699 8.33334Z" />
+  </svg>
+)
+
+/* ---------- suzuvchi bonus tugmasi (kgsushi uslubi) ---------- */
+function BonusSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useStore()
+  const [copied, setCopied] = useState(false)
+  const copy = async () => {
+    try { await navigator.clipboard.writeText('TEKIT10') } catch { /* ignore */ }
+    haptic('light'); setCopied(true)
+    window.setTimeout(() => setCopied(false), 1600)
+  }
+  return (
+    <Sheet open={open} onClose={onClose} title={t.bonusT}>
+      <div className="space-y-3 px-1 pb-2">
+        <button onClick={copy}
+          className="press w-full text-left rounded-2xl bg-[var(--panel)] border border-[var(--line2)] p-4 active:scale-[.99] transition-transform">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-[13.5px] font-extrabold text-[var(--ink)]">{t.promoTileSub}</div>
+              <div className="mt-1 text-[11.5px] text-[var(--mut2)] leading-snug">{t.bonusSub}</div>
+            </div>
+            <span className={`shrink-0 text-[12px] font-extrabold px-3 py-2 rounded-full ${copied ? 'bg-[#29A8E0] text-white' : 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]'}`}>{copied ? t.bonusCopied : 'TEKIT10'}</span>
+          </div>
+        </button>
+        <div className="rounded-2xl bg-[var(--panel)] border border-[var(--line2)] p-4 flex items-center gap-3">
+          <span className="w-10 h-10 rounded-xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcTruck s={20} /></span>
+          <div className="min-w-0">
+            <div className="text-[13.5px] font-extrabold text-[var(--ink)]">{t.freeDelivery}</div>
+            <div className="text-[11.5px] text-[var(--mut2)] leading-snug">{t.dpFree}</div>
+          </div>
+        </div>
+      </div>
+    </Sheet>
+  )
+}
+
+export function FloatingBonus() {
+  const { t } = useStore()
+  const loc = useLocation()
+  const [open, setOpen] = useState(false)
+  if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
+  return (
+    <>
+      <button onClick={() => { haptic('light'); setOpen(true) }} aria-label="bonus"
+        className="floating-quick press fixed right-4 z-[45] w-11 h-11 rounded-[15px] bg-[var(--panel)] border border-[var(--line2)] text-[#29A8E0] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] active:scale-95 transition-transform lg:!bottom-8"
+        style={{ bottom: 'calc(164px + var(--sab))' }}>
+        <IcBonus s={21} />
+      </button>
+      <BonusSheet open={open} onClose={() => setOpen(false)} />
     </>
   )
 }
