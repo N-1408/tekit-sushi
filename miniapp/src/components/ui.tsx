@@ -156,7 +156,7 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
         </div>
 
         <div className="px-5 mt-5 mb-1.5 text-[10px] uppercase tracking-[0.14em] text-white/40 font-extrabold">{t.menuT}</div>
-        <nav className="flex-1 overflow-y-auto px-3">
+        <nav className="flex-1 overflow-y-auto no-scrollbar px-3">
           {CATS.map(c => (
             <button key={c.id} onClick={() => { haptic(); onClose(); nav(`/cat/${c.id}`) }}
               className="press w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-bold text-white/90 active:bg-white/10 transition-colors">
@@ -534,7 +534,7 @@ export function Sheet({ open, onClose, title, children, foot }: {
             <button onClick={onClose} className="press w-8 h-8 rounded-full bg-navy-soft grid place-items-center text-[#8A93B8]"><IcX /></button>
           </div>
         </div>
-        <div className="overflow-y-auto px-5 py-3 flex-1 overscroll-contain">{children}</div>
+        <div className="overflow-y-auto no-scrollbar px-5 py-3 flex-1 overscroll-contain">{children}</div>
         {foot && <div style={{ paddingBottom: 'calc(14px + var(--sab))' }} className="px-5 pt-2">{foot}</div>}
       </div>
     </div>,
