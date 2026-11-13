@@ -41,11 +41,12 @@ function hiName(t: any, user: { name?: string } | null) {
 
 /* ---------- savat tugmasi (badge bilan) ---------- */
 export function CartBtn() {
-  const { cartCount } = useStore()
+  const { cartCount, cartSum } = useStore()
   const nav = useNavigate()
   return (
     <button onClick={() => { haptic(); nav('/cart') }} aria-label="cart"
-      className="press relative w-10 h-10 rounded-xl grid place-items-center shrink-0 active:scale-95 transition-transform">
+      className="press relative flex items-center gap-2 h-10 pl-2 pr-1 rounded-xl shrink-0 active:scale-95 transition-transform">
+      {cartSum > 0 && <span className="text-[13.5px] font-extrabold whitespace-nowrap">{fmt(cartSum)} <span className="text-[9.5px] font-bold text-[#8B94A3]">UZS</span></span>}
       <IcBag />
       {cartCount > 0 && (
         <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E8462B] text-white text-[10.5px] font-extrabold grid place-items-center leading-none">{cartCount}</span>
@@ -94,7 +95,7 @@ export function TopBar({ title, right, back = true, flat }: { title?: string; ri
         {title ? (
           <>
             {back && (
-              <button onClick={() => { haptic('light'); nav(-1) }} className="press w-10 h-10 rounded-xl bg-[#1B2330] grid place-items-center shrink-0 active:scale-95 transition-transform">
+              <button onClick={() => { haptic('light'); nav(-1) }} className="press w-12 h-12 rounded-2xl bg-[#E9EDF1] text-[#101821] grid place-items-center shrink-0 active:scale-95 transition-transform">
                 <IcChevL />
               </button>
             )}
@@ -197,17 +198,17 @@ export function Header() {
       <header className="bg-[#0F1720] text-[#F2F5F9] border-b border-[#1E2631]">
         <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 pb-2.5 pt-1">
           <button aria-label="menu" onClick={() => { haptic(); setDrawer(true) }}
-            className="press w-10 h-10 rounded-xl bg-[#1B2330] grid place-items-center shrink-0 active:scale-95 transition-transform">
+            className="press w-12 h-12 rounded-2xl bg-[#E9EDF1] text-[#101821] grid place-items-center shrink-0 active:scale-95 transition-transform">
             <IcBurger />
           </button>
           <button onClick={() => nav('/')} className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
             <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px]" />
             <span className="text-[14.5px] font-extrabold tracking-[0.08em] whitespace-nowrap hidden min-[400px]:block">TEKIT SUSHI</span>
           </button>
-          <div className="hidden lg:flex items-center gap-0.5 bg-[#141B26] rounded-xl p-1 ml-2">
+          <div className="hidden lg:flex items-center gap-1.5 ml-2">
             {(['delivery', 'pickup'] as const).map(m => (
               <button key={m} onClick={() => { if (m !== mode) { setMode(m); haptic('light') } }}
-                className={`px-3.5 py-1.5 rounded-[10px] text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-white text-[#0F1720]' : 'text-[#9AA3B2] hover:text-white'}`}>
+                className={`px-4 py-2 rounded-full text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-white text-[#0F1720]' : 'bg-[#1B2330] text-[#C7CFDB] hover:text-white'}`}>
                 {m === 'delivery' ? t.deliveryMode : t.pickup}
               </button>
             ))}
@@ -254,21 +255,35 @@ export function CityBanner() {
 }
 
 /* ---------- qidiruv + kategoriya chip-lari ---------- */
-export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void }) {
+export const IcSort = () => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 5v13M8 18l-3.2-3.2M8 18l3.2-3.2M16 19V6M16 6l-3.2 3.2M16 6l3.2 3.2" /></svg>
+
+export function SearchChips({ q, setQ, sort, setSort }: { q: string; setQ: (s: string) => void; sort: 'none' | 'asc' | 'desc'; setSort: (s: 'none' | 'asc' | 'desc') => void }) {
   const { t, lang } = useStore()
   const nav = useNavigate()
+  const [open, setOpen] = useState(false)
   const loc = window.location.pathname
   const activeCat = loc.startsWith('/cat/') ? loc.slice(5) : null
-  const chip = (on: boolean) => `press shrink-0 px-4 h-9 rounded-full text-[12.5px] font-extrabold whitespace-nowrap transition-colors active:scale-95 ${on ? 'bg-white text-[#0F1720]' : 'bg-[#1B2330] text-[#C7CFDB]'}`
+  const chip = (on: boolean) => `press shrink-0 px-4 h-10 rounded-full text-[12.5px] font-extrabold whitespace-nowrap transition-colors active:scale-95 ${on ? 'bg-white text-[#0F1720]' : 'bg-[#1B2330] text-[#C7CFDB]'}`
   return (
     <div className="bg-paper/95 backdrop-blur-md border-b border-navy-line">
-      <div className="max-w-[1240px] mx-auto px-4 lg:px-6 pt-2.5 pb-2 lg:flex lg:items-center lg:gap-4">
-        <div className="relative mb-2.5 lg:mb-0 lg:w-[320px] lg:shrink-0">
-          <input value={q} onChange={e => setQ(e.target.value)} placeholder={t.search}
-            className="w-full bg-[#1B2330] border border-[#2A3442] rounded-full py-2.5 pl-10 pr-4 text-[13.5px] font-medium text-[#F2F5F9] placeholder:text-[#6E7787] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
-          <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6E7787]"><IcSearch /></span>
-        </div>
-        <div className="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 lg:mx-0 lg:px-0">
+      <div className="max-w-[1240px] mx-auto px-4 lg:px-6 pt-2.5 pb-2">
+        {open && (
+          <div className="relative mb-2.5">
+            <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search}
+              className="w-full bg-[#1B2330] border border-[#2A3442] rounded-full py-2.5 pl-10 pr-10 text-[13.5px] font-medium text-[#F2F5F9] placeholder:text-[#6E7787] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
+            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#6E7787]"><IcSearch /></span>
+            <button onClick={() => { setOpen(false); setQ('') }} className="press absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 grid place-items-center text-[#6E7787] active:scale-90 transition-transform">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+            </button>
+          </div>
+        )}
+        <div className="flex items-center gap-2">
+          <button onClick={() => setOpen(v => !v)} aria-label="search"
+            className="press w-9 h-9 grid place-items-center shrink-0 text-[#29A8E0] active:scale-95 transition-transform"><IcSearch /></button>
+          <span className="w-px h-5 bg-[#2A3442] shrink-0" />
+          <button onClick={() => setSort(sort === 'none' ? 'asc' : sort === 'asc' ? 'desc' : 'none')} aria-label="sort"
+            className={`press w-9 h-9 grid place-items-center shrink-0 active:scale-95 transition-transform ${sort !== 'none' ? 'text-[#29A8E0]' : 'text-[#6E7787]'}`}><IcSort /></button>
+          <div className="flex gap-2 overflow-x-auto no-scrollbar -mr-4 pr-4 lg:mr-0 lg:pr-0">
           <button className={chip(!activeCat)} onClick={() => { if (loc !== '/') { haptic(); nav('/') } else window.scrollTo({ top: 0 }) }}>{t.all}</button>
           {CATS.map(c => (
             <button key={c.id} className={chip(activeCat === c.id)} onClick={() => { haptic(); nav(`/cat/${c.id}`) }}>
@@ -455,7 +470,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
     <article onClick={() => { haptic(); openP(p) }}
       className="anim-up cursor-pointer"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
-      <div className="relative aspect-[4/3.4] rounded-[14px] overflow-hidden bg-[#141B26]">
+      <div className="relative aspect-[11/10] rounded-[12px] overflow-hidden bg-[#141B26]">
         <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         <button onClick={e => { e.stopPropagation(); toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
           className="absolute top-2 right-2 w-9 h-9 rounded-full bg-[#101821]/80 grid place-items-center active:scale-90 transition-transform">
