@@ -79,3 +79,28 @@ export async function quoteDelivery(payload) {
   }
   return { provider, price: Number(process.env.DELIVERY_FEE || 15000), source: 'default' };
 }
+
+// Qamrov tekshiruvi: kordinata bo'yicha shaharni aniqlash (Nominatim).
+// Shahar aniqlanmasa null — bu "tashqarida" degan hukm EMAS, UI halol
+// 'unknown' holat ko'rsatadi.
+export const GEO_HEADERS = {
+  'User-Agent': 'TekitSushiMiniApp/1.0 (contact: gigand.group@gmail.com)',
+  'Accept-Language': 'uz,ru,en',
+};
+
+export const TASHKENT_RE = /^(tosh|tash)kent/i;
+
+export async function cityOf(lat, lon) {
+  try {
+    const r = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=14`,
+      { headers: GEO_HEADERS, signal: AbortSignal.timeout(6000) },
+    );
+    if (!r.ok) return null;
+    const j = await r.json();
+    const a = j?.address || {};
+    return a.city || a.town || a.municipality || a.county || a.state || null;
+  } catch {
+    return null;
+  }
+}

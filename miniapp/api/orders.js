@@ -14,7 +14,8 @@ export default async (req, res) => {
   const tg = String(u.id);
   try {
     const r = await getPool().query(
-      `SELECT id, created_at, total, status, items, name, phone, address, delivery_type, payment
+      `SELECT id, created_at, total, grand_total, delivery_fee, discount, promo_code, status, items,
+              name, phone, address, branch, delivery_type, delivery_time, payment, payment_status, status_note
        FROM orders WHERE tg_user_id = $1 ORDER BY id DESC LIMIT 30`, [tg]);
     return res.status(200).json({ ok: true, orders: r.rows });
   } catch (e) {

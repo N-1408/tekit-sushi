@@ -209,6 +209,12 @@ export default async (req, res) => {
         const items = (await P.query(`SELECT * FROM menu_items ORDER BY sort, cat`)).rows;
         return res.status(200).json({ ok: true, cats, items });
       }
+      if (action === 'settings') {
+        const keys = ['pickup_prep_minutes', 'pickup_slot_minutes', 'pickup_days_ahead', 'delivery_eta_minutes'];
+        const r = await P.query(`SELECT key, value FROM settings WHERE key = ANY($1)`, [keys]);
+        const map = Object.fromEntries(r.rows.map(x => [x.key, x.value]));
+        return res.status(200).json({ ok: true, settings: Object.fromEntries(keys.map(k => [k, map[k] ?? null])) });
+      }
       if (action === 'promos') {
         const r = await P.query(`SELECT code, percent, active FROM promos ORDER BY code`);
         return res.status(200).json({ ok: true, promos: r.rows });
@@ -225,6 +231,27 @@ export default async (req, res) => {
     try {
       const b = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const act = str(b.action, 24);
+
+      // ---- fulfillment sozlamalari (olib ketish jadvali, ETA) ----
+      if (act === 'settings') {
+        const keys = ['pickup_prep_minutes', 'pickup_slot_minutes', 'pickup_days_ahead', 'delivery_eta_minutes'];
+        const val = b.settings || {};
+        for (const k of keys) {
+          if (!(k in val)) continue;
+          if (val[k] === null || val[k] === '') {
+            await P.query('DELETE FROM settings WHERE key = $1', [k]);
+          } else {
+            const n = Number(val[k]);
+            if (!Number.isFinite(n) || n <= 0) return res.status(400).json({ ok: false, error: `noto'g'ri qiymat: ${k}` });
+            await P.query(
+              'INSERT INTO settings (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value',
+              [k, String(Math.round(n))]);
+          }
+        }
+        const r = await P.query(`SELECT key, value FROM settings WHERE key = ANY($1)`, [keys]);
+        const map = Object.fromEntries(r.rows.map(x => [x.key, x.value]));
+        return res.status(200).json({ ok: true, settings: Object.fromEntries(keys.map(k => [k, map[k] ?? null])) });
+      }
 
       // ---- order status ----
       if (act === 'status') {
