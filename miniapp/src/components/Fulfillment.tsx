@@ -311,7 +311,7 @@ export function PickupModal({ open, onClose }: { open: boolean; onClose: () => v
               })}
             </div>
           ) : (
-            <div className="text-[14px] font-medium text-[var(--mut2)] py-3">{t.pickDate} —</div>
+            <div className="text-[13.5px] font-medium text-[var(--mut2)] py-3">{t.pickNeed}</div>
           )}
           {expired && <div className="mt-2 text-[13px] font-semibold text-amber-600">{t.pickExpired}</div>}
           {isToday && date && !expired && (
