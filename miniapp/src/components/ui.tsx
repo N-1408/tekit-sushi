@@ -451,16 +451,16 @@ export function Header() {
             o'ngda profil + tema. lg+ da grid bir xil kenglikdagi yon ustunlar bilan
             markaziy zonani haqiqiy markazda ushlab turadi; sidebar ochilganda
             konteyner mavjud kenglik ichida qayta markazlashadi. */}
-        <div className="max-w-[1240px] mx-auto flex items-center justify-between px-4 lg:px-6 py-2 lg:grid lg:grid-cols-[1fr_auto_1fr]">
-          <div className="flex items-center gap-1 min-[400px]:gap-1.5 min-w-0 lg:justify-self-start">
-            <button onClick={() => nav('/')} aria-label="Tekit Sushi"
-              aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
-              className={`press flex items-center gap-2 min-w-0 overflow-hidden whitespace-nowrap motion-safe:transition-[opacity,max-width] motion-safe:duration-300 motion-safe:ease-out ${hideBrand ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[200px] active:opacity-80'}`}>
-              <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px] shrink-0" />
-              <span className="text-[13px] min-[400px]:text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
-            </button>
+        {/* Uch zonali muvozanat — barcha kengliklarda yagona grid:
+            grid-cols-[1fr_auto_1fr] markaziy zonani haqiqiy markazda ushlab turadi,
+            chap/o'ng boshqaruvlar kengligi farq qilsa ham brend og'ishmaydi.
+            Mobil: chapda rejim ikonkalari, markazda brend, o'ngda tema.
+            lg+: chapda brend (sidebar ochiqligida yashirinadi), markazda
+            yetkazish/olib-ketish, o'ngda profil + tema. */}
+        <div className="max-w-[1240px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center px-4 lg:px-6 py-2">
+          <div className="flex items-center gap-1 min-[400px]:gap-1.5 min-w-0 justify-self-start">
             {/* mobil: ixcham ikonkali yetkazish/olib-ketish tugmalari */}
-            <div className="flex lg:hidden items-center gap-1 ml-0.5">
+            <div className="flex lg:hidden items-center gap-1">
               {(['delivery', 'pickup'] as const).map(m => (
                 <button key={m} aria-haspopup="dialog" aria-label={m === 'delivery' ? t.deliveryMode : t.pickup}
                   onClick={() => { haptic('light'); if (m === 'delivery') setDelOpen(true); else setPickOpen(true) }}
@@ -469,17 +469,31 @@ export function Header() {
                 </button>
               ))}
             </div>
+            <button onClick={() => nav('/')} aria-label="Tekit Sushi"
+              aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
+              className={`hidden lg:flex press items-center gap-2 min-w-0 overflow-hidden whitespace-nowrap motion-safe:transition-[opacity,max-width] motion-safe:duration-300 motion-safe:ease-out ${hideBrand ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[200px] active:opacity-80'}`}>
+              <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px] shrink-0" />
+              <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+            </button>
           </div>
-          <div className="hidden lg:flex items-center gap-1.5 lg:justify-self-center">
-            {(['delivery', 'pickup'] as const).map(m => (
-              <button key={m} aria-haspopup="dialog"
-                onClick={() => { haptic('light'); if (m === 'delivery') setDelOpen(true); else setPickOpen(true) }}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
-                {m === 'delivery' ? <IcTruck s={15} /> : <IcStore s={15} />}{m === 'delivery' ? t.deliveryMode : t.pickup}
-              </button>
-            ))}
+          {/* markaz: mobil — brend klasteri; lg — rejim tugmalari */}
+          <div className="flex items-center gap-1.5 justify-self-center min-w-0">
+            <button onClick={() => nav('/')} aria-label="Tekit Sushi"
+              className="press flex lg:hidden items-center gap-2 min-w-0 active:opacity-80">
+              <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px] shrink-0" />
+              <span className="text-[13px] min-[400px]:text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+            </button>
+            <div className="hidden lg:flex items-center gap-1.5">
+              {(['delivery', 'pickup'] as const).map(m => (
+                <button key={m} aria-haspopup="dialog"
+                  onClick={() => { haptic('light'); if (m === 'delivery') setDelOpen(true); else setPickOpen(true) }}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
+                  {m === 'delivery' ? <IcTruck s={15} /> : <IcStore s={15} />}{m === 'delivery' ? t.deliveryMode : t.pickup}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center gap-1 lg:justify-self-end">
+          <div className="flex items-center gap-1 justify-self-end">
             <button onClick={() => nav('/profile')} className="focus-ring hidden lg:flex items-center gap-2 px-3 py-2.5 text-[14px] font-bold active:opacity-80 transition-opacity rounded-lg">
               <IcUser /> {user?.name ? user.name.split(' ')[0] : t.tabProfile}
             </button>
@@ -688,14 +702,33 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
   // faol kategoriya stripda ko'rinadigan joyda turadi
   useEffect(() => {
     if (searching || !active) return
-    const strip = stripRef.current
-    const el = active ? chipRefs.current[active] : null
-    if (!strip || !el) return
-    const target = Math.max(0, el.offsetLeft - 12)
-    if (Math.abs(strip.scrollLeft - target) > 6) {
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      strip.scrollTo({ left: target, behavior: reduced ? 'auto' : 'smooth' })
+    const align = () => {
+      const strip = stripRef.current
+      const el = chipRefs.current[active]
+      if (!strip || !el) return
+      // To'g'ri koordinata maydoni: offsetLeft eng yaqin POZITSIYALANGAN ajdodga
+      // (sticky qator) nisbatan bo'ladi va burger+qidiruv kengligini ham sanaydi —
+      // bu ortiqcha skroll va chipning qidiruv ostiga sirg'alib kirishiga sabab
+      // bo'lardi. Chipning strip ICHIDAGI holatini rect orqali hisoblaymiz.
+      const left = el.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft
+      // Strip oxirida ortiqcha bo'shliq yaratmasdan faol chipni to'liq ko'rinadigan qilib qoldiramiz
+      const max = strip.scrollWidth - strip.clientWidth
+      const target = Math.max(0, Math.min(left - 12, max))
+      if (Math.abs(strip.scrollLeft - target) > 6) {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        strip.scrollTo({ left: target, behavior: reduced ? 'auto' : 'smooth' })
+      }
     }
+    align()
+    // Strip va chip o'lchamlari o'zgarsa (shrift yuklanishi, sidebar ochilishi,
+    // oyna kengligi) qayta tekislanadi; shriftlar kech yuksalganda ham joy to'g'ri qoladi
+    const strip = stripRef.current
+    if (!strip || typeof ResizeObserver !== 'function') return
+    const ro = new ResizeObserver(align)
+    ro.observe(strip)
+    const chipUnobs = chips.map(c => { const el = chipRefs.current[c.id]; if (el) ro.observe(el) })
+    document.fonts?.ready?.then(align).catch(() => {})
+    return () => { ro.disconnect(); void chipUnobs }
   }, [active, searching, chips.length])
 
   return (
