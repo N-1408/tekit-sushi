@@ -1143,6 +1143,11 @@ function useProductModal(p: Product | null) {
   return { lang, t, add, setQty, toggleFav, openP, q, setQ, busy, addToCart, sauces, qtyOf, fav, sale, salePct, wtxt, nutrition, reco }
 }
 
+/* Tavsifda menyu ma'lumotidan kelgan literal \n qoldiqlarini haqiqiy qatorboshiga aylantirish */
+function cleanDesc(s: string): string {
+  return s.replace(/\\n/g, '\n')
+}
+
 /* ixcham oziqlik qatori: ikkala taqdimotda bir xil, bo'sh bo'lsa umuman chiqmaydi */
 function NutritionRow({ items, per100 }: { items: ReadonlyArray<readonly [string, number | null | undefined, string]>; per100: string }) {
   if (!items.length) return null
@@ -1266,7 +1271,7 @@ export function ProductSheet() {
       <div className="mt-2"><NutritionRow items={m.nutrition} per100={m.t.per100} /></div>
       {p.cat !== 'sous' && <div className="mt-4"><SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal /></div>}
       <div className="mt-4"><RecoRow items={m.reco} compact /></div>
-      {pDesc(p, m.lang) && <p className="mt-4 text-[13.5px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{pDesc(p, m.lang)}</p>}
+      {pDesc(p, m.lang) && <p className="mt-4 text-[13.5px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
     </Sheet>
   )
 }
@@ -1350,7 +1355,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
                 <div className="mt-2.5"><NutritionRow items={m.nutrition} per100={m.t.per100} /></div>
                 {p.cat !== 'sous' && <div className="mt-5"><SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} /></div>}
                 <div className="mt-5"><RecoRow items={m.reco} /></div>
-                {pDesc(p, m.lang) && <p className="mt-5 text-[13.5px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{pDesc(p, m.lang)}</p>}
+                {pDesc(p, m.lang) && <p className="mt-5 text-[13.5px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
               </div>
               <div className="px-7 py-4 border-t border-[var(--line)] flex items-center gap-3 bg-[var(--sheet)]">
                 <QtyStepper q={m.q} min={1}
