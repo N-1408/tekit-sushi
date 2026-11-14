@@ -277,6 +277,78 @@ function Body() {
           </Card>
         </>
       )}
+      <SettingsSection />
+    </div>
+  )
+}
+
+/* Fulfillment sozlamalari: olib ketish jadvali va yetkazib berish ETA.
+   Bo'sh maydon = sozlanmagan; ilova o'z holatida halol ko'rsatadi. */
+const FF_KEYS = [
+  { k: 'pickup_prep_minutes', label: 'aFulPrep' },
+  { k: 'pickup_slot_minutes', label: 'aFulSlot' },
+  { k: 'pickup_days_ahead', label: 'aFulDays' },
+  { k: 'delivery_eta_minutes', label: 'aFulEta' },
+] as const
+
+function SettingsSection() {
+  const { t } = useStore()
+  const a = useAdmin()
+  const [vals, setVals] = React.useState<Record<string, string> | null>(null)
+  const [msg, setMsg] = React.useState('')
+  const [busy, setBusy] = React.useState(false)
+
+  React.useEffect(() => {
+    if (!a.ready) return
+    let dead = false
+    fetch('/api/admin?action=settings', { headers: a.h() })
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => { if (!dead && j?.ok) setVals(j.settings) })
+      .catch(() => {})
+    return () => { dead = true }
+  }, [a.ready])
+
+  async function save() {
+    if (!vals || busy) return
+    setBusy(true); setMsg('')
+    try {
+      const r = await fetch('/api/admin', {
+        method: 'POST', headers: { ...a.h(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'settings', settings: vals }),
+      })
+      const j = await r.json()
+      if (j?.ok) { setVals(j.settings); setMsg(t.aFulSaved) } else setMsg('')
+    } catch { setMsg('') }
+    setBusy(false)
+  }
+
+  return (
+    <div className="px-4 mt-3">
+      <div className="bg-white border border-navy-line rounded-[20px] p-4">
+        <div className="text-[13.5px] font-extrabold">{t.aFulTitle}</div>
+        <div className="mt-1.5 text-[12px] font-medium text-[var(--mut)] leading-snug">{t.aFulHint}</div>
+        <div className="mt-3 grid grid-cols-2 gap-2.5">
+          {vals && FF_KEYS.map(({ k, label }) => (
+            <label key={k} className="block">
+              <span className="block text-[11.5px] font-bold text-[var(--mut)] mb-1">{t[label]}</span>
+              <input
+                inputMode="numeric"
+                value={vals[k] ?? ''}
+                onChange={e => setVals(v => ({ ...v, [k]: e.target.value.replace(/\D/g, '') }))}
+                className="w-full bg-[var(--panel)] border border-navy-line rounded-xl px-3 py-2.5 text-[14px] font-semibold outline-none focus:border-navy"
+                placeholder="—"
+              />
+            </label>
+          ))}
+        </div>
+        <div className="mt-3 flex items-center gap-3">
+          <button onClick={save} disabled={!vals || busy}
+            className="press px-5 py-2.5 rounded-xl bg-navy text-white text-[13px] font-bold disabled:opacity-40">
+            {busy ? t.aFulSaving : t.aFulSave}
+          </button>
+          {msg && <span className="text-[12.5px] font-bold text-emerald-600">{msg}</span>}
+        </div>
+      </div>
     </div>
   )
 }
