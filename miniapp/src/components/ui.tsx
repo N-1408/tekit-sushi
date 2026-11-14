@@ -918,6 +918,7 @@ function useIsDesktop() {
 
 export function ProductSheet() {
   const { sheetP, closeP, lang, t, add, setQty, cart, products, favs, toggleFav, } = useStore()
+  const isDesktop = useIsDesktop()
   const [q, setQ] = React.useState(1)
   React.useEffect(() => { setQ(1) }, [sheetP?.id])
   if (!sheetP) return null
@@ -926,7 +927,6 @@ export function ProductSheet() {
   const sauces = products.filter(x => x.cat === 'sous' && x.id !== p.id && x.active !== false)
   const qtyOf = (sid: string) => cart.find(l => l.id === sid)?.q || 0
   const hasKbju = [p.kcal, p.protein, p.fat, p.carbs].some(v => v != null && (v as number) > 0)
-  const isDesktop = useIsDesktop()
   if (isDesktop) return <DesktopProduct p={p} onClose={closeP} />
   return (
     <Sheet open onClose={closeP} title={pName(p, lang)}
