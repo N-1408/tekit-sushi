@@ -5,6 +5,7 @@ import { useStore, pName, pImg, CATS, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode } from '../lib/tg'
+import { beginAddToCartAnim } from '../lib/addAnim'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import MapPicker from './MapPicker'
 import { DeliveryModal, PickupModal, InitialChoiceModal } from './Fulfillment'
@@ -932,14 +933,19 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const sale = p.sale_active && (p.old_price ?? 0) > p.price
   const salePct = sale ? (p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)) : 0
   const wtxt = p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')
-  // muvaffaqiyatli qo'shishda tugmada qisqa tasdiq belgisi; tez bosishlarda taymer faqat yangilanadi
+  // muvaffaqiyatli qo'shishda tugmada qisqa tasdiq belgisi; tez bosishlarda taymer faqat yangilanadi.
+  // anim: shu qo'shish uchun tanlangan variant (addAnim.ts) — bir marta tanlanadi,
+  // qayta renderda o'zgarmaydi; tez bosishlarda birlashtiriladi (yangi variant tanlanmaydi)
   const [ok, setOk] = useState(false)
+  const [anim, setAnim] = useState<{ v: 'a' | 'b' | 'c'; k: number } | null>(null)
   const okTimer = useRef<number | null>(null)
   useEffect(() => () => { if (okTimer.current) window.clearTimeout(okTimer.current) }, [])
-  const onAdd = () => {
+  const onAdd = (el?: HTMLElement | null) => {
     add(p.id); haptic('medium'); setOk(true)
+    const res = beginAddToCartAnim(el, sale)
+    if (res) setAnim(res.kind === 'flight' ? { v: 'c', k: res.k } : { v: res.v, k: res.k })
     if (okTimer.current) window.clearTimeout(okTimer.current)
-    okTimer.current = window.setTimeout(() => setOk(false), 700)
+    okTimer.current = window.setTimeout(() => { setOk(false); setAnim(null) }, 700)
   }
   return (
     <article onClick={() => { haptic(); openP(p) }}
@@ -967,9 +973,9 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
             onDec={() => { setQty(p.id, q - 1); haptic('light') }}
             onInc={() => { add(p.id); haptic('medium') }} />
         ) : (
-          <button onClick={e => { e.stopPropagation(); onAdd() }}
+          <button onClick={e => { e.stopPropagation(); onAdd(e.currentTarget) }}
             className={`press mt-1.5 w-full h-[44px] rounded-[12px] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform ${sale ? 'bg-[var(--promo-deep)] text-white hover:brightness-110' : 'bg-[var(--btn)] text-[var(--btn-ink)]'}`}>
-            {ok ? <span className="add-ok grid place-items-center"><IcCheck s={17} /></span> : <IcBag s={17} />}
+            {ok ? <AddAnimGlyph v={anim ? anim.v : 'c'} k={anim ? anim.k : 0} /> : <IcBag s={17} />}
             {t.cardAdd}
           </button>
         )}
@@ -1175,7 +1181,12 @@ function useProductModal(p: Product | null) {
   // holat esa tugmaning ko'rinishini boshqaradi
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
-  useEffect(() => { setQ(1); busyRef.current = false; setBusy(false) }, [p?.id])
+  // anim: muvaffaqiyatli qo'shish uchun tanlangan variant (bir marta tanlanadi,
+  // rerenderda o'zgarmaydi; C variantida overlay'da uchadi, tugmada add-ok qoladi)
+  const [anim, setAnim] = useState<{ v: 'a' | 'b' | 'c'; k: number } | null>(null)
+  const animTimer = useRef<number | null>(null)
+  useEffect(() => () => { if (animTimer.current) window.clearTimeout(animTimer.current) }, [])
+  useEffect(() => { setQ(1); busyRef.current = false; setBusy(false); setAnim(null) }, [p?.id])
   const sauces = p ? products.filter(x => x.cat === 'sous' && x.id !== p.id && x.active !== false) : []
   const qtyOf = (sid: string) => cart.find(l => l.id === sid)?.q || 0
   const fav = p ? favs.includes(p.id) : false
@@ -1189,13 +1200,19 @@ function useProductModal(p: Product | null) {
     : []
   // Tavsiyalar: faqat real katalog, bir xil kategoriya; hech narsa avtomatik qo'shilmaydi
   const reco = p ? products.filter(x => x.cat === p.cat && x.id !== p.id && x.active !== false).slice(0, 6) : []
-  const addToCart = () => {
+  const addToCart = (el?: HTMLElement | null) => {
     if (!p || busyRef.current) return
     busyRef.current = true
     setBusy(true); add(p.id, q); haptic('medium')
+    const res = beginAddToCartAnim(el, !!sale)
+    if (res) {
+      setAnim(res.kind === 'flight' ? { v: 'c', k: res.k } : { v: res.v, k: res.k })
+      if (animTimer.current) window.clearTimeout(animTimer.current)
+      animTimer.current = window.setTimeout(() => setAnim(null), 900)
+    }
     window.setTimeout(() => { busyRef.current = false; setBusy(false) }, 350)
   }
-  return { lang, t, add, setQty, toggleFav, openP, q, setQ, busy, addToCart, sauces, qtyOf, fav, sale, salePct, wtxt, nutrition, reco }
+  return { lang, t, add, setQty, toggleFav, openP, q, setQ, busy, addToCart, anim, sauces, qtyOf, fav, sale, salePct, wtxt, nutrition, reco }
 }
 
 /* Tavsifda menyu ma'lumotidan kelgan literal \n qoldiqlarini haqiqiy qatorboshiga aylantirish */
@@ -1297,8 +1314,9 @@ export function ProductSheet() {
           <QtyStepper q={m.q} min={1}
             onInc={() => { m.setQ(v => v + 1); haptic() }}
             onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }} />
-          <button onClick={m.addToCart} disabled={m.busy}
+          <button onClick={e => m.addToCart(e.currentTarget)} disabled={m.busy}
             className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform disabled:opacity-60">
+            {m.anim && m.anim.v !== 'c' && <AddAnimGlyph v={m.anim.v} k={m.anim.k} />}
             {m.t.addCart} · {fmt(p.price * m.q)} <span className="text-[11px] font-bold opacity-70">UZS</span>
           </button>
         </div>
@@ -1416,8 +1434,9 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
                 <QtyStepper q={m.q} min={1}
                   onInc={() => { m.setQ(v => v + 1); haptic() }}
                   onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }} />
-                <button onClick={m.addToCart} disabled={m.busy}
+                <button onClick={e => m.addToCart(e.currentTarget)} disabled={m.busy}
                   className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] hover:brightness-110 active:scale-[.98] transition-all cursor-pointer disabled:opacity-60">
+                  {m.anim && m.anim.v !== 'c' && <AddAnimGlyph v={m.anim.v} k={m.anim.k} />}
                   {m.t.addCart} · {fmt(p.price * m.q)} <span className="text-[11px] font-bold opacity-70">UZS</span>
                 </button>
               </div>
@@ -1427,6 +1446,28 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
       </div>
     </div>,
     document.body
+  )
+}
+
+/* ---------- savatga qo'shish animatsiyasi: A — savat ikonkasining ichki
+   harakati va tasdiq belgisi, B — neytral quti savatga tushadi, C — uchish
+   (overlayda, addAnim.ts). Ikkala glyph ham loyihaning IcBag/IcCheck
+   ikonkalari, o'lchovi, uy easing'i va currentColor ranglarida — chegirmali
+   mahsulotning orange tugmasida ham ikkala temada o'qiladi. ---------- */
+export function AddAnimGlyph({ v, k }: { v: 'a' | 'b' | 'c'; k: number }) {
+  if (v === 'c') return <span key={k} className="add-ok grid place-items-center"><IcCheck s={17} /></span>
+  if (v === 'b') return (
+    <span key={k} aria-hidden="true" className="relative grid place-items-center">
+      <span className="tk-b-item" />
+      <span className="tk-b-bag"><IcBag s={17} /></span>
+      <span className="tk-b-check"><IcCheck s={17} /></span>
+    </span>
+  )
+  return (
+    <span key={k} aria-hidden="true" className="relative grid place-items-center">
+      <span className="tk-a-bag"><IcBag s={17} /></span>
+      <span className="tk-a-check"><IcCheck s={17} /></span>
+    </span>
   )
 }
 
@@ -1445,7 +1486,7 @@ function useCartBeat() {
 
 /* ---------- suzuvchi savat tugmasi: App.dagi floating-row ichida ---------- */
 export function FloatingCart() {
-  const { cartCount } = useStore()
+  const { cartCount, t } = useStore()
   const nav = useNavigate()
   const loc = useLocation()
   const beat = useCartBeat()
@@ -1453,6 +1494,7 @@ export function FloatingCart() {
   return (
     <button onClick={() => { haptic(); nav('/cart') }} aria-label="cart"
       className="floating-quick press relative w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] bg-navy text-white grid place-items-center shadow-[0_14px_30px_-8px_rgba(10,33,148,.6)] hover:brightness-110 active:scale-95 transition-[transform,filter] cursor-pointer">
+      <span role="status" className="sr-only">{t.cartLive.replace('{n}', String(cartCount))}</span>
       <span key={beat} className={`grid place-items-center ${beat ? 'cart-beat' : ''}`}><IcBag s={26} /></span>
       {cartCount > 0 && (
         <span key={'b' + beat} className={`absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 rounded-full bg-[#E8462B] text-white text-[11px] font-extrabold grid place-items-center leading-none border-2 border-[var(--bg)] ${beat ? 'cart-beat' : ''}`}>{cartCount}</span>
