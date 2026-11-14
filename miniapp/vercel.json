@@ -15,6 +15,10 @@
       "destination": "/api/webhook?type=payment"
     },
     {
+      "source": "/api/delivery-quote",
+      "destination": "/api/branches?type=quote"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
