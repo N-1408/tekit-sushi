@@ -940,15 +940,17 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   // anim: shu qo'shish uchun tanlangan variant (addAnim.ts) — bir marta tanlanadi,
   // qayta renderda o'zgarmaydi; tez bosishlarda birlashtiriladi (yangi variant tanlanmaydi)
   const [ok, setOk] = useState(false)
-  const [anim, setAnim] = useState<{ v: 'a' | 'b' | 'c'; k: number } | null>(null)
+  // anim: yagona chapdan-o'ngga savat yo'nalishi (addAnim.ts) — faqat muvaffaqiyatli
+  // qo'shishda o'ynaydi; tez bosishlarda birlashtiriladi, timer faqat yangilanadi
+  const [anim, setAnim] = useState<number | null>(null)
   const okTimer = useRef<number | null>(null)
   useEffect(() => () => { if (okTimer.current) window.clearTimeout(okTimer.current) }, [])
   const onAdd = (el?: HTMLElement | null) => {
     add(p.id); haptic('medium'); setOk(true)
-    const res = beginAddToCartAnim(el, sale)
-    if (res) setAnim(res.kind === 'flight' ? { v: 'c', k: res.k } : { v: res.v, k: res.k })
+    const res = beginAddToCartAnim(el)
+    if (res) setAnim(res.k)
     if (okTimer.current) window.clearTimeout(okTimer.current)
-    okTimer.current = window.setTimeout(() => { setOk(false); setAnim(null) }, 700)
+    okTimer.current = window.setTimeout(() => { setOk(false); setAnim(null) }, 850)
   }
   return (
     <article onClick={() => { haptic(); openP(p) }}
@@ -977,9 +979,10 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
             onInc={() => { add(p.id); haptic('medium') }} />
         ) : (
           <button onClick={e => { e.stopPropagation(); onAdd(e.currentTarget) }}
-            className={`press mt-1.5 w-full h-[44px] rounded-[12px] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform ${sale ? 'bg-[var(--promo-deep)] text-white hover:brightness-110' : 'bg-[var(--btn)] text-[var(--btn-ink)]'}`}>
-            {ok ? <AddAnimGlyph v={anim ? anim.v : 'c'} k={anim ? anim.k : 0} /> : <IcBag s={17} />}
-            {t.cardAdd}
+            className={`press mt-1.5 relative overflow-hidden w-full h-[44px] rounded-[12px] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform ${ok && anim != null ? 'tk-add-active' : ''} ${sale ? 'bg-[var(--promo-deep)] text-white hover:brightness-110' : 'bg-[var(--btn)] text-[var(--btn-ink)]'}`}>
+            {ok ? (anim != null ? null : <span className="add-ok grid place-items-center"><IcCheck s={17} /></span>) : <IcBag s={17} />}
+            <span className="tk-add-label">{t.cardAdd}</span>
+            {ok && anim != null && <CartJourney k={anim} />}
           </button>
         )}
       </div>
@@ -1184,9 +1187,9 @@ function useProductModal(p: Product | null) {
   // holat esa tugmaning ko'rinishini boshqaradi
   const [busy, setBusy] = useState(false)
   const busyRef = useRef(false)
-  // anim: muvaffaqiyatli qo'shish uchun tanlangan variant (bir marta tanlanadi,
-  // rerenderda o'zgarmaydi; C variantida overlay'da uchadi, tugmada add-ok qoladi)
-  const [anim, setAnim] = useState<{ v: 'a' | 'b' | 'c'; k: number } | null>(null)
+  // anim: yagona chapdan-o'ngga savat yo'nalishi (addAnim.ts) — faqat muvaffaqiyatli
+  // qo'shishda o'ynaydi, rerenderda o'zgarmaydi; tez bosishlarda birlashtiriladi
+  const [anim, setAnim] = useState<number | null>(null)
   const animTimer = useRef<number | null>(null)
   useEffect(() => () => { if (animTimer.current) window.clearTimeout(animTimer.current) }, [])
   useEffect(() => { setQ(1); busyRef.current = false; setBusy(false); setAnim(null) }, [p?.id])
@@ -1207,11 +1210,11 @@ function useProductModal(p: Product | null) {
     if (!p || busyRef.current) return
     busyRef.current = true
     setBusy(true); add(p.id, q); haptic('medium')
-    const res = beginAddToCartAnim(el, !!sale)
+    const res = beginAddToCartAnim(el)
     if (res) {
-      setAnim(res.kind === 'flight' ? { v: 'c', k: res.k } : { v: res.v, k: res.k })
+      setAnim(res.k)
       if (animTimer.current) window.clearTimeout(animTimer.current)
-      animTimer.current = window.setTimeout(() => setAnim(null), 900)
+      animTimer.current = window.setTimeout(() => setAnim(null), 850)
     }
     window.setTimeout(() => { busyRef.current = false; setBusy(false) }, 350)
   }
@@ -1404,9 +1407,9 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
                   onInc={() => { m.setQ(v => v + 1); haptic() }}
                   onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }} />
                 <button onClick={e => m.addToCart(e.currentTarget)} disabled={m.busy}
-                  className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] hover:brightness-110 active:scale-[.98] transition-all cursor-pointer disabled:opacity-60">
-                  {m.anim && m.anim.v !== 'c' && <AddAnimGlyph v={m.anim.v} k={m.anim.k} />}
-                  {m.t.addCart} · {fmt(p.price * m.q)} <span className="text-[11px] font-bold opacity-70">UZS</span>
+                  className={`press flex-1 relative overflow-hidden py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] hover:brightness-110 active:scale-[.98] transition-all cursor-pointer disabled:opacity-60 ${m.anim != null ? 'tk-add-active' : ''}`}>
+                  {m.anim != null && <CartJourney k={m.anim} />}
+                  <span className="tk-add-label">{m.t.addCart} · {fmt(p.price * m.q)} <span className="text-[11px] font-bold opacity-70">UZS</span></span>
                 </button>
               </div>
             </div>
@@ -1553,9 +1556,9 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
               onInc={() => { m.setQ(v => v + 1); haptic() }}
               onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }} />
             <button onClick={e => m.addToCart(e.currentTarget)} disabled={m.busy}
-              className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform disabled:opacity-60">
-              {m.anim && m.anim.v !== 'c' && <AddAnimGlyph v={m.anim.v} k={m.anim.k} />}
-              {m.t.addCart} · {fmt(p.price * m.q)} <span className="text-[11px] font-bold opacity-70">UZS</span>
+              className={`press flex-1 relative overflow-hidden py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform disabled:opacity-60 ${m.anim != null ? 'tk-add-active' : ''}`}>
+              {m.anim != null && <CartJourney k={m.anim} />}
+              <span className="tk-add-label">{m.t.addCart} · {fmt(p.price * m.q)} <span className="text-[11px] font-bold opacity-70">UZS</span></span>
             </button>
           </div>
         </div>
@@ -1565,24 +1568,23 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   )
 }
 
-/* ---------- savatga qo'shish animatsiyasi: A — savat ikonkasining ichki
-   harakati va tasdiq belgisi, B — neytral quti savatga tushadi, C — uchish
-   (overlayda, addAnim.ts). Ikkala glyph ham loyihaning IcBag/IcCheck
-   ikonkalari, o'lchovi, uy easing'i va currentColor ranglarida — chegirmali
-   mahsulotning orange tugmasida ham ikkala temada o'qiladi. ---------- */
-export function AddAnimGlyph({ v, k }: { v: 'a' | 'b' | 'c'; k: number }) {
-  if (v === 'c') return <span key={k} className="add-ok grid place-items-center"><IcCheck s={17} /></span>
-  if (v === 'b') return (
-    <span key={k} aria-hidden="true" className="relative grid place-items-center">
-      <span className="tk-b-item" />
-      <span className="tk-b-bag"><IcBag s={17} /></span>
-      <span className="tk-b-check"><IcCheck s={17} /></span>
-    </span>
-  )
+/* ---------- savatga qo'shish: yagona chapdan-o'ngga savat yo'nalishi.
+   Tugma ichida (overflow-hidden), ikonka loyihaning IcBag svg'si, rangi
+   currentColor — chegirmali (orange) tugmada ham ikkala temada o'qiladi.
+   Masofa --tk-jw orqali real tugma kengligiga moslanadi (LayoutAssets yo'q:
+   bitta o'lchov, transform harakati). ---------- */
+export function CartJourney({ k }: { k: number }) {
+  const ref = useRef<HTMLSpanElement | null>(null)
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const btn = el.parentElement as HTMLElement | null
+    const w = btn ? Math.max(0, btn.clientWidth - 8) : 0
+    el.style.setProperty('--tk-jw', `${w}px`)
+  }, [])
   return (
-    <span key={k} aria-hidden="true" className="relative grid place-items-center">
-      <span className="tk-a-bag"><IcBag s={17} /></span>
-      <span className="tk-a-check"><IcCheck s={17} /></span>
+    <span key={k} ref={ref} aria-hidden="true" className="tk-journey">
+      <span className="tk-j-cart"><IcBag s={18} /></span>
     </span>
   )
 }

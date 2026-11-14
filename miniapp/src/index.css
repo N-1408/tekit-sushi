@@ -90,27 +90,21 @@ input, textarea, select { font-size: 16px !important; }
 .cart-beat { animation: cartBeat .45s cubic-bezier(.32,.72,0,1); }
 @keyframes addOk { 0% { transform: scale(.85); opacity: .5 } 60% { transform: scale(1.06) } 100% { transform: scale(1); opacity: 1 } }
 .add-ok { animation: addOk .3s cubic-bezier(.32,.72,0,1); }
-/* ---------- savatga qo'shish animatsiyasi: uch variant, yagona vizual til.
-   Ikonka oilasi (IcBag/IcCheck), o'lchov, uy easing'i va currentColor ranglari
-   umumiy — chegirmali mahsulotning orange tugmasida ham ikkala temada o'qiladi. ---------- */
-@keyframes tkBagWiggle { 0% { transform: none } 30% { transform: translateY(-3px) rotate(-12deg) } 60% { transform: translateY(0) rotate(7deg) } 100% { transform: none } }
-.tk-a-bag { display: grid; place-items: center; animation: tkBagWiggle .55s cubic-bezier(.32,.72,0,1) both; }
-.tk-a-check, .tk-b-check { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; }
-@keyframes tkCheckIn { from { opacity: 0; transform: scale(.6) } to { opacity: 1; transform: none } }
-.tk-a-check { animation: tkCheckIn .26s cubic-bezier(.32,.72,0,1) .42s both; }
-@keyframes tkDrop { 0% { transform: translateY(-13px) scale(.55); opacity: 0 } 18% { opacity: 1; transform: translateY(-10px) scale(.9) } 62% { transform: translateY(1px) scale(1); opacity: 1 } 78% { transform: translateY(-2px) } 100% { transform: translateY(0) scale(1); opacity: 0 } }
-.tk-b-item { position: absolute; left: 50%; top: 50%; width: 7px; height: 7px; margin: -3.5px 0 0 -3.5px; border-radius: 2.5px; background: currentColor; opacity: 0; animation: tkDrop .62s cubic-bezier(.3,.6,.35,1.1) both; }
-@keyframes tkCatch { 0% { transform: none } 45% { transform: translateY(1.5px) scale(1.14) } 100% { transform: none } }
-.tk-b-bag { display: grid; place-items: center; animation: tkCatch .5s cubic-bezier(.32,.72,0,1) .34s both; }
-.tk-b-check { animation: tkCheckIn .24s cubic-bezier(.32,.72,0,1) .5s both; }
-
-/* C varianti: uchuvchi buyum sahifa ustida, pointer-events yo'q, o'zi tozalanadi */
-.tk-fly-item { position: fixed; z-index: 70; width: 22px; height: 22px; border-radius: 50%; background: var(--btn); color: #fff; display: grid; place-items: center; pointer-events: none; box-shadow: 0 6px 16px -6px rgba(10,33,148,.55); will-change: transform; }
-.tk-fly-item.tk-sale { background: var(--promo-deep); }
-.tk-fly-item svg { width: 12px; height: 12px; }
-@keyframes tkFlyPing { 0% { transform: scale(.6); opacity: .55 } 100% { transform: scale(2); opacity: 0 } }
-.tk-fly-ping { position: fixed; z-index: 69; width: 22px; height: 22px; margin: -11px 0 0 -11px; border-radius: 50%; border: 2px solid var(--btn); pointer-events: none; animation: tkFlyPing .45s cubic-bezier(.32,.72,0,1) both; }
-.tk-fly-ping.tk-sale { border-color: var(--promo-deep); }
+/* ---------- savatga qo'shish: yagona chapdan-o'ngga savat yo'nalishi.
+   Tugma ichida (overflow-hidden), ikonka IcBag + currentColor — chegirmali
+   (orange) tugmada ham ikkala temada o'qiladi. Masofa --tk-jw (real tugma
+   kengligi) orqali; transform asosida, layout siljishi yo'q. Yo'nalish
+   davomida matn yashirinadi va yakunda qaytadi. ---------- */
+@keyframes tkJourney {
+  0%   { transform: translateX(calc(var(--tk-jw, 160px) / -2 - 20px)); opacity: 0; }
+  12%  { opacity: 1; }
+  86%  { opacity: 1; }
+  100% { transform: translateX(calc(var(--tk-jw, 160px) / 2 + 20px)); opacity: 0; }
+}
+.tk-journey { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.tk-j-cart { display: grid; place-items: center; animation: tkJourney .8s cubic-bezier(.42,.06,.32,1) both; will-change: transform; }
+@keyframes tkJourneyLabel { 0% { opacity: 1 } 10% { opacity: 0 } 88% { opacity: 0 } 100% { opacity: 1 } }
+.tk-add-active .tk-add-label { animation: tkJourneyLabel .8s cubic-bezier(.42,.06,.32,1) both; }
 
 /* xarita ochiq paytda suzuvchi tugmalar yashirinadi */
 body[data-map-open='1'] .floating-quick { display: none !important; }
@@ -139,7 +133,7 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .anim-sheet, .anim-modal, .anim-modal-out, .anim-fade, .anim-drawer, .anim-up, .anim-page, .anim-pop { animation: none !important; }
   .cart-beat, .add-ok { animation: none !important; }
-  .tk-a-bag, .tk-a-check, .tk-b-item, .tk-b-bag, .tk-b-check, .tk-fly-ping { animation: none !important; }
-  .tk-fly-item { display: none !important; }
+  .tk-j-cart { animation: none !important; }
+  .tk-add-active .tk-add-label { animation: none !important; }
   .press:active { transform: none; }
 }
