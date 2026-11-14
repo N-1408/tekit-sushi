@@ -1283,55 +1283,67 @@ export function ScrollTop() {
   )
 }
 
-/* ---------- bepul yetkazib berish progress popup ---------- */
-export function FreeDeliveryPopup() {
+/* ---------- bepul yetkazib berish: progressli tugma + modul (kgsushi uslubi) ---------- */
+export function GiftProgress() {
   const { cartSum, t, deliveryCfg } = useStore()
   const [open, setOpen] = useState(false)
-  const [sum, setSum] = useState(0)
-  const prev = useRef<number | null>(null)
-  const timer = useRef<number | null>(null)
-  useEffect(() => {
-    if (prev.current == null) { prev.current = cartSum; return }
-    if (cartSum > prev.current) {
-      setSum(cartSum); setOpen(true); haptic('medium')
-      if (timer.current) clearTimeout(timer.current)
-      timer.current = window.setTimeout(() => setOpen(false), 4200)
-    }
-    prev.current = cartSum
-  }, [cartSum])
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
-  if (!open) return null
+  const loc = useLocation()
+  if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
   const threshold = deliveryCfg?.threshold || 200000
-  const pct = Math.min(1, sum / threshold)
-  const left = Math.max(0, threshold - sum)
-  const R = 26, C = 2 * Math.PI * R
-  const close = () => { if (timer.current) clearTimeout(timer.current); setOpen(false) }
-  return createPortal(
-    <div className="fixed inset-0 z-[75] grid place-items-center px-6">
-      <div className="absolute inset-0 bg-black/45 anim-fade" onClick={close} />
-      <div className="relative anim-pop bg-[var(--sheet)] rounded-[26px] px-6 py-7 w-full max-w-[360px] text-center shadow-[0_30px_80px_rgba(0,0,0,.35)]">
-        <button onClick={close} className="press absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--panel)] grid place-items-center text-[var(--mut2)]"><IcX /></button>
-        <div className="relative w-16 h-16 mx-auto">
-          <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
-            <circle cx="32" cy="32" r={R} fill="none" stroke="var(--line2)" strokeWidth="5" />
-            <circle cx="32" cy="32" r={R} fill="none" stroke="#0A2194" strokeWidth="5" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} style={{ transition: 'stroke-dashoffset .6s cubic-bezier(.32,.72,0,1)' }} />
-          </svg>
-          <span className="absolute inset-0 grid place-items-center text-[#0A2194]"><IcTruck s={24} /></span>
+  const left = Math.max(0, threshold - cartSum)
+  const pct = Math.min(1, cartSum / threshold)
+  const done = left <= 0
+  const R = 23, C = 2 * Math.PI * R
+  const R2 = 26, C2 = 2 * Math.PI * R2
+  return (
+    <>
+      <div className="floating-quick fixed z-[45] lg:!bottom-8" style={{ bottom: 'calc(92px + var(--sab))', right: '84px' }}>
+        <div className="flex items-center group">
+          <div className="hidden lg:block max-w-0 opacity-0 group-hover:max-w-[240px] group-hover:opacity-100 transition-all duration-300 ease-[cubic-bezier(.32,.72,0,1)] overflow-hidden pointer-events-none">
+            <div className="ml-2.5 rounded-2xl bg-[var(--sheet)] border border-[var(--line2)] shadow-[0_14px_30px_-12px_rgba(0,0,0,.45)] px-4 py-2.5">
+              <div className="text-[13px] font-extrabold text-[var(--ink)] whitespace-nowrap">{done ? t.fdDone : t.fdLeft.replace('{x}', fmt(left))}</div>
+              <div className="text-[11px] font-semibold text-[var(--mut2)] whitespace-nowrap mt-0.5">{done ? t.fdDoneSub : t.fdTo}</div>
+            </div>
+          </div>
+          <button onClick={() => { haptic('light'); setOpen(true) }} aria-label="gift" className="relative w-[52px] h-[52px] grid place-items-center active:scale-95 transition-transform">
+            <svg width="52" height="52" viewBox="0 0 52 52" className="absolute inset-0 -rotate-90">
+              <circle cx="26" cy="26" r={R} fill="none" stroke="var(--line2)" strokeWidth="3" />
+              <circle cx="26" cy="26" r={R} fill="none" stroke="#29A8E0" strokeWidth="3" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} style={{ transition: 'stroke-dashoffset .5s cubic-bezier(.32,.72,0,1)' }} />
+            </svg>
+            <span className="w-[40px] h-[40px] rounded-full bg-[var(--sheet)] border border-[var(--line)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] transition-colors duration-300" style={{ color: done ? '#29A8E0' : 'var(--ink)' }}>
+              <IcTruck s={17} />
+            </span>
+          </button>
         </div>
-        {left > 0 ? (
-          <>
-            <div className="mt-3 text-[17px] font-extrabold text-[var(--ink)]">{t.fdLeft.replace('{x}', fmt(left))}</div>
-            <div className="mt-0.5 text-[12.5px] font-semibold text-[var(--mut2)]">{t.fdTo}</div>
-          </>
-        ) : (
-          <>
-            <div className="mt-3 text-[17px] font-extrabold text-[var(--ink)]">{t.fdDone}</div>
-            <div className="mt-0.5 text-[12.5px] font-semibold text-[var(--mut2)]">{t.fdDoneSub}</div>
-          </>
-        )}
-        <button onClick={close} className="press mt-4 w-full py-3 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[14px] font-extrabold">{t.cityOk}</button>
       </div>
-    </div>,
-    document.body
+      {open && createPortal(
+        <div className="fixed inset-0 z-[75] grid place-items-center px-6">
+          <div className="absolute inset-0 bg-black/45 anim-fade" onClick={() => setOpen(false)} />
+          <div className="relative anim-pop bg-[var(--sheet)] rounded-[26px] px-6 py-7 w-full max-w-[360px] text-center shadow-[0_30px_80px_rgba(0,0,0,.35)]">
+            <button onClick={() => setOpen(false)} className="press absolute top-3 right-3 w-8 h-8 rounded-full bg-[var(--panel)] grid place-items-center text-[var(--mut2)]"><IcX /></button>
+            <div className="relative w-16 h-16 mx-auto">
+              <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
+                <circle cx="32" cy="32" r={R2} fill="none" stroke="var(--line2)" strokeWidth="5" />
+                <circle cx="32" cy="32" r={R2} fill="none" stroke="#29A8E0" strokeWidth="5" strokeLinecap="round" strokeDasharray={C2} strokeDashoffset={C2 * (1 - pct)} style={{ transition: 'stroke-dashoffset .6s cubic-bezier(.32,.72,0,1)' }} />
+              </svg>
+              <span className="absolute inset-0 grid place-items-center text-[#29A8E0]"><IcTruck s={24} /></span>
+            </div>
+            {left > 0 ? (
+              <>
+                <div className="mt-3 text-[17px] font-extrabold text-[var(--ink)]">{t.fdLeft.replace('{x}', fmt(left))}</div>
+                <div className="mt-0.5 text-[12.5px] font-semibold text-[var(--mut2)]">{t.fdTo}</div>
+              </>
+            ) : (
+              <>
+                <div className="mt-3 text-[17px] font-extrabold text-[var(--ink)]">{t.fdDone}</div>
+                <div className="mt-0.5 text-[12.5px] font-semibold text-[var(--mut2)]">{t.fdDoneSub}</div>
+              </>
+            )}
+            <button onClick={() => setOpen(false)} className="press mt-4 w-full py-3 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[14px] font-extrabold">{t.cityOk}</button>
+          </div>
+        </div>,
+        document.body
+      )}
+    </>
   )
 }
