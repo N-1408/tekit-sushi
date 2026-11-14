@@ -132,7 +132,7 @@ export default function Checkout() {
       if (!r.ok) throw new Error()
       const j = await r.json()
       setDone({ oid: j.order_id })
-      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum: grand, mode, pay, addr: mode === 'delivery' ? addr : (pickup ? pickupSummary(t, pickup) : ''), name, phone: '+998' + phoneD })
+      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum: grand, mode, pay, addr: mode === 'delivery' ? addr : (pickup ? pickupSummary(t, pickup) : ''), name, phone: '+998' + phoneD, branch: mode === 'pickup' && pickup ? pickup.branch : null, when: mode === 'pickup' && pickup ? `${pickup.date} ${pickup.time}` : null })
       clearCart()
       setTimeout(refreshOrders, 2500)
       saveUser({ name: name.trim() || user?.name || '', phone: phoneD.length === 9 ? '+998' + phoneD : (user?.phone || ''), addr: mode === 'delivery' && addr.trim() ? addr.trim() : (user?.addr ?? '') })

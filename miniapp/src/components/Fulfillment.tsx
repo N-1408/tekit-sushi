@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import Modal from './Modal'
-import { useStore, type PickupSel } from '../lib/store'
+import { useStore, type PickupSel, type MyOrder } from '../lib/store'
 import { requestLocation, haptic } from '../lib/tg'
 import MapPicker from './MapPicker'
 import { IcLocate, IcPin, IcCheck, IcStore, IcChevR, IcTruck } from './ui'
@@ -46,6 +46,38 @@ function addDaysYmd(ymd: string, n: number): string {
 const dowOf = (ymd: string): number => {
   const [y, m, d] = ymd.split('-').map(Number)
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay()
+}
+
+/* ===== Yuborilgan OLIB KETISH buyurtmalari (haqiqiy ma'lumot) =====
+   Yig'ib olish kutilayotgan holat: status yakunlanmagan (done/cancelled emas). */
+export function activePickupOrders(list: MyOrder[]): MyOrder[] {
+  return list
+    .filter(o => o.mode === 'pickup' && !['done', 'cancelled'].includes(o.status))
+    .sort((a, b) => String(a.when || '9999').localeCompare(String(b.when || '9999')) || b.oid - a.oid)
+}
+
+/* 'YYYY-MM-DD HH:MM' → 'Bugun, 18:30' / 'Ertaga, 12:00' / 'Ju · 21.11, 18:30'. Bo'sh bo'lsa ''. */
+export function pickupWhenText(t: any, when?: string | null): string {
+  const m = String(when || '').trim().match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2})/)
+  if (!m) return ''
+  const today = ymdOf(new Date())
+  let day: string
+  if (m[1] === today) day = t.pickToday
+  else if (m[1] === addDaysYmd(today, 1)) day = t.pickTomorrow
+  else {
+    const [, mo, dd] = m[1].split('-')
+    day = `${(t as any)['dow' + dowOf(m[1])]} · ${dd}.${mo}`
+  }
+  return `${day}, ${m[2]}`
+}
+
+/* Header chip xulosasi: '#1234 · Nukus ko'cha · Bugun, 18:30' */
+export function pickupOrderLine(t: any, o: MyOrder): string {
+  const parts = [`#${o.oid}`]
+  if (o.branch) parts.push(o.branch)
+  const w = pickupWhenText(t, o.when)
+  if (w) parts.push(w)
+  return parts.join(' · ')
 }
 
 /* Header/Cart/Checkout uchun qisqa xulosa: "Sampi filiali · Bugun · 18:30".

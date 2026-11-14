@@ -1,6 +1,6 @@
 import React from 'react'
 import { useStore, pName, CATS, type Product } from '../lib/store'
-import { Header, SearchChips, CityBanner, HeroSlider, InfoTiles, ProductCard } from '../components/ui'
+import { Header, SearchChips, CityBanner, HeroSlider, ProductCard } from '../components/ui'
 
 function Section({ title, items }: { title: string; items: Product[] }) {
   if (!items.length) return null
@@ -46,7 +46,6 @@ export default function Home() {
         ) : (
           <>
             <HeroSlider />
-            <InfoTiles />
             <Section title={t.aSaleHome} items={sales} />
             <Section title={t.hit} items={hits} />
             {CATS.map(c => {

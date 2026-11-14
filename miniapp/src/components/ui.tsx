@@ -7,7 +7,7 @@ import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode } from '../lib/tg'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import MapPicker from './MapPicker'
-import { DeliveryModal, PickupModal, InitialChoiceModal, pickupSummary } from './Fulfillment'
+import { DeliveryModal, PickupModal, InitialChoiceModal, pickupSummary, activePickupOrders, pickupOrderLine } from './Fulfillment'
 
 const CDN = 'https://cdn.delever.uz/delever/'
 
@@ -431,17 +431,18 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
 
 /* ---------- bosh sahifa headeri ---------- */
 export function Header() {
-  const { t, mode, user, ob, navOpen, setNavOpen, pickup } = useStore()
+  const { t, mode, user, ob, navOpen, setNavOpen, pickup, myOrders } = useStore()
   const nav = useNavigate()
   const [drawer, setDrawer] = useState(false)
   const [delOpen, setDelOpen] = useState(false)
   const [pickOpen, setPickOpen] = useState(false)
   const [askState, setAskState] = useState(() => {
-    try { return !sessionStorage.getItem('tk-ff-ask') } catch { return true }
+    try { return !localStorage.getItem('tk-onboarded') } catch { return true }
   })
   const isDesktop = useIsDesktop()
-  // birinchi tanlov: tasdiqlangan rejim yo'q va bu sessiyada so'ralmagan bo'lsa
-  const askOpen = askState && !mode && !!user && !ob
+  const pickAct = activePickupOrders(myOrders)
+  // birinchi tashrif: bayroq yo'q bo'lsa bir marta so'raladi; yopilsa ham yoziladi
+  const askOpen = askState && !!user && !ob
   const burgerRef = useRef<HTMLButtonElement>(null)
   const openNav = () => {
     haptic()
@@ -480,6 +481,13 @@ export function Header() {
                 </button>
               ))}
             </div>
+            {pickAct.length > 0 && (
+              <button onClick={() => nav('/orders')} title={t.tabOrders}
+                className="press focus-ring self-start mt-1 ml-2 max-w-[420px] flex items-center gap-1.5 bg-[var(--soft)] border border-[var(--line2)] rounded-full px-3 py-1.5 text-[12.5px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] active:scale-[.98] transition-transform">
+                {pickAct.length > 1 && <span className="shrink-0 text-[var(--mut2)] font-extrabold">{pickAct.length}×</span>}
+                <span className="truncate">{pickupOrderLine(t, pickAct[0])}</span>
+              </button>
+            )}
             {mode === 'pickup' && pickup && (
               <div className="text-[12.5px] font-semibold text-[var(--mut2)] leading-tight mt-1 ml-2 truncate max-w-[280px]">{pickupSummary(t, pickup)}</div>
             )}
@@ -490,6 +498,16 @@ export function Header() {
           </button>
           <ThemeToggle />
         </div>
+        {pickAct.length > 0 && (
+          <div className="lg:hidden px-4 pb-2">
+            <button onClick={() => nav('/orders')} title={t.tabOrders}
+              className="press focus-ring flex items-center gap-1.5 max-w-full bg-[var(--soft)] border border-[var(--line2)] rounded-full px-3 py-1.5 text-[12px] font-bold text-[var(--ink2)] active:scale-[.98] transition-transform">
+              <span className="shrink-0 text-[var(--ink2)]"><IcStore s={13} /></span>
+              {pickAct.length > 1 && <span className="shrink-0 text-[var(--mut2)] font-extrabold">{pickAct.length}×</span>}
+              <span className="truncate">{pickupOrderLine(t, pickAct[0])}</span>
+            </button>
+          </div>
+        )}
       </header>
       <Drawer open={drawer && !isDesktop} onClose={() => { setDrawer(false); burgerRef.current?.focus() }} />
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} />
@@ -497,7 +515,7 @@ export function Header() {
       {askOpen && (
         <InitialChoiceModal
           open
-          onClose={() => { try { sessionStorage.setItem('tk-ff-ask', '1') } catch {} setAskState(false) }}
+          onClose={() => { try { localStorage.setItem('tk-onboarded', '1') } catch {} setAskState(false) }}
         />
       )}
     </>
@@ -704,8 +722,8 @@ export function HeroSlider() {
   const dot = ((i - 1) % n + n) % n
 
   return (
-    <div className="mt-3 lg:mt-5 select-none">
-      <div ref={wrapRef} className="relative h-[196px] lg:h-[250px] overflow-hidden rounded-[20px] bg-[var(--sheet)]">
+    <div className="mt-3 lg:mt-5 lg:w-[84%] lg:max-w-[1040px] lg:mx-auto select-none">
+      <div ref={wrapRef} className="relative h-[196px] lg:h-[220px] overflow-hidden rounded-[20px] bg-[var(--sheet)]">
         {w > 0 && (
         <div
           onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
@@ -739,29 +757,6 @@ export function HeroSlider() {
         ))}
       </div>
       )}
-    </div>
-  )
-}
-
-/* ---------- informer kartochkalar ---------- */
-export function InfoTiles() {
-  const { t } = useStore()
-  const tiles = [
-    { icon: <IcClock />, title: t.freeDelivery, sub: `${t.city} · ${t.dpTimeVal}`, cls: 'bg-[var(--panel)] text-[var(--ink)]', iconCls: 'bg-[#29A8E0]/15 text-[#29A8E0]' },
-    { icon: <IcTag />, title: 'TEKIT10', sub: t.promoTileSub, cls: 'bg-[var(--panel)] text-[var(--ink)]', iconCls: 'bg-[#29A8E0]/15 text-[#29A8E0]' },
-    { icon: <IcCash />, title: t.cash, sub: t.dpSoon, cls: 'bg-[var(--panel)] text-[var(--ink)]', iconCls: 'bg-[#29A8E0]/15 text-[#29A8E0]' },
-  ]
-  return (
-    <div className="px-4 lg:px-0 mt-3 lg:mt-5 flex gap-2.5 overflow-x-auto no-scrollbar snap-x lg:grid lg:grid-cols-3 lg:overflow-visible">
-      {tiles.map((x, k) => (
-        <div key={k} className={`shrink-0 w-[290px] lg:w-auto snap-start rounded-[20px] px-4 py-4 flex items-center gap-3.5 ${x.cls}`}>
-          <span className={`w-11 h-11 rounded-xl grid place-items-center shrink-0 ${x.iconCls}`}>{x.icon}</span>
-          <div className="min-w-0">
-            <div className="text-[15.5px] font-extrabold leading-tight">{x.title}</div>
-            <div className="text-[13px] font-medium opacity-80 leading-snug mt-0.5">{x.sub}</div>
-          </div>
-        </div>
-      ))}
     </div>
   )
 }

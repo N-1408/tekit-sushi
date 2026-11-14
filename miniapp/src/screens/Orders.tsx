@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, type MyOrder } from '../lib/store'
 import { fmt } from '../lib/money'
 import { TopBar, Empty, BigButton } from '../components/ui'
+import { pickupWhenText } from '../components/Fulfillment'
 
 const ACTIVE = ['new', 'confirmed', 'cooking', 'delivering']
 const ARCHIVE = ['done', 'cancelled']
@@ -85,6 +86,11 @@ export default function Orders() {
           </span>
           <span className="text-[11px] font-semibold text-[var(--mut2)]">{o.mode === 'delivery' ? t.deliveryMode : t.pickup} · {o.pay === 'cash' ? t.cash : t.cardTransfer}</span>
         </div>
+        {o.mode === 'pickup' && (o.branch || pickupWhenText(t, o.when)) && (
+          <div className="mt-1 text-[12px] font-semibold text-[var(--mut2)]">
+            {[o.branch, pickupWhenText(t, o.when)].filter(Boolean).join(' · ')}
+          </div>
+        )}
         <Stepper o={o} t={t} />
         <div className="mt-3.5 flex flex-wrap gap-1.5">
           {shown.map(it => (

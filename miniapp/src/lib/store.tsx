@@ -47,6 +47,7 @@ export type OrderItem = { id: string; slug: string; title: string; q: number; pr
 export type MyOrder = {
   oid: number; at: string; status: string; items: OrderItem[]
   sum: number; mode: string; pay: string; addr: string; name: string; phone: string
+  branch?: string | null; when?: string | null  // olib ketish: filial + 'YYYY-MM-DD HH:MM'
 }
 
 export type User = { tg_id?: number; name: string; phone: string; addr: string; lat?: number; lon?: number }
@@ -129,14 +130,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     onSystemThemeChange(onSys)
   }, [])
+  /* Yangi tashrif: tanlov nolga teng — saqlangan afzallik yoki eski
+     buyurtma hech qachon tugmani avtomatik yondirmaydi (so'rov bo'yicha).
+     Dastlabki tanlov dialogi faqat birinchi tashrifda so'raladi
+     ('tk-onboarded' bayrog'i) va tanlov faqat shu sessiya uchun yashaydi. */
   const [mode, setModeS] = useState<'delivery' | 'pickup' | null>(() => {
-    try {
-      const v = localStorage.getItem('tk-ff')
-      if (v === 'delivery' || v === 'pickup') return v
-      /* eski kalit 'tk-mode' standart sifatida avtomatik yozilgan edi
-         ('delivery' fallback), shuning uchun u tasdiqlangan tanlov emas — o'chiriladi */
-      localStorage.removeItem('tk-mode')
-    } catch {}
+    try { localStorage.removeItem('tk-mode'); localStorage.removeItem('tk-ff') } catch {}
     return null
   })
   const [pickup, setPickupS] = useState<PickupSel | null>(() => {
@@ -160,7 +159,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setLang = useCallback((l: Lang) => setLangS(l), [])
   const setPickup = useCallback((p: PickupSel | null) => { setPickupS(p); try { if (p) localStorage.setItem('tk-pickup', JSON.stringify(p)); else localStorage.removeItem('tk-pickup') } catch {} }, [])
   const setNavOpen = useCallback((v: boolean) => setNavOpenS(v), [])
-  const setMode = useCallback((m: 'delivery' | 'pickup') => { setModeS(m); try { localStorage.setItem('tk-ff', m) } catch {} }, [])
+  const setMode = useCallback((m: 'delivery' | 'pickup') => { setModeS(m) }, [])
   const add = useCallback((id: string, q = 1) => setCartMap(c => ({ ...c, [id]: (c[id] || 0) + q })), [])
   const setQty = useCallback((id: string, q: number) => setCartMap(c => {
     const copy = { ...c }
@@ -183,6 +182,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         items: typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []),
         sum: Number(o.total) || 0, mode: o.delivery_type || 'delivery', pay: o.payment || 'cash',
         addr: o.address || '', name: o.name || '', phone: o.phone || '',
+        branch: o.branch || null, when: o.delivery_time || null,
       }))
       setMyOrders(prev => {
         const ids = new Set(mapped.map(x => x.oid))
