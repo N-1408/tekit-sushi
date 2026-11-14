@@ -85,13 +85,17 @@ export type Store = {
   setMode: (m: 'delivery' | 'pickup') => void
   pickup: PickupSel | null
   setPickup: (p: PickupSel | null) => void
-  navOpen: boolean
-  setNavOpen: (v: boolean) => void
   deliveryCfg: { fee: number; threshold: number }
 }
 
 const Ctx = createContext<Store>(null as any)
 export const useStore = () => useContext(Ctx)
+
+/* Sidebar holati alohida kontekstda: uning o'zgarishi faqat burger/sidebar/brend
+   bilan bog'liq UI ni qayta render qiladi; menyudagi yuzlab kartochka tegmaydi. */
+export type NavState = { navOpen: boolean; setNavOpen: (v: boolean) => void }
+const NavCtx = createContext<NavState>(null as any)
+export const useNav = () => useContext(NavCtx)
 
 const load = <T,>(k: string, d: T): T => { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d } catch { return d } }
 
@@ -219,8 +223,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .filter(Boolean) as CartLine[]
     const count = lines.reduce((s, l) => s + l.q, 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, navOpen, setNavOpen, deliveryCfg }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, navOpen, setNavOpen, deliveryCfg])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg])
 
-  return <Ctx.Provider value={value}>{children}</Ctx.Provider>
+  const navValue = useMemo<NavState>(() => ({ navOpen, setNavOpen }), [navOpen, setNavOpen])
+  return (
+    <Ctx.Provider value={value}>
+      <NavCtx.Provider value={navValue}>{children}</NavCtx.Provider>
+    </Ctx.Provider>
+  )
 }

@@ -141,11 +141,26 @@ export default function Home() {
 
   return (
     <div className="pb-28 lg:pb-12">
-      <div className="relative z-[31] bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
+      {/* sarlavha aylanadi; sticky blok uning OSTIDA — ko'tarilganda sticky blok
+          ustidan o'tadi (z-20 < z-30), vaqtinchalik ustma-ust tushish bo'lmaydi */}
+      <div className="relative z-20 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
         <Header />
       </div>
-      <div ref={navRef} className="sticky top-0 z-30 bg-[var(--bg)]"
-        style={{ paddingTop: 'calc(6px + var(--sat))', marginTop: 'calc(-6px - var(--sat))' }}>
+      {/* sticky blok: mobil brend qatori + burger/qidiruv/kategoriyalar birgalikda
+          qoladi. navRef butun blokni o'lchaydi, shuning uchun kategoriya bosilganda
+          va faol bo'lim kuzatilganda ofset brend + qator balandligini o'z ichiga oladi. */}
+      <div ref={navRef} className="sticky top-0 z-30 bg-[var(--bg)]">
+        <div className="lg:hidden" style={{ paddingTop: 'calc(6px + var(--sat))', marginTop: 'calc(-6px - var(--sat))' }}>
+          <div className="max-w-[1240px] mx-auto px-4 pb-1 flex items-center justify-center">
+            <button onClick={() => {
+              const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+              window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+            }} aria-label="Tekit Sushi" className="press flex items-center gap-2 active:opacity-80">
+              <img src="/logo.png" alt="" className="w-8 h-8 rounded-[10px] shrink-0" />
+              <span className="text-[14px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+            </button>
+          </div>
+        </div>
         <CatalogNav q={q} setQ={setQ} chips={chips} active={searching ? null : active} onSelect={onSelect} />
       </div>
       <div className="lg:max-w-[1240px] lg:mx-auto">
