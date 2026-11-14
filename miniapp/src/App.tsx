@@ -15,7 +15,7 @@ import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
-import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, FloatingBonus, SideNav } from './components/ui'
+import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, SideNav } from './components/ui'
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 
@@ -56,7 +56,15 @@ export default function App() {
         </div>
       </div>
       {!isAdmin && (!user || ob) && <Onboarding />}
-      {!isAdmin && <><TabBar /><FloatingBonus /><FloatingCart /><ScrollTop /><GiftProgress /></>}
+      {!isAdmin && <>
+        <TabBar />
+        {/* uchala suzuvchi boshqaruv bitta qatorda, o'lchamlari bir xil */}
+        <div className="floating-row">
+          <ScrollTop />
+          <GiftProgress />
+          <FloatingCart />
+        </div>
+      </>}
       {!isAdmin && <ProductSheet />}
       {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-1/2 z-[60] bg-navy text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
     </>

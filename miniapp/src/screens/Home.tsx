@@ -9,9 +9,8 @@ function Section({ id, title, items }: { id?: string; title: string; items: Prod
   const list = items
   return (
     <section id={id} className="mt-7">
-      <div className="flex items-center justify-between px-4 lg:px-6 mb-3">
+      <div className="px-4 lg:px-6 mb-3">
         <h2 className="text-[26px] lg:text-[34px] font-extrabold tracking-tight">{title}</h2>
-        <span className="text-[11px] font-extrabold text-[var(--mut2)]">{items.length}</span>
       </div>
       <div className="px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7">
         {list.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}

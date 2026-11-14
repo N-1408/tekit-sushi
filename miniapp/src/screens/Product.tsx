@@ -7,7 +7,7 @@ import {  TopBar, Qty, IcScale, IcSauce , IcHeart } from '../components/ui'
 
 export default function Product() {
   const { id } = useParams()
-  const { products, lang, t, add, setQty, cart, favs, toggleFav, showToast } = useStore()
+  const { products, lang, t, add, setQty, cart, favs, toggleFav } = useStore()
   const nav = useNavigate()
   const p = products.find(x => x.id === id)
   const [q, setQ] = React.useState(1)
@@ -89,7 +89,7 @@ export default function Product() {
                         <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
                       </div>
                     )}
-                    <button onClick={() => { if (sq > 0) { setQty(s.id, sq + 1); haptic() } else { add(s.id, 1); haptic('light'); showToast(t.added) } }}
+                    <button onClick={() => { if (sq > 0) { setQty(s.id, sq + 1); haptic() } else { add(s.id, 1); haptic('light') } }}
                       className="press w-7 h-7 rounded-full bg-navy text-white text-[15px] font-extrabold grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">+</button>
                   </div>
                 )
@@ -104,7 +104,7 @@ export default function Product() {
         style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
         <div className="flex gap-2.5 items-center lg:max-w-[1240px] lg:mx-auto">
           <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
-          <button onClick={() => { add(p.id, q); haptic('medium'); showToast(t.added); nav(-1) }}
+          <button onClick={() => { add(p.id, q); haptic('medium'); nav(-1) }}
             className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform">
             {t.addCart} · {fmt(p.price * q)}
           </button>

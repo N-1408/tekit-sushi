@@ -69,6 +69,18 @@ input, textarea, select { font-size: 16px !important; }
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
 .anim-fade { animation: fadeIn .25s ease-out both; }
 
+/* suzuvchi boshqaruvlar: yagona o'lchov tokeni va bitta qator */
+:root { --float-size: 56px; --sale-ink: #C0361F; --sale-soft: rgba(245, 73, 61, .10); }
+[data-theme='dark'] { --sale-ink: #FF9D57; --sale-soft: rgba(255, 138, 60, .14); }
+.floating-row { position: fixed; right: 16px; bottom: calc(92px + var(--sab)); z-index: 45; display: flex; align-items: center; gap: 12px; }
+@media (min-width: 1024px) { .floating-row { right: 24px; bottom: 32px; } }
+
+/* savatga qo'shish tasdigi: ikonka urishi va tugma belgisi */
+@keyframes cartBeat { 0% { transform: scale(1) } 35% { transform: scale(1.16) } 100% { transform: scale(1) } }
+.cart-beat { animation: cartBeat .45s cubic-bezier(.32,.72,0,1); }
+@keyframes addOk { 0% { transform: scale(.85); opacity: .5 } 60% { transform: scale(1.06) } 100% { transform: scale(1); opacity: 1 } }
+.add-ok { animation: addOk .3s cubic-bezier(.32,.72,0,1); }
+
 /* xarita ochiq paytda suzuvchi tugmalar yashirinadi */
 body[data-map-open='1'] .floating-quick { display: none !important; }
 
@@ -95,5 +107,6 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
 /* harakatni kamaytirishni hurmat qilish */
 @media (prefers-reduced-motion: reduce) {
   .anim-sheet, .anim-modal, .anim-modal-out, .anim-fade, .anim-drawer, .anim-up, .anim-page, .anim-pop { animation: none !important; }
+  .cart-beat, .add-ok { animation: none !important; }
   .press:active { transform: none; }
 }

@@ -48,7 +48,7 @@ export default function Cart() {
                   <button onClick={() => { setQty(l.id, 0); haptic('light') }} className="text-[var(--mut2)] active:text-red-500 p-1">
                     <IcX s={15} />
                   </button>
-                  <Qty small q={l.q} onInc={() => { setQty(l.id, l.q + 1); haptic() }} onDec={() => { setQty(l.id, l.q - 1); haptic() }} />
+                  <Qty small min={0} q={l.q} onInc={() => { setQty(l.id, l.q + 1); haptic() }} onDec={() => { setQty(l.id, l.q - 1); haptic() }} />
                 </div>
               </div>
             ))}

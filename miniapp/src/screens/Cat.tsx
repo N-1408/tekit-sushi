@@ -1,7 +1,7 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { useStore, pName, CATS } from '../lib/store'
-import { TopBar, SearchChips, ProductCard, Empty } from '../components/ui'
+import { TopBar, SearchChips, ProductCard, Empty, MenuToggle } from '../components/ui'
 
 export default function Cat() {
   const { cat = '' } = useParams()

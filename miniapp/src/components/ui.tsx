@@ -447,39 +447,44 @@ export function Header() {
   return (
     <>
       <header className="tk-fade relative z-[31] bg-[var(--bg)] text-[var(--ink)]">
-        <div className="max-w-[1240px] mx-auto flex items-center gap-1 px-3 min-[400px]:gap-1.5 min-[400px]:px-4 lg:px-6 py-2">
-          <button onClick={() => nav('/')} aria-label="Tekit Sushi"
-            aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
-            className={`press flex items-center gap-2 min-w-0 overflow-hidden whitespace-nowrap motion-safe:transition-[opacity,max-width] motion-safe:duration-300 motion-safe:ease-out ${hideBrand ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[200px] active:opacity-80'}`}>
-            <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px] shrink-0" />
-            <span className="text-[13px] min-[400px]:text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
-          </button>
-          {/* mobil: ixcham ikonkali yetkazish/olib-ketish tugmalari */}
-          <div className="flex lg:hidden items-center gap-1 ml-0.5">
-            {(['delivery', 'pickup'] as const).map(m => (
-              <button key={m} aria-haspopup="dialog" aria-label={m === 'delivery' ? t.deliveryMode : t.pickup}
-                onClick={() => { haptic('light'); if (m === 'delivery') setDelOpen(true); else setPickOpen(true) }}
-                className={`press w-9 h-9 rounded-full grid place-items-center shrink-0 transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
-                {m === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
-              </button>
-            ))}
-          </div>
-          <div className="hidden lg:flex flex-col ml-3 min-w-0">
-            <div className="flex items-center gap-1.5">
+        {/* Uch zonali muvozanat: chap brend klasteri, markazda yetkazish/olib-ketish,
+            o'ngda profil + tema. lg+ da grid bir xil kenglikdagi yon ustunlar bilan
+            markaziy zonani haqiqiy markazda ushlab turadi; sidebar ochilganda
+            konteyner mavjud kenglik ichida qayta markazlashadi. */}
+        <div className="max-w-[1240px] mx-auto flex items-center justify-between px-4 lg:px-6 py-2 lg:grid lg:grid-cols-[1fr_auto_1fr]">
+          <div className="flex items-center gap-1 min-[400px]:gap-1.5 min-w-0 lg:justify-self-start">
+            <button onClick={() => nav('/')} aria-label="Tekit Sushi"
+              aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
+              className={`press flex items-center gap-2 min-w-0 overflow-hidden whitespace-nowrap motion-safe:transition-[opacity,max-width] motion-safe:duration-300 motion-safe:ease-out ${hideBrand ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[200px] active:opacity-80'}`}>
+              <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px] shrink-0" />
+              <span className="text-[13px] min-[400px]:text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+            </button>
+            {/* mobil: ixcham ikonkali yetkazish/olib-ketish tugmalari */}
+            <div className="flex lg:hidden items-center gap-1 ml-0.5">
               {(['delivery', 'pickup'] as const).map(m => (
-                <button key={m} aria-haspopup="dialog"
+                <button key={m} aria-haspopup="dialog" aria-label={m === 'delivery' ? t.deliveryMode : t.pickup}
                   onClick={() => { haptic('light'); if (m === 'delivery') setDelOpen(true); else setPickOpen(true) }}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
-                  {m === 'delivery' ? <IcTruck s={15} /> : <IcStore s={15} />}{m === 'delivery' ? t.deliveryMode : t.pickup}
+                  className={`press w-9 h-9 rounded-full grid place-items-center shrink-0 transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
+                  {m === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
                 </button>
               ))}
             </div>
           </div>
-          <div className="flex-1" />
-          <button onClick={() => nav('/profile')} className="focus-ring hidden lg:flex items-center gap-2 px-3 py-2.5 text-[14px] font-bold active:opacity-80 transition-opacity rounded-lg">
-            <IcUser /> {user?.name ? user.name.split(' ')[0] : t.tabProfile}
-          </button>
-          <ThemeToggle />
+          <div className="hidden lg:flex items-center gap-1.5 lg:justify-self-center">
+            {(['delivery', 'pickup'] as const).map(m => (
+              <button key={m} aria-haspopup="dialog"
+                onClick={() => { haptic('light'); if (m === 'delivery') setDelOpen(true); else setPickOpen(true) }}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
+                {m === 'delivery' ? <IcTruck s={15} /> : <IcStore s={15} />}{m === 'delivery' ? t.deliveryMode : t.pickup}
+              </button>
+            ))}
+          </div>
+          <div className="flex items-center gap-1 lg:justify-self-end">
+            <button onClick={() => nav('/profile')} className="focus-ring hidden lg:flex items-center gap-2 px-3 py-2.5 text-[14px] font-bold active:opacity-80 transition-opacity rounded-lg">
+              <IcUser /> {user?.name ? user.name.split(' ')[0] : t.tabProfile}
+            </button>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
       <Drawer open={navOpen && !isDesktop} onClose={() => setNavOpen(false)} />
@@ -505,17 +510,15 @@ export function SideNav() {
   useEffect(() => {
     if (navOpen && (loc.pathname.startsWith('/p/') || loc.pathname.startsWith('/admin'))) setNavOpen(false)
   }, [loc.pathname, navOpen, setNavOpen])
-  useEffect(() => {
-    if (!navOpen) return
-    const on = (e: KeyboardEvent) => { if (e.key === 'Escape') closeNav() }
-    window.addEventListener('keydown', on)
-    return () => window.removeEventListener('keydown', on)
-  }, [navOpen, setNavOpen])
+  /* Mobil Drawer o'z Escape ishlovchisiga ega. Desktopda bu qolimli panel:
+     modal fokus-trapi yo'q, Escape uni yopmaydi — faqat X tugmasi. */
   const closeNav = () => {
     setNavOpen(false)
     requestAnimationFrame(() => { const el = document.getElementById('tk-menu-toggle'); if (el) el.focus() })
   }
-  const go = (to: string) => { haptic(); setNavOpen(false); nav(to) }
+  // Desktopda sidebar qolimli panel: kategoriya tanlash uni yopmaydi.
+  // Bu yerda avval har safar setNavOpen(false) chaqirilgani takroriy qaytishning asosiy sababi edi.
+  const go = (to: string) => { haptic(); nav(to) }
   return (
     <aside id="tk-sidenav" aria-label={t.menuT} aria-hidden={!navOpen}
       className={`hidden lg:flex flex-col shrink-0 overflow-hidden sticky top-0 self-start h-dvh z-[35] bg-[var(--bg2)] text-[var(--ink)]
@@ -578,12 +581,24 @@ export function SideNav() {
 export function CityBanner() {
   const { t } = useStore()
   const [ok, setOk] = useState(() => { try { return localStorage.getItem('tk-city-ok') === '1' } catch { return false } })
+  const wrapRef = useRef<HTMLDivElement | null>(null)
+  /* Banner tashqarisidagi bosish bilan yopiladi, lekin hech narsani bloklamaydi.
+     Avvalgi butun ekranli ko'rinmas qatlam (fixed inset-0 z-44) sticky qatordagi
+     hamburger va sahifa bosishlarini yutib qo'yardi — burger "isblemay qolardi". */
+  useEffect(() => {
+    if (ok) return
+    const fn = (e: PointerEvent) => {
+      if (wrapRef.current && wrapRef.current.contains(e.target as Node)) return
+      try { localStorage.setItem('tk-city-ok', '1') } catch {}
+      setOk(true)
+    }
+    window.addEventListener('pointerdown', fn)
+    return () => window.removeEventListener('pointerdown', fn)
+  }, [ok])
   if (ok) return null
-  const close = () => { try { localStorage.setItem('tk-city-ok', '1') } catch {}; setOk(true) }
   return (
     <>
-      <div className="fixed inset-0 z-[44]" onClick={close} />
-      <div className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(124px + var(--sat))' }}>
+      <div ref={wrapRef} className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(124px + var(--sat))' }}>
       <div className="flex items-center gap-3 bg-[var(--panel)] border border-[var(--line2)] rounded-2xl px-4 py-3 shadow-[0_18px_44px_-14px_rgba(0,0,0,.6)]">
         <span className="text-[#29A8E0] shrink-0"><IcPin /></span>
         <div className="flex-1 text-[14px] font-bold text-[var(--ink)] leading-snug">{t.cityNote}</div>
@@ -606,17 +621,21 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
     <div className="bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)]">
       <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
         {open ? (
-          <div className="relative">
-            <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
-              className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
-            <button onClick={() => { setOpen(false); setQ('') }} aria-label="close-search"
-              className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
-              <IcX s={14} />
-            </button>
+          <div className="flex items-center gap-1.5">
+            <MenuToggle />
+            <div className="relative flex-1 min-w-0">
+              <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
+                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
+              <button onClick={() => { setOpen(false); setQ('') }} aria-label="close-search"
+                className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
+                <IcX s={14} />
+              </button>
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-2">
+            <MenuToggle />
             <button onClick={() => setOpen(true)} aria-label={t.search}
               className="press focus-ring flex-1 min-w-0 flex items-center gap-2.5 h-[42px] px-4 rounded-full bg-[var(--soft)] text-[var(--mut2)] hover:text-[var(--ink2)] transition-colors text-left text-[15px] font-medium">
               <IcSearch s={17} />
@@ -629,6 +648,18 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
   )
 }
 
+/* ---------- hamburger: Home sticky qatorida va kategoriya sahifasi qidiruv qatorida ---------- */
+export function MenuToggle() {
+  const { t, navOpen, setNavOpen } = useStore()
+  return (
+    <button id="tk-menu-toggle" data-menu-toggle onClick={() => { haptic(); setNavOpen(!navOpen) }}
+      aria-label={t.menuT} aria-expanded={navOpen} aria-controls="tk-sidenav"
+      className="press focus-ring w-10 h-10 rounded-xl grid place-items-center shrink-0 text-[var(--ink2)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)] active:scale-95">
+      <IcBurger s={20} />
+    </button>
+  )
+}
+
 /* ---------- Bosh sahifa: ixcham qidiruv + kategoriya chiplari (sticky qator ichida) ---------- */
 export function CatalogNav({ q, setQ, chips, active, onSelect }: {
   q: string; setQ: (s: string) => void
@@ -636,19 +667,13 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
   active: string | null
   onSelect: (id: string) => void
 }) {
-  const { t, navOpen, setNavOpen } = useStore()
+  const { t } = useStore()
   const [open, setOpen] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
   const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const searching = open || q.trim().length > 0
   // burger sticky qatorning doimiy qismi: skroll holatidan qat'i nazar ko'rinadi
-  const burger = (
-    <button id="tk-menu-toggle" data-menu-toggle onClick={() => { haptic(); setNavOpen(!navOpen) }}
-      aria-label={t.menuT} aria-expanded={navOpen} aria-controls="tk-sidenav"
-      className="press focus-ring w-10 h-10 rounded-xl grid place-items-center shrink-0 text-[var(--ink2)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)] active:scale-95">
-      <IcBurger s={20} />
-    </button>
-  )
+  const burger = <MenuToggle />
 
   // faol kategoriya stripda ko'rinadigan joyda turadi
   useEffect(() => {
@@ -825,6 +850,7 @@ const ICONS = (on: boolean): Record<string, React.ReactNode> => ({
 export function TabBar() {
   const { t, cartCount } = useStore()
   const nav = useNavigate()
+  const beat = useCartBeat()
   const loc = window.location.pathname
   if (loc.startsWith('/p/')) return null
   const tabs = [
@@ -845,7 +871,7 @@ export function TabBar() {
               <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${on ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
                 <svg width="23" height="23" viewBox="0 0 16 16" fill="currentColor">{ICONS(on)[tb.icon]}</svg>
                 {tb.id === 'cart' && cartCount > 0 && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-[#E8462B] text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-[var(--bg)]">{cartCount}</span>
+                  <span key={'tb' + beat} className={`absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-[#E8462B] text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-[var(--bg)] ${beat ? 'cart-beat' : ''}`}>{cartCount}</span>
                 )}
               </span>
               {tb.label}
@@ -857,74 +883,56 @@ export function TabBar() {
   )
 }
 
-export function QtyPill({ p, small }: { p: { id: string }; small?: boolean }) {
-  const { cart, add, setQty } = useStore()
-  const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
-  const sW = small ? 'w-6 h-6' : 'w-7 h-7'
-  return (
-    <div onClick={e => e.stopPropagation()}
-      className={small
-        ? 'absolute bottom-1.5 right-1.5 flex items-center gap-0.5 bg-white rounded-full p-0.5 shadow-[0_6px_14px_-4px_rgba(10,33,148,.45)]'
-        : 'absolute bottom-2 right-2 flex items-center gap-0.5 bg-white rounded-full p-1 shadow-[0_6px_14px_-4px_rgba(10,33,148,.45)]'}>
-      <button onClick={() => { setQty(p.id, q - 1); haptic('light') }}
-        className={`press ${sW} rounded-full bg-navy-soft text-[#29A8E0] grid place-items-center active:scale-90 transition-transform`}>
-        <IcMinus s={13} />
-      </button>
-      <span className={`text-[13px] font-extrabold text-[#29A8E0] ${small ? 'w-3.5' : 'w-4'} text-center`}>{q}</span>
-      <button onClick={() => { add(p.id); haptic('medium') }}
-        className={`press ${sW} rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform`}>
-        <IcPlus s={13} />
-      </button>
-    </div>
-  )
-}
-
-/* ---------- mahsulot kartochkasi ---------- */
+/* ---------- mahsulot kartochkasi: rasmda faqat vazirlik, reyting/Hit/yurak
+   modalda qoladi. Narx qatorda: amaldagi narx eng yorqin, eski narx kichik
+   chizilgan, chegirma foizi faqat haqiqiy qiymatlar bo'yicha. Savatda bor
+   mahsulot ingichka brend ramkasi bilan ajraladi. ---------- */
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const { cart, add, setQty, lang, favs, toggleFav, t, openP } = useStore()
-  const fav = favs.includes(p.id)
+  const { cart, add, setQty, lang, t, openP } = useStore()
   const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
+  const inCart = q > 0
   const sale = p.sale_active && (p.old_price ?? 0) > p.price
+  const salePct = sale ? (p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)) : 0
   const wtxt = p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')
+  // muvaffaqiyatli qo'shishda tugmada qisqa tasdiq belgisi; tez bosishlarda taymer faqat yangilanadi
+  const [ok, setOk] = useState(false)
+  const okTimer = useRef<number | null>(null)
+  useEffect(() => () => { if (okTimer.current) window.clearTimeout(okTimer.current) }, [])
+  const onAdd = () => {
+    add(p.id); haptic('medium'); setOk(true)
+    if (okTimer.current) window.clearTimeout(okTimer.current)
+    okTimer.current = window.setTimeout(() => setOk(false), 700)
+  }
   return (
     <article onClick={() => { haptic(); openP(p) }}
       className="anim-up cursor-pointer flex flex-col h-full"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
-      <div className="relative aspect-[7/5] rounded-[12px] overflow-hidden bg-[var(--sheet)] shrink-0">
+      <div className={`relative aspect-[7/5] rounded-[12px] overflow-hidden bg-[var(--sheet)] shrink-0 ${inCart ? 'ring-1 ring-inset ring-[var(--chip-on)]/45' : ''}`}>
         <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
-        <button onClick={e => { e.stopPropagation(); toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
-          className="absolute top-2 right-2 w-9 h-9 rounded-full bg-[var(--bg2)]/80 grid place-items-center active:scale-90 transition-transform">
-          <IcHeart s={15} on={fav} />
-        </button>
-        <span className="absolute top-2 left-2 flex items-center gap-1 bg-[var(--bg2)]/85 text-white text-[11px] font-extrabold px-1.5 py-1 rounded-[8px]">
-          <IcStar s={10} /> {((p as any).rating ?? RSEED(p.id)).toFixed(1)}
-        </span>
-        {sale ? (
-          <span className="absolute top-11 left-2 flex flex-col items-start gap-1">
-            <span className="bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[11px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
-            <span className="bg-black/45 text-white text-[10.5px] font-bold px-2 py-0.5 rounded-[8px] line-through">{fmt(p.old_price)} UZS</span>
-          </span>
-        ) : p.hit ? <span className="absolute top-11 left-2 bg-[var(--bg2)]/85 text-white text-[11px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">{t.hit}</span> : null}
         {wtxt && <span className="absolute bottom-2 left-2 bg-black/45 text-white text-[11px] font-bold px-2 py-1 rounded-[8px] backdrop-blur-[2px]">{wtxt}</span>}
       </div>
       <div className="mt-auto pt-2 flex flex-col">
         <div className="text-[15px] font-bold leading-snug text-[var(--ink)] line-clamp-2">{pName(p, lang)}</div>
-        {q > 0 ? (
-          <div className="mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-between px-1.5">
-            <button onClick={e => { e.stopPropagation(); setQty(p.id, q - 1); haptic('light') }}
-              className="press w-9 h-9 rounded-[9px] grid place-items-center active:scale-90 transition-transform">
-              <IcMinus s={14} />
-            </button>
-            <span className="text-[14px] font-extrabold">{q}</span>
-            <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium') }}
-              className="press w-9 h-9 rounded-[9px] grid place-items-center active:scale-90 transition-transform">
-              <IcPlus s={15} />
-            </button>
-          </div>
+        <div className="mt-1 flex items-baseline gap-1.5">
+          <span className={`text-[16px] font-extrabold tracking-tight whitespace-nowrap ${sale ? 'text-[var(--sale-ink)]' : 'text-[var(--ink)]'}`}>{fmt(p.price)}</span>
+          <span className="text-[11px] font-bold text-[var(--mut2)]">UZS</span>
+          {sale && (
+            <>
+              <span className="text-[12px] font-bold text-[var(--mut2)] line-through whitespace-nowrap">{fmt(p.old_price)}</span>
+              <span className="text-[10.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--sale-soft)] text-[var(--sale-ink)] leading-none">−{salePct}%</span>
+            </>
+          )}
+        </div>
+        {/* Qo'shish tasdig'i ko'rinib bo'lgach miqdor boshqaruvi chiqadi */}
+        {inCart && !ok ? (
+          <QtyStepper full className="mt-1.5" q={q} min={1}
+            onDec={() => { setQty(p.id, q - 1); haptic('light') }}
+            onInc={() => { add(p.id); haptic('medium') }} />
         ) : (
-          <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium') }}
-            className="press mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform">
-            <IcBag s={17} /> {fmt(p.price)} <span className="text-[12px] font-bold opacity-70">UZS</span>
+          <button onClick={e => { e.stopPropagation(); onAdd() }}
+            className="press mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--btn-ink)] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform">
+            {ok ? <span className="add-ok grid place-items-center"><IcCheck s={17} /></span> : <IcBag s={17} />}
+            {t.cardAdd}
           </button>
         )}
       </div>
@@ -1047,15 +1055,34 @@ export function BigButton({ children, onClick, disabled, ghost, type }: {
   )
 }
 
-export function Qty({ q, onInc, onDec, small }: { q: number; onInc: () => void; onDec: () => void; small?: boolean }) {
-  const b = small ? 'w-8 h-8' : 'w-9 h-9'
+/* ---------- yagona miqdor boshqaruvi: kartochka, mahsulot modali va savat uchun
+   bir xil til. Raqam barqaror kenglikda (tabular-nums + min-ch) — raqam o'zgarganda
+   siljish bo'lmaydi; cheklovlar chaqiruvchi tomondan beriladi (min=0: savatdagi
+   oxirgi donani ham olib tashlashga ruxsat). Karta bosilganda modal ochilmasligi
+   uchun stopPropagation konteynerda. ---------- */
+export function QtyStepper({ q, onInc, onDec, min = 1, size = 'md', full, className }: {
+  q: number; onInc: () => void; onDec: () => void; min?: number; size?: 'sm' | 'md'; full?: boolean; className?: string
+}) {
+  const cfg = size === 'sm'
+    ? { box: 'p-1 gap-1 rounded-[12px]', btn: 'w-8 h-8 rounded-[10px]', ic: 13, txt: 'text-[14px]' }
+    : { box: 'p-1 gap-1.5 rounded-[14px]', btn: 'w-9 h-9 rounded-[11px]', ic: 15, txt: 'text-[15px]' }
+  const btn = `press focus-ring ${cfg.btn} grid place-items-center bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] hover:bg-navy-soft disabled:opacity-35 disabled:pointer-events-none active:scale-90 transition-transform cursor-pointer`
   return (
-    <div className="flex items-center bg-[var(--panel)] border border-navy-line rounded-[13px] p-1">
-      <button onClick={onDec} className={`${b} rounded-[10px] grid place-items-center text-[18px] font-bold active:bg-navy-soft active:scale-90 transition-transform`}>−</button>
-      <span className="min-w-[30px] text-center text-[15px] font-extrabold">{q}</span>
-      <button onClick={onInc} className={`${b} rounded-[10px] grid place-items-center text-[18px] font-bold active:bg-navy-soft active:scale-90 transition-transform`}>+</button>
+    <div onClick={e => e.stopPropagation()}
+      className={`shrink-0 flex items-center bg-[var(--soft)] border border-[var(--line2)] ${cfg.box} ${full ? 'w-full justify-between' : ''} ${className || ''}`}>
+      <button type="button" onClick={onDec} disabled={q <= min} aria-label="minus" className={btn}>
+        <IcMinus s={cfg.ic} />
+      </button>
+      <span className={`${cfg.txt} font-extrabold text-[var(--ink)] min-w-[2ch] text-center tabular-nums`}>{q}</span>
+      <button type="button" onClick={onInc} aria-label="plus" className={btn}>
+        <IcPlus s={cfg.ic} />
+      </button>
     </div>
   )
+}
+
+export function Qty({ q, onInc, onDec, small, min = 1 }: { q: number; onInc: () => void; onDec: () => void; small?: boolean; min?: number }) {
+  return <QtyStepper q={q} onInc={onInc} onDec={onDec} min={min} size={small ? 'sm' : 'md'} />
 }
 
 export function StatusChip({ status, label }: { status: string; label: string }) {
@@ -1322,83 +1349,39 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
   )
 }
 
-export const IcBonus = ({ s = 20 }: { s?: number }) => (
-  <svg width={s} height={s} viewBox="0 0 32 32" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-      <path d="M12.667 22V17.3333H19.667C20.9557 17.3333 22.0003 18.378 22.0003 19.6667C22.0003 20.9553 20.9557 22 19.667 22H12.667Z" />
-      <path d="M3.73879 6.66667C2.66699 8.52308 2.66699 11.0154 2.66699 16C2.66699 20.9846 2.66699 23.4769 3.73879 25.3333C4.44094 26.5495 5.45084 27.5594 6.66699 28.2615C8.5234 29.3333 11.0157 29.3333 16.0003 29.3333C20.9849 29.3333 23.4773 29.3333 25.3337 28.2615C26.5498 27.5594 27.5597 26.5495 28.2619 25.3333C29.3337 23.4769 29.3337 20.9846 29.3337 16C29.3337 11.0154 29.3337 8.52308 28.2619 6.66667C27.5597 5.45052 26.5498 4.44061 25.3337 3.73847C23.4773 2.66667 20.9849 2.66667 16.0003 2.66667C11.0157 2.66667 8.5234 2.66667 6.66699 3.73847C5.45084 4.44061 4.44094 5.45052 3.73879 6.66667ZM6.66699 8.33334C6.66699 7.41286 7.41318 6.66667 8.33366 6.66667H22.3337C23.2541 6.66667 24.0003 7.41287 24.0003 8.33334C24.0003 9.25381 23.2541 10 22.3337 10L12.667 10V14H19.667C22.7966 14 25.3337 16.5371 25.3337 19.6667C25.3337 22.7963 22.7966 25.3333 19.667 25.3333H11.0003C10.0799 25.3333 9.33366 24.5871 9.33366 23.6667V17.3333H8.33366C7.41318 17.3333 6.66699 16.5871 6.66699 15.6667C6.66699 14.7462 7.41318 14 8.33366 14H9.33366V10H8.33366C7.41318 10 6.66699 9.25381 6.66699 8.33334Z" />
-  </svg>
-)
-
-/* ---------- suzuvchi bonus tugmasi (kgsushi uslubi) ---------- */
-function BonusSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { t } = useStore()
-  const [copied, setCopied] = useState(false)
-  const copy = async () => {
-    try { await navigator.clipboard.writeText('TEKIT10') } catch { /* ignore */ }
-    haptic('light'); setCopied(true)
-    window.setTimeout(() => setCopied(false), 1600)
-  }
-  return (
-    <Sheet open={open} onClose={onClose} title={t.bonusT}>
-      <div className="space-y-3 px-1 pb-2">
-        <button onClick={copy}
-          className="press w-full text-left rounded-2xl bg-[var(--panel)] border border-[var(--line2)] p-4 active:scale-[.99] transition-transform">
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-[13.5px] font-extrabold text-[var(--ink)]">{t.promoTileSub}</div>
-              <div className="mt-1 text-[11.5px] text-[var(--mut2)] leading-snug">{t.bonusSub}</div>
-            </div>
-            <span className={`shrink-0 text-[12px] font-extrabold px-3 py-2 rounded-full ${copied ? 'bg-[#29A8E0] text-white' : 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]'}`}>{copied ? t.bonusCopied : 'TEKIT10'}</span>
-          </div>
-        </button>
-        <div className="rounded-2xl bg-[var(--panel)] border border-[var(--line2)] p-4 flex items-center gap-3">
-          <span className="w-10 h-10 rounded-xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcTruck s={20} /></span>
-          <div className="min-w-0">
-            <div className="text-[13.5px] font-extrabold text-[var(--ink)]">{t.freeDelivery}</div>
-            <div className="text-[11.5px] text-[var(--mut2)] leading-snug">{t.dpFree}</div>
-          </div>
-        </div>
-      </div>
-    </Sheet>
-  )
+/* ---------- savat soni oshganda ikonka va nishon nozik urib qoladi
+   (muvaffaqiyatli qo'shishdan keyin; kamayishda jim turadi) ---------- */
+function useCartBeat() {
+  const { cartCount } = useStore()
+  const [beat, setBeat] = useState(0)
+  const prev = useRef(cartCount)
+  useEffect(() => {
+    if (cartCount > prev.current) setBeat(b => b + 1)
+    prev.current = cartCount
+  }, [cartCount])
+  return beat
 }
 
-export function FloatingBonus() {
-  const { t } = useStore()
-  const loc = useLocation()
-  const [open, setOpen] = useState(false)
-  if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
-  return (
-    <>
-      <button onClick={() => { haptic('light'); setOpen(true) }} aria-label="bonus"
-        className="floating-quick press fixed right-4 z-[45] w-11 h-11 rounded-[15px] bg-[var(--panel)] border border-[var(--line2)] text-[#29A8E0] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] active:scale-95 transition-transform lg:!bottom-[100px]"
-        style={{ bottom: 'calc(164px + var(--sab))' }}>
-        <IcBonus s={21} />
-      </button>
-      <BonusSheet open={open} onClose={() => setOpen(false)} />
-    </>
-  )
-}
-
-/* ---------- suzuvchi savat tugmasi ---------- */
+/* ---------- suzuvchi savat tugmasi: App.dagi floating-row ichida ---------- */
 export function FloatingCart() {
   const { cartCount } = useStore()
   const nav = useNavigate()
   const loc = useLocation()
+  const beat = useCartBeat()
   if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
   return (
     <button onClick={() => { haptic(); nav('/cart') }} aria-label="cart"
-      className="floating-quick press fixed right-4 z-[45] w-14 h-14 rounded-[18px] bg-navy text-white grid place-items-center shadow-[0_14px_30px_-8px_rgba(10,33,148,.6)] active:scale-95 transition-transform lg:!bottom-8"
-      style={{ bottom: 'calc(92px + var(--sab))' }}>
-      <IcBag s={26} />
+      className="floating-quick press relative w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] bg-navy text-white grid place-items-center shadow-[0_14px_30px_-8px_rgba(10,33,148,.6)] hover:brightness-110 active:scale-95 transition-[transform,filter] cursor-pointer">
+      <span key={beat} className={`grid place-items-center ${beat ? 'cart-beat' : ''}`}><IcBag s={26} /></span>
       {cartCount > 0 && (
-        <span className="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 rounded-full bg-[#E8462B] text-white text-[11px] font-extrabold grid place-items-center leading-none border-2 border-[var(--bg)]">{cartCount}</span>
+        <span key={'b' + beat} className={`absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1.5 rounded-full bg-[#E8462B] text-white text-[11px] font-extrabold grid place-items-center leading-none border-2 border-[var(--bg)] ${beat ? 'cart-beat' : ''}`}>{cartCount}</span>
       )}
     </button>
   )
 }
 
-/* ---------- yuqoriga chiqish tugmasi ---------- */
+/* ---------- yuqoriga chiqish: qator ichida, o'lchovi qolganlari bilan bir xil.
+   Yashir holatda ham joy saqlanadi — qator qolgan tugmalar siljinmaydi. ---------- */
 export function ScrollTop() {
   const [show, setShow] = useState(false)
   const loc = useLocation()
@@ -1408,11 +1391,14 @@ export function ScrollTop() {
     fn()
     return () => window.removeEventListener('scroll', fn)
   }, [loc.pathname])
-  if (!show || loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
+  if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
+  if (!show) return <span className="floating-quick w-[var(--float-size)] h-[var(--float-size)] shrink-0" aria-hidden="true" />
   return (
-    <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} aria-label="up"
-      className="floating-quick press fixed left-4 z-[45] w-12 h-12 rounded-[16px] bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] active:scale-95 transition-transform lg:!bottom-8"
-      style={{ bottom: 'calc(92px + var(--sab))' }}>
+    <button onClick={() => {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
+    }} aria-label="up"
+      className="floating-quick press w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] hover:bg-[var(--soft)] active:scale-95 transition-[transform,background-color] cursor-pointer">
       <IcArrowUp s={20} />
     </button>
   )
@@ -1428,28 +1414,28 @@ export function GiftProgress() {
   const left = Math.max(0, threshold - cartSum)
   const pct = Math.min(1, cartSum / threshold)
   const done = left <= 0
-  const R = 23, C = 2 * Math.PI * R
+  const R = 25, C = 2 * Math.PI * R
   const R2 = 26, C2 = 2 * Math.PI * R2
   return (
     <>
-      <div className="floating-quick fixed z-[45] lg:!bottom-8" style={{ bottom: 'calc(92px + var(--sab))', right: '84px' }}>
-        <div className="flex items-center group">
-          <div className="hidden lg:block max-w-0 opacity-0 group-hover:max-w-[240px] group-hover:opacity-100 transition-all duration-300 ease-[cubic-bezier(.32,.72,0,1)] overflow-hidden pointer-events-none">
-            <div className="ml-2.5 rounded-2xl bg-[var(--sheet)] border border-[var(--line2)] shadow-[0_14px_30px_-12px_rgba(0,0,0,.45)] px-4 py-2.5">
-              <div className="text-[13px] font-extrabold text-[var(--ink)] whitespace-nowrap">{done ? t.fdDone : t.fdLeft.replace('{x}', fmt(left))}</div>
-              <div className="text-[11px] font-semibold text-[var(--mut2)] whitespace-nowrap mt-0.5">{done ? t.fdDoneSub : t.fdTo}</div>
-            </div>
+      <div className="floating-quick relative shrink-0 group">
+        {/* Desktopda hover izohi: faqat opacity/transform, layout siljinmaydi.
+            Ranglar hammasi semantik tokenlardan — ikkala temada o'qiladi. */}
+        <div className="hidden lg:block absolute right-full top-1/2 -translate-y-1/2 mr-2.5 opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 motion-safe:transition-[opacity,transform] duration-300 pointer-events-none">
+          <div className="rounded-2xl bg-[var(--sheet)] border border-[var(--line2)] shadow-[0_14px_30px_-12px_rgba(0,0,0,.45)] px-4 py-2.5">
+            <div className="text-[13px] font-extrabold text-[var(--ink)] whitespace-nowrap">{done ? t.fdDone : t.fdLeft.replace('{x}', fmt(left))}</div>
+            <div className="text-[11px] font-semibold text-[var(--mut2)] whitespace-nowrap mt-0.5">{done ? t.fdDoneSub : t.fdTo}</div>
           </div>
-          <button onClick={() => { haptic('light'); setOpen(true) }} aria-label="gift" className="relative w-[52px] h-[52px] grid place-items-center active:scale-95 transition-transform">
-            <svg width="52" height="52" viewBox="0 0 52 52" className="absolute inset-0 -rotate-90">
-              <circle cx="26" cy="26" r={R} fill="none" stroke="var(--line2)" strokeWidth="3" />
-              <circle cx="26" cy="26" r={R} fill="none" stroke="#29A8E0" strokeWidth="3" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} style={{ transition: 'stroke-dashoffset .5s cubic-bezier(.32,.72,0,1)' }} />
-            </svg>
-            <span className="w-[40px] h-[40px] rounded-full bg-[var(--sheet)] border border-[var(--line)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] transition-colors duration-300" style={{ color: done ? '#29A8E0' : 'var(--ink)' }}>
-              <IcTruck s={17} />
-            </span>
-          </button>
         </div>
+        <button onClick={() => { haptic('light'); setOpen(true) }} aria-label="gift" className="relative w-[var(--float-size)] h-[var(--float-size)] grid place-items-center active:scale-95 transition-transform cursor-pointer">
+          <svg width="56" height="56" viewBox="0 0 56 56" className="absolute inset-0 -rotate-90">
+            <circle cx="28" cy="28" r={R} fill="none" stroke="var(--line2)" strokeWidth="3" />
+            <circle cx="28" cy="28" r={R} fill="none" stroke="#29A8E0" strokeWidth="3" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} style={{ transition: 'stroke-dashoffset .5s cubic-bezier(.32,.72,0,1)' }} />
+          </svg>
+          <span className="w-[44px] h-[44px] rounded-full bg-[var(--sheet)] border border-[var(--line)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] transition-colors duration-300" style={{ color: done ? '#29A8E0' : 'var(--ink)' }}>
+            <IcTruck s={18} />
+          </span>
+        </button>
       </div>
       {open && createPortal(
         <div className="fixed inset-0 z-[75] grid place-items-center px-6">
