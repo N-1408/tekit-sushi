@@ -1186,133 +1186,117 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
   const { lang, t, add, setQty, cart, products, favs, toggleFav } = useStore()
   const [q, setQ] = useState(1)
   const [enter, setEnter] = useState(false)
-  const panelRef = useRef<HTMLDivElement | null>(null)
   React.useEffect(() => { setQ(1); const id = window.setTimeout(() => setEnter(true), 10); return () => clearTimeout(id) }, [p.id])
   useEffect(() => {
-    const docEl = document.documentElement
-    const prevOverflow = document.body.style.overflow
-    const prevPad = document.body.style.paddingRight
-    const prevScrollY = window.scrollY
-    const prevFocus = document.activeElement as HTMLElement | null
-    // Windows'da skrollbarga yo'qolishidan keladigan siljishni qoplaymiz
-    if (window.innerWidth > docEl.clientWidth) {
-      document.body.style.paddingRight = `${window.innerWidth - docEl.clientWidth}px`
-    }
+    const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    requestAnimationFrame(() => panelRef.current?.focus())
-    const onKey = (e: KeyboardEvent) => {
-      if (!panelRef.current) return
-      if (e.key === 'Escape') { e.stopPropagation(); onClose(); return }
-      if (e.key !== 'Tab') return
-      const items = Array.from(panelRef.current.querySelectorAll<HTMLElement>(
-        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-      )).filter(x => !x.hasAttribute('disabled') && x.offsetParent !== null)
-      if (!items.length) return
-      const firstEl = items[0]
-      const lastEl = items[items.length - 1]
-      if (e.shiftKey && document.activeElement === firstEl) { e.preventDefault(); lastEl.focus() }
-      else if (!e.shiftKey && document.activeElement === lastEl) { e.preventDefault(); firstEl.focus() }
-    }
-    document.addEventListener('keydown', onKey, true)
-    return () => {
-      document.removeEventListener('keydown', onKey, true)
-      document.body.style.overflow = prevOverflow
-      document.body.style.paddingRight = prevPad
-      if (Math.abs(window.scrollY - prevScrollY) > 2) window.scrollTo(0, prevScrollY)
-      try { prevFocus?.focus?.() } catch {}
-    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
   }, [onClose])
   const fav = favs.includes(p.id)
   const sauces = products.filter(x => x.cat === 'sous' && x.id !== p.id && x.active !== false)
   const qtyOf = (sid: string) => cart.find(l => l.id === sid)?.q || 0
+  const hasKbju = [p.kcal, p.protein, p.fat, p.carbs].some(v => v != null && (v as number) > 0)
   const sale = p.sale_active && (p.old_price ?? 0) > p.price
   const wtxt = p.weight || (p.pcs ? `${p.pcs} ${t.pcs}` : '')
-  // Oziqaliq ma'lumoti: mavjud qiymatlar bo'yicha ixcham qator, o'ylab topilgan qiymat yo'q
-  const nRow = ([[t.nKcal, p.kcal, ''], [t.nProt, p.protein, 'g'], [t.nFat, p.fat, 'g'], [t.nCarb, p.carbs, 'g']] as const)
-    .filter(([, v]) => v != null && (v as number) > 0)
-    .map(([l, v, u]) => `${l} ${v}${u ? ' ' + u : ''}`)
   return createPortal(
     <div className="fixed inset-0 z-50">
       <div className={`absolute inset-0 bg-black/55 backdrop-blur-[3px] transition-opacity duration-300 ${enter ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
-      <div className="absolute inset-0 grid place-items-center p-6 pointer-events-none">
-        <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={pName(p, lang)}
-          className={`pointer-events-auto relative w-[min(960px,94vw)] max-h-[min(88vh,780px)] flex flex-col outline-none rounded-[26px] bg-[var(--sheet)] shadow-[0_40px_120px_rgba(4,10,40,.55)] overflow-hidden transition-all duration-300 ${enter ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.96] translate-y-2'}`}>
-          <button onClick={onClose} aria-label={t.closeBtn}
-            className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] hover:text-[var(--ink)] hover:bg-navy-soft active:scale-90 transition-all cursor-pointer">
-            <IcX s={16} />
-          </button>
-          <div className="flex flex-1 min-h-0">
-            {/* chap: 7:5 rasm (ProductCard bilan bir xil proporsiya) */}
-            <div className="w-[400px] shrink-0 flex flex-col justify-center border-r border-[var(--line)] p-6">
-              <div className="relative aspect-[7/5] w-full rounded-[16px] overflow-hidden bg-navy-soft shrink-0">
-                <img src={pImg(p)} alt={pName(p, lang)} className="w-full h-full object-cover" />
-                <span className="absolute top-3 left-3 flex items-center gap-1.5 bg-[var(--bg2)]/85 text-white text-[12px] font-extrabold px-2 py-1.5 rounded-[9px]">
-                  <IcStar s={12} /> {((p as any).rating ?? RSEED(p.id)).toFixed(1)}
-                </span>
-                <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
-                  className="absolute top-3 right-3 w-11 h-11 rounded-full bg-[var(--bg2)]/85 grid place-items-center hover:bg-[var(--bg2)] active:scale-90 transition-all cursor-pointer">
-                  <IcHeart s={20} on={fav} />
-                </button>
-                {sale ? (
-                  <span className="absolute top-14 left-3 bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[12px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-[9px]">
-                    −{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%
-                  </span>
-                ) : p.hit ? <span className="absolute top-14 left-3 bg-[var(--bg2)]/85 text-white text-[12px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-[9px]">{t.hit}</span> : null}
-                {wtxt && <span className="absolute bottom-3 left-3 bg-black/45 text-white text-[12px] font-bold px-2.5 py-1.5 rounded-[9px] backdrop-blur-[2px]">{wtxt}</span>}
+      <div className="absolute inset-0 grid place-items-center p-8 pointer-events-none">
+        <div className={`pointer-events-auto relative w-[900px] max-w-full rounded-[26px] bg-[var(--sheet)] shadow-[0_40px_120px_rgba(4,10,40,.55)] grid grid-cols-[minmax(340px,0.92fr)_1fr] overflow-hidden transition-all duration-300 ${enter ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.96] translate-y-2'}`}>
+          {/* chap: rasm */}
+          <div className="relative bg-navy-soft min-h-[520px]">
+            <img src={pImg(p)} alt={pName(p, lang)} className="absolute inset-0 w-full h-full object-cover" />
+            <span className="absolute top-4 left-4 flex items-center gap-1.5 bg-[var(--bg2)]/85 text-white text-[12px] font-extrabold px-2 py-1.5 rounded-[9px]">
+              <IcStar s={12} /> {((p as any).rating ?? RSEED(p.id)).toFixed(1)}
+            </span>
+            <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
+              className="absolute top-4 right-4 w-11 h-11 rounded-full bg-[var(--bg2)]/85 grid place-items-center hover:bg-[var(--bg2)] active:scale-90 transition-all cursor-pointer">
+              <IcHeart s={20} on={fav} />
+            </button>
+            {sale ? (
+              <span className="absolute top-14 left-4 bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[12px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-[9px]">
+                −{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%
+              </span>
+            ) : p.hit ? <span className="absolute top-14 left-4 bg-[var(--bg2)]/85 text-white text-[12px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-[9px]">{t.hit}</span> : null}
+            {wtxt && <span className="absolute bottom-4 left-4 bg-black/45 text-white text-[12px] font-bold px-2.5 py-1.5 rounded-[9px] backdrop-blur-[2px]">{wtxt}</span>}
+          </div>
+          {/* o'ng: mazmun */}
+          <div className="flex flex-col min-h-0 max-h-[86vh]">
+            <button onClick={onClose} aria-label="close"
+              className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] hover:text-[var(--ink)] hover:bg-navy-soft active:scale-90 transition-all cursor-pointer"
+              style={{ position: 'absolute', right: '1rem', top: '1rem' }}>
+              <IcX s={16} />
+            </button>
+            <div className="overflow-y-auto no-scrollbar px-8 pt-9 pb-4 flex-1 min-h-0">
+              <div className="text-[24px] font-extrabold leading-tight pr-8">{pName(p, lang)}</div>
+              <div className="mt-2.5 flex items-center gap-4 text-[13px] font-bold text-[var(--mut2)]">
+                <span className="flex items-center gap-1.5 text-[#29A8E0]"><IcStar s={14} /> {((p as any).rating ?? RSEED(p.id)).toFixed(1)}</span>
+                {p.weight && <span className="flex items-center gap-1.5"><IcScale s={14} /> {p.weight}</span>}
               </div>
-            </div>
-            {/* o'ng: mazmun + buyurtma paneli */}
-            <div className="flex-1 min-w-0 flex flex-col min-h-0">
-              <div className="overflow-y-auto no-scrollbar px-7 pt-7 pb-5 flex-1 min-h-0">
-                <div className="text-[23px] font-extrabold leading-tight pr-10">{pName(p, lang)}</div>
-                <div className="mt-2.5 flex items-baseline gap-3">
-                  <div className="text-[25px] font-extrabold tracking-tight">{fmt(p.price)}<span className="text-[13px] text-[var(--mut2)] font-bold"> UZS</span></div>
-                  {sale && <div className="text-[14px] font-bold text-[var(--mut2)] line-through">{fmt(p.old_price)} UZS</div>}
+              <div className="mt-4 flex items-baseline gap-3">
+                <div className="text-[26px] font-extrabold tracking-tight">{fmt(p.price)}<span className="text-[13px] text-[var(--mut2)] font-bold"> UZS</span></div>
+                {sale && <div className="text-[14px] font-bold text-[var(--mut2)] line-through">{fmt(p.old_price)} UZS</div>}
+              </div>
+              {hasKbju && (
+                <div className="mt-5 bg-[var(--panel)] border border-[var(--line)] rounded-2xl px-4 py-3.5">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[10.5px] font-extrabold text-[var(--mut2)] uppercase tracking-widest">КБЖУ</span>
+                    <span className="text-[10.5px] font-bold text-[var(--mut2)]">{t.per100}</span>
+                  </div>
+                  <div className="mt-2.5 grid grid-cols-4 gap-2">
+                    {([[t.nKcal, p.kcal], [t.nProt, p.protein], [t.nFat, p.fat], [t.nCarb, p.carbs]] as const).map(([label, val]) => (
+                      <div key={label} className="bg-navy-soft/70 rounded-xl py-2.5 text-center">
+                        <div className="text-[16px] font-extrabold text-[#29A8E0] leading-none">{val != null ? val : '—'}</div>
+                        <div className="mt-1.5 text-[10px] font-bold text-[var(--mut2)] leading-none">{label}</div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                {nRow.length > 0 && (
-                  <div className="mt-2 text-[12px] font-semibold text-[var(--mut2)] leading-snug">
-                    <span className="font-bold">{t.per100}:</span> {nRow.join(' · ')}
-                  </div>
-                )}
-                {p.cat !== 'sous' && sauces.length > 0 && (
-                  <div className="mt-5">
-                    <div className="flex items-center gap-1.5 text-[12px] font-extrabold text-[#29A8E0]">
-                      <IcSauce s={14} /> {t.sAddSauces}
+              )}
+              {p.cat !== 'sous' && sauces.length > 0 && (
+                <div className="mt-4 bg-navy-soft/60 rounded-2xl p-4">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-[#29A8E0] shrink-0 shadow-sm"><IcSauce /></span>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[13.5px] font-extrabold text-[#29A8E0] leading-tight">{t.sAsk}</div>
+                      <div className="text-[10.5px] font-semibold text-[var(--mut2)] leading-tight mt-0.5">{t.sSub}</div>
                     </div>
-                    <div className="mt-2.5 flex flex-wrap gap-2">
-                      {sauces.map(sa => {
-                        const sq = qtyOf(sa.id)
-                        return (
-                          <div key={sa.id} className={'flex items-center gap-2 rounded-full bg-[var(--panel)] border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
-                            <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
-                            <div className="pr-0.5">
-                              <div className="text-[11.5px] font-extrabold leading-none whitespace-nowrap">{pName(sa, lang)}</div>
-                              <div className="text-[10px] font-bold text-[var(--mut2)] mt-1 leading-none">{fmt(sa.price)}</div>
-                            </div>
-                            {sq > 0 && (
-                              <div className="flex items-center gap-1 ml-0.5">
-                                <button onClick={() => { setQty(sa.id, sq - 1); haptic() }}
-                                  className="press w-6 h-6 rounded-full bg-[var(--panel)] border border-navy-line text-[#29A8E0] text-[12px] font-extrabold grid place-items-center hover:bg-navy-soft active:scale-90 transition-all">−</button>
-                                <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
-                              </div>
-                            )}
-                            <button onClick={() => { if (sq > 0) { setQty(sa.id, sq + 1); haptic() } else { add(sa.id, 1); haptic('light') } }}
-                              className="press w-7 h-7 rounded-full bg-navy text-white text-[15px] font-extrabold grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] hover:brightness-110 active:scale-90 transition-all">+</button>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {sauces.map(sa => {
+                      const sq = qtyOf(sa.id)
+                      return (
+                        <div key={sa.id} className={'flex items-center gap-2 rounded-full bg-[var(--panel)] border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
+                          <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
+                          <div className="pr-0.5">
+                            <div className="text-[11.5px] font-extrabold leading-none whitespace-nowrap">{pName(sa, lang)}</div>
+                            <div className="text-[10px] font-bold text-[var(--mut2)] mt-1 leading-none">{fmt(sa.price)}</div>
                           </div>
-                        )
-                      })}
-                    </div>
+                          {sq > 0 && (
+                            <div className="flex items-center gap-1 ml-0.5">
+                              <button onClick={() => { setQty(sa.id, sq - 1); haptic() }}
+                                className="press w-6 h-6 rounded-full bg-[var(--panel)] border border-navy-line text-[#29A8E0] text-[12px] font-extrabold grid place-items-center hover:bg-navy-soft active:scale-90 transition-all">−</button>
+                              <span className="w-3.5 text-center text-[11.5px] font-extrabold">{sq}</span>
+                            </div>
+                          )}
+                          <button onClick={() => { if (sq > 0) { setQty(sa.id, sq + 1); haptic() } else { add(sa.id, 1); haptic('light') } }}
+                            className="press w-7 h-7 rounded-full bg-navy text-white text-[15px] font-extrabold grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] hover:brightness-110 active:scale-90 transition-all">+</button>
+                        </div>
+                      )
+                    })}
                   </div>
-                )}
-                {pDesc(p, lang) && <p className="mt-5 text-[13.5px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>}
-              </div>
-              <div className="px-7 py-4 border-t border-[var(--line)] flex items-center gap-3 bg-[var(--sheet)]">
-                <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
-                <button onClick={() => { add(p.id, q); haptic('medium'); onClose() }}
-                  className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] hover:brightness-110 active:scale-[.98] transition-all cursor-pointer">
-                  {t.addCart} · {fmt(p.price * q)} <span className="text-[11px] font-bold opacity-70">UZS</span>
-                </button>
-              </div>
+                </div>
+              )}
+              <p className="mt-4 text-[13.5px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
+            </div>
+            <div className="px-8 py-5 border-t border-[var(--line)] flex items-center gap-3 bg-[var(--sheet)]">
+              <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
+              <button onClick={() => { add(p.id, q); haptic('medium'); onClose() }}
+                className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] hover:brightness-110 active:scale-[.98] transition-all cursor-pointer">
+                {t.addCart} · {fmt(p.price * q)} <span className="text-[11px] font-bold opacity-70">UZS</span>
+              </button>
             </div>
           </div>
         </div>
