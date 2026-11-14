@@ -20,7 +20,7 @@ import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 
 export default function App() {
-  const { initTg, toast, user, ob, navOpen } = useStore()
+  const { initTg, toast, user, ob } = useStore()
   const loc = useLocation()
   const isAdmin = loc.pathname.startsWith('/admin')
   useEffect(() => { initTg() }, [])
@@ -28,8 +28,9 @@ export default function App() {
   const wide = !isAdmin && !loc.pathname.startsWith('/p/')
   return (
     <>
-      <SideNav />
-      <div className={`motion-safe:transition-[padding] motion-safe:duration-300 motion-safe:ease-out ${wide && navOpen ? 'lg:pl-[300px]' : ''}`}>
+      <div className="flex">
+        <SideNav />
+        <div className="flex-1 min-w-0">
       <div className={wide ? 'lg:max-w-[1240px] lg:mx-auto' : undefined}>
       <Routes>
         <Route path="/" element={<Home />} />
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/admin/promos" element={<AdminShell><AdminPromos /></AdminShell>} />
       </Routes>
       </div>
+        </div>
       </div>
       {!isAdmin && (!user || ob) && <Onboarding />}
       {!isAdmin && <><TabBar /><FloatingBonus /><FloatingCart /><ScrollTop /><GiftProgress /></>}

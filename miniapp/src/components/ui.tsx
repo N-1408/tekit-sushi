@@ -433,7 +433,6 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
 export function Header() {
   const { t, mode, user, ob, navOpen, setNavOpen } = useStore()
   const nav = useNavigate()
-  const [drawer, setDrawer] = useState(false)
   const [delOpen, setDelOpen] = useState(false)
   const [pickOpen, setPickOpen] = useState(false)
   const [askState, setAskState] = useState(() => {
@@ -442,12 +441,6 @@ export function Header() {
   const isDesktop = useIsDesktop()
   // birinchi tashrif: bayroq yo'q bo'lsa bir marta so'raladi; yopilsa ham yoziladi
   const askOpen = askState && !!user && !ob
-  const burgerRef = useRef<HTMLButtonElement>(null)
-  const openNav = () => {
-    haptic()
-    if (isDesktop) setNavOpen(!navOpen)
-    else setDrawer(true)
-  }
   // Desktopda sidebar ochiqligida brend sarlavhadan yashiriladi (sidebar o'z brendini ko'rsatadi).
   // Faqat lg+ da ishlaydi: navOpen holati breakpoint o'tishida mobil brendga tasir qilmaydi.
   const hideBrand = isDesktop && navOpen
@@ -455,10 +448,6 @@ export function Header() {
     <>
       <header className="tk-fade relative z-[31] bg-[var(--bg)] text-[var(--ink)]">
         <div className="max-w-[1240px] mx-auto flex items-center gap-1 px-3 min-[400px]:gap-1.5 min-[400px]:px-4 lg:px-6 py-2">
-          <button ref={burgerRef} onClick={openNav} aria-label={t.menuT} aria-expanded={isDesktop ? navOpen : drawer}
-            className="focus-ring press w-10 h-10 min-[400px]:w-11 min-[400px]:h-11 rounded-xl grid place-items-center shrink-0 text-[var(--ink2)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)] active:scale-95">
-            <IcBurger s={20} />
-          </button>
           <button onClick={() => nav('/')} aria-label="Tekit Sushi"
             aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
             className={`press flex items-center gap-2 min-w-0 overflow-hidden whitespace-nowrap motion-safe:transition-[opacity,max-width] motion-safe:duration-300 motion-safe:ease-out ${hideBrand ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[200px] active:opacity-80'}`}>
@@ -493,7 +482,7 @@ export function Header() {
           <ThemeToggle />
         </div>
       </header>
-      <Drawer open={drawer && !isDesktop} onClose={() => { setDrawer(false); burgerRef.current?.focus() }} />
+      <Drawer open={navOpen && !isDesktop} onClose={() => setNavOpen(false)} />
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} />
       {askOpen && (
@@ -518,23 +507,28 @@ export function SideNav() {
   }, [loc.pathname, navOpen, setNavOpen])
   useEffect(() => {
     if (!navOpen) return
-    const on = (e: KeyboardEvent) => { if (e.key === 'Escape') setNavOpen(false) }
+    const on = (e: KeyboardEvent) => { if (e.key === 'Escape') closeNav() }
     window.addEventListener('keydown', on)
     return () => window.removeEventListener('keydown', on)
   }, [navOpen, setNavOpen])
+  const closeNav = () => {
+    setNavOpen(false)
+    requestAnimationFrame(() => { const el = document.getElementById('tk-menu-toggle'); if (el) el.focus() })
+  }
   const go = (to: string) => { haptic(); setNavOpen(false); nav(to) }
   return (
-    <aside aria-label={t.menuT} aria-hidden={!navOpen}
-      className={`tk-fade hidden lg:flex fixed left-0 top-0 bottom-0 z-[35] w-[300px] flex-col bg-[var(--bg2)] text-[var(--ink)] border-r border-[var(--line)]
-        motion-safe:transition-[transform,visibility] motion-safe:duration-300 motion-safe:ease-out
-        ${navOpen ? 'translate-x-0 visible shadow-[10px_0_50px_rgba(4,10,30,.22)]' : '-translate-x-full invisible'}`}
+    <aside id="tk-sidenav" aria-label={t.menuT} aria-hidden={!navOpen}
+      className={`hidden lg:flex flex-col shrink-0 overflow-hidden sticky top-0 self-start h-dvh z-[35] bg-[var(--bg2)] text-[var(--ink)]
+        motion-safe:transition-[width,visibility] motion-safe:duration-300 motion-safe:ease-out
+        ${navOpen ? 'w-[300px] visible border-r border-[var(--line)]' : 'w-0 invisible'}`}
       style={{ paddingTop: 'calc(14px + var(--sat))', paddingBottom: 'calc(14px + var(--sab))' }}>
+      <div className="w-[300px] min-w-[300px] flex flex-col h-full min-h-0">
       <div className="flex items-center justify-between px-5 pb-3">
         <div className="flex items-center gap-2.5">
           <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px]" />
           <span className="text-[15px] font-extrabold tracking-[0.08em]">TEKIT SUSHI</span>
         </div>
-        <button onClick={() => setNavOpen(false)} aria-label="close-menu"
+        <button onClick={closeNav} aria-label="close-menu"
           className="press focus-ring w-9 h-9 rounded-xl grid place-items-center text-[var(--mut2)] hover:bg-[var(--soft)] active:scale-95 transition-colors">
           <IcX s={15} />
         </button>
@@ -574,6 +568,7 @@ export function SideNav() {
           <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.25.25-.45.45-.9.45l.3-4.6L18.2 6.8c.35-.3-.1-.5-.55-.2L7.7 13.1l-4.4-1.4c-1-.3-1-1 .2-1.45L20.6 3.3c.8-.3 1.5.2 1.3 1.3Z" /></svg>
           {t.ctTgVal}
         </a>
+      </div>
       </div>
     </aside>
   )
@@ -641,11 +636,19 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
   active: string | null
   onSelect: (id: string) => void
 }) {
-  const { t } = useStore()
+  const { t, navOpen, setNavOpen } = useStore()
   const [open, setOpen] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
   const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const searching = open || q.trim().length > 0
+  // burger sticky qatorning doimiy qismi: skroll holatidan qat'i nazar ko'rinadi
+  const burger = (
+    <button id="tk-menu-toggle" data-menu-toggle onClick={() => { haptic(); setNavOpen(!navOpen) }}
+      aria-label={t.menuT} aria-expanded={navOpen} aria-controls="tk-sidenav"
+      className="press focus-ring w-10 h-10 rounded-xl grid place-items-center shrink-0 text-[var(--ink2)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)] active:scale-95">
+      <IcBurger s={20} />
+    </button>
+  )
 
   // faol kategoriya stripda ko'rinadigan joyda turadi
   useEffect(() => {
@@ -664,17 +667,21 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
     <div className="bg-[var(--bg)]">
       <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
         {searching ? (
-          <div className="relative">
-            <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
-              className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
-            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
-            <button onClick={() => { setOpen(false); setQ('') }} aria-label="close-search"
-              className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
-              <IcX s={14} />
-            </button>
+          <div className="flex items-center gap-1.5">
+            {burger}
+            <div className="relative flex-1 min-w-0">
+              <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
+                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
+              <button onClick={() => { setOpen(false); setQ('') }} aria-label="close-search"
+                className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
+                <IcX s={14} />
+              </button>
+            </div>
           </div>
         ) : (
           <div className="flex items-center gap-2">
+            {burger}
             <button onClick={() => setOpen(true)} aria-label={t.search} aria-expanded={false}
               className="press focus-ring flex-none flex items-center justify-center gap-2 h-[38px] w-[38px] lg:w-auto lg:px-4 rounded-full bg-[var(--soft)] text-[var(--mut2)] hover:text-[var(--ink2)] transition-colors">
               <IcSearch s={17} />
@@ -759,23 +766,23 @@ export function HeroSlider() {
     start()
   }
 
-  const big = w >= 1024
-  const P = big ? 24 : 14   // har ikki chetdagi ko'rinadigan qism
-  const G = big ? 12 : 10
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  const P = 0 // qo'shni slaydning nozik "sliver" ko'rinishi olib tashlandi: banner to'liq kenglikda
+  const G = 10
   const slideW = Math.max(0, w - 2 * P)
   const offset = P - i * (slideW + G)
   const shown = [SLIDES[n - 1], ...SLIDES, SLIDES[0]]
   const dot = ((i - 1) % n + n) % n
 
   return (
-    <div className="mt-3 lg:mt-5 lg:w-[84%] lg:max-w-[1040px] lg:mx-auto select-none">
-      <div ref={wrapRef} className="relative h-[196px] lg:h-[220px] overflow-hidden rounded-[20px] bg-[var(--sheet)]">
+    <div className="mt-3 lg:mt-5 px-4 lg:px-6 select-none">
+      <div ref={wrapRef} className="relative h-[196px] lg:h-auto lg:aspect-[3.2/1] lg:min-h-[240px] lg:max-h-[380px] overflow-hidden rounded-[20px] bg-[var(--sheet)]">
         {w > 0 && (
         <div
           onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
           onTransitionEnd={onEnd}
           className="flex h-full will-change-transform"
-          style={{ gap: G, transform: `translateX(${offset}px)`, transition: anim ? 'transform 520ms cubic-bezier(.22,.61,.36,1)' : 'none' }}
+          style={{ gap: G, transform: `translateX(${offset}px)`, transition: anim && !reducedMotion ? 'transform 520ms cubic-bezier(.22,.61,.36,1)' : 'none' }}
         >
           {shown.map((sl, k) => (
             <div key={k} style={{ width: slideW }} onClick={() => { haptic(); nav(sl.to) }}
@@ -785,7 +792,7 @@ export function HeroSlider() {
               <div className="absolute inset-0 bg-gradient-to-r from-[#0B1220]/85 via-[#0B1220]/40 to-transparent" />
               <div className="relative h-full flex items-end lg:items-center pl-5 lg:pl-10 pr-4 lg:pr-6 pb-4 lg:pb-0">
                 <div className="max-w-[75%] lg:max-w-[55%]">
-                  <span className="inline-block bg-[#29A8E0] text-white px-2.5 py-1 rounded-full text-[9.5px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
+                  <span className="inline-block bg-[#29A8E0] text-white px-2.5 py-1 rounded-full text-[10px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
                   <div className="mt-2 lg:mt-3.5 text-[20px] lg:text-[34px] font-extrabold leading-[1.1] tracking-tight text-white">{(t as any)[sl.ti]}</div>
                   <div className="mt-1.5 text-[11.5px] lg:text-[14px] font-medium text-white/75 leading-snug">{(t as any)[sl.s]}</div>
                 </div>
