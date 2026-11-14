@@ -472,7 +472,7 @@ export function Header({ stuck = false }: { stuck?: boolean }) {
             Mobil: chapda rejim ikonkalari, markazda brend, o'ngda tema.
             lg+: chapda brend (sidebar ochiqligida yashirinadi), markazda
             yetkazish/olib-ketish, o'ngda profil + tema. */}
-        <div className="max-w-[1240px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center px-4 lg:px-6 py-2">
+        <div className="max-w-[1240px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2">
           <div className="flex items-center gap-1 min-[400px]:gap-1.5 min-w-0 justify-self-start">
             {/* mobil: ixcham ikonkali yetkazish/olib-ketish tugmalari */}
             <div className={`flex lg:hidden items-center gap-1 max-w-[120px] overflow-hidden motion-safe:transition-[opacity,max-width] motion-safe:duration-300 motion-safe:ease-out ${stuck ? 'opacity-0 max-w-0 pointer-events-none' : ''}`}>

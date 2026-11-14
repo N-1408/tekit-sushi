@@ -23,9 +23,8 @@ function Section({ id, title, items }: { id?: string; title: string; items: Prod
    IntersectionObserver sticky qator ostidagi ingichka chegara chizig'ini kesib
    o'tgan bo'limlarni xabar qiladi; faol holat faqat o'zgarganda yangilanadi.
    Skroll listeneri yo'q, takroriy o'lchash yo'q. */
-function useCatalogTracking(ids: string[], paused: boolean, wide: boolean) {
+function useCatalogTracking(ids: string[], paused: boolean) {
   const navRef = React.useRef<HTMLDivElement>(null)
-  const hdrRef = React.useRef<HTMLDivElement>(null)
   const [active, setActive] = React.useState<string | null>(null)
   const lockRef = React.useRef<string | null>(null)
   const rafRef = React.useRef(0)
@@ -35,15 +34,8 @@ function useCatalogTracking(ids: string[], paused: boolean, wide: boolean) {
     if (lockRef.current) return
     const list = idsKey ? idsKey.split('|') : []
     if (!list.length) { setActive(null); return }
-    let boundary = 0
-    if (wide) {
-      const nav = navRef.current
-      boundary = (nav ? nav.getBoundingClientRect().bottom : 0) + 1
-    } else {
-      // Mobil: chiplar endi sticky emas, chegara — pinlangan sarlavhaning pasti
-      const hdr = hdrRef.current
-      if (hdr) boundary = (parseFloat(getComputedStyle(hdr).top) || 0) + hdr.offsetHeight + 1
-    }
+    const nav = navRef.current
+    const boundary = (nav ? nav.getBoundingClientRect().bottom : 0) + 1
     let cur: string | null = null
     for (const id of list) {
       const el = document.getElementById(SEC(id))
@@ -59,22 +51,16 @@ function useCatalogTracking(ids: string[], paused: boolean, wide: boolean) {
   const onSelect = React.useCallback((id: string) => {
     const el = document.getElementById(SEC(id))
     if (!el) return
-    // Skroll ofseti: mobil — pinlangan sarlavha (sat + balandligi), desktop —
-    // sticky katalog qatori. Computed top var() ni PX ga hal qiladi.
-    let off = 0
-    if (wide) {
-      const nav = navRef.current
-      off = (nav ? nav.offsetHeight : 0) + (nav ? (parseFloat(getComputedStyle(nav).top) || 0) : 0) + 10
-    } else {
-      const hdr = hdrRef.current
-      off = (hdr ? hdr.offsetHeight : 0) + (hdr ? (parseFloat(getComputedStyle(hdr).top) || 0) : 0) + 10
-    }
+    const nav = navRef.current
+    const navH = nav ? nav.offsetHeight : 0
+    // Pinlangan holatdagi yuqori ofset (sat): computed top var() ni PX ga hal qiladi
+    const pinTop = nav ? (parseFloat(getComputedStyle(nav).top) || 0) : 0
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     // programmatik skroll davomida kuzatuv bloklanadi; yakunlangach haqiqiy joy bilan kelishiladi
     lockRef.current = id
     setActive(id)
     window.scrollTo({
-      top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - off),
+      top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - navH - pinTop - 10),
       behavior: reduced ? 'auto' : 'smooth',
     })
     cancelAnimationFrame(rafRef.current)
@@ -93,7 +79,7 @@ function useCatalogTracking(ids: string[], paused: boolean, wide: boolean) {
       rafRef.current = requestAnimationFrame(tick)
     }
     rafRef.current = requestAnimationFrame(tick)
-  }, [computeActive, wide])
+  }, [computeActive])
 
   React.useEffect(() => {
     if (paused) { setActive(null); return }
@@ -104,16 +90,12 @@ function useCatalogTracking(ids: string[], paused: boolean, wide: boolean) {
     const list = idsKey ? idsKey.split('|') : []
     const setup = () => {
       io?.disconnect()
+      const navH = nav.offsetHeight
       const vh = window.innerHeight
-      let band = 0
-      if (wide) band = nav.offsetHeight + (parseFloat(getComputedStyle(nav).top) || 0)
-      else {
-        const hdr = hdrRef.current
-        if (hdr) band = (parseFloat(getComputedStyle(hdr).top) || 0) + hdr.offsetHeight
-      }
+      const pinTop = parseFloat(getComputedStyle(nav).top) || 0
       io = new IntersectionObserver(entries => {
         if (entries.some(e => e.isIntersecting)) computeActive()
-      }, { rootMargin: `-${band}px 0px -${Math.max(0, vh - band - 4)}px 0px`, threshold: 0 })
+      }, { rootMargin: `-${navH + pinTop}px 0px -${Math.max(0, vh - navH - pinTop - 4)}px 0px`, threshold: 0 })
       for (const id of list) {
         const el = document.getElementById(SEC(id))
         if (el) io.observe(el)
@@ -141,7 +123,7 @@ function useCatalogTracking(ids: string[], paused: boolean, wide: boolean) {
     }
   }, [idsKey, paused, computeActive])
 
-  return { navRef, hdrRef, active, onSelect }
+  return { navRef, active, onSelect }
 }
 
 /* lg+ breakpoint kuzatuvi: sarlavha sticky faqat mobilda, desktopda eskicha */
@@ -183,32 +165,36 @@ export default function Home() {
     fn()
     return () => { window.removeEventListener('scroll', fn); cancelAnimationFrame(raf) }
   }, [])
-  const { navRef, hdrRef, active, onSelect } = useCatalogTracking(chips.map(c => c.id), searching, wide)
+  const { navRef, active, onSelect } = useCatalogTracking(chips.map(c => c.id), searching)
 
   return (
     <div className="pb-28 lg:pb-12">
       {/* Skroll qilinganda kontent notch/Telegram boshqaruvlari ostida ko'rinmasin:
           xavfsiz hudud fon bilan qoplanadi (sticky blok o'zi sat+6 ostida pinlanadi). */}
       <div className="tk-safe-cover" aria-hidden="true" />
-      {/* Mobil: sarlavhaning o'zi sticky — safe-zone chegarasida (sat) pinlanadi.
-          Skroll bo'lganda yon tugmalar yashirinadi, FAQAT markaziy logo qoladi. */}
-      {wide ? (
-        <div className="relative z-20 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
-          <Header />
-        </div>
-      ) : (
-        <div ref={hdrRef} className="sticky z-30 bg-[var(--bg)] tk-hdr-sticky">
-          <Header stuck={stuck} />
-        </div>
-      )}
-      {/* Burger/qidiruv/kategoriyalar endi sticky EMAS: skroll qilinganda faqat
-          markaziy logo qoladi. Sticky sarlavha oqim o'rnidan yuqorida render
-          bo'lgani uchun pastdagi kontent sat+2 bilan kompensatsiya qilinadi. */}
-      <div ref={navRef} className={`bg-[var(--bg)] ${wide ? 'sticky z-30 tk-sticky-catalog' : ''}`}
-        style={wide ? undefined : { paddingTop: 'calc(2px + var(--sat))' }}>
-        <CatalogNav q={q} setQ={setQ} chips={chips} active={searching ? null : active} onSelect={onSelect} />
-      </div>
-      <div className="lg:max-w-[1240px] lg:mx-auto">
+      {/* Bitta sticky blok: mobil — brend qatori (skroll bo'lganda yon tugmalar
+          yashirinadi, faqat markaziy logo qoladi) + burger/qidiruv/kategoriyalar
+          birgalikda safe-zone chegarasida (sat) pinlanadi. Blok oqim o'rnidan
+          yuqorida render bo'lgani uchun pastdagi kontent sat bilan kompensatsiya. */}
+      {(() => {
+        const catalogNav = <CatalogNav q={q} setQ={setQ} chips={chips} active={searching ? null : active} onSelect={onSelect} />
+        return wide ? (
+          <>
+            <div className="relative z-20 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
+              <Header />
+            </div>
+            <div ref={navRef} className="sticky z-30 bg-[var(--bg)] tk-sticky-catalog">
+              {catalogNav}
+            </div>
+          </>
+        ) : (
+          <div ref={navRef} className="sticky z-30 bg-[var(--bg)] tk-hdr-sticky">
+            <Header stuck={stuck} />
+            {catalogNav}
+          </div>
+        )
+      })()}
+      <div className="lg:max-w-[1240px] lg:mx-auto" style={wide ? undefined : { paddingTop: 'var(--sat)' }}>
         <CityBanner />
         {found ? (
           <section className="px-4 lg:px-6 mt-4">
