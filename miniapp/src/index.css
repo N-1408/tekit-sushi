@@ -77,7 +77,7 @@ input, textarea, select { font-size: 16px !important; }
 /* Suzuvchi boshqaruvlar: chapda "yuqoriga chiqish", o'ngda yetkazib berish + savat.
    Uchalasi bir bazaviy chiziqda (--float-bottom) va bir o'lchamda (--float-size).
    Desktopda sidebar ochilganda chap qator kontent bilan birga suriladi (--nav-w). */
-.floating-row-left { position: fixed; left: calc(var(--float-side) + var(--nav-w)); bottom: var(--float-bottom); z-index: 45; display: flex; align-items: center; }
+.floating-row-left { position: fixed; left: calc(var(--float-side) + var(--nav-w)); bottom: var(--float-bottom); z-index: 45; display: flex; align-items: center; transition: left .3s cubic-bezier(.23,1,.32,1); }
 .floating-row-right { position: fixed; right: var(--float-side); bottom: var(--float-bottom); z-index: 45; display: flex; align-items: center; gap: 12px; }
 @media (min-width: 768px) {
   :root { --float-bottom: 32px; --float-side: 24px; }

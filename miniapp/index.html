@@ -19,6 +19,21 @@
 </head>
 <body>
 <div id="root"></div>
-<script type="module" src="/src/main.tsx"></script>
+<script>
+    // Eskirgan HTML eski chunk nomini ko'rsa, import HTML sifatida 200 qaytadi va
+    // modul yuklanmaydi. Bitta cheklangan tiklanish: sessiyada bir marta reload.
+    (function () {
+      try {
+        window.addEventListener('error', function (e) {
+          var t = e && e.target
+          if (!t || t.tagName !== 'SCRIPT') return
+          if (sessionStorage.getItem('tk-boot-retry')) return
+          try { sessionStorage.setItem('tk-boot-retry', '1') } catch (err) {}
+          location.reload()
+        }, true)
+      } catch (err) {}
+    })()
+  </script>
+  <script type="module" src="/src/main.tsx"></script>
 </body>
 </html>

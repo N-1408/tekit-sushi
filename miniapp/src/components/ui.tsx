@@ -127,6 +127,12 @@ export const IcArrowUp = ({ s = 20 }: { s?: number }) => (
     <path transform="translate(-3 0)" d="M7.74407 4.24409C7.41864 4.56953 7.41864 5.09717 7.74407 5.4226C8.06951 5.74804 8.59715 5.74804 8.92259 5.4226L10.1667 4.17853L10.1667 13.8333C10.1667 14.2936 10.5398 14.6667 11 14.6667C11.4602 14.6667 11.8333 14.2936 11.8333 13.8333V4.17845L13.0775 5.4226C13.4029 5.74804 13.9306 5.74804 14.256 5.4226C14.5814 5.09717 14.5814 4.56953 14.256 4.24409L11.5893 1.57739C11.4937 1.4818 11.3807 1.41428 11.2604 1.37485C11.2047 1.35652 11.1463 1.34392 11.0861 1.33774C10.9573 1.32445 10.8259 1.34109 10.7034 1.38768C10.6005 1.4268 10.5038 1.48703 10.4199 1.56837L10.4092 1.57895L7.74407 4.24409Z" />
   </svg>
 )
+export const IcChevronsUp = ({ s = 20 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 1.2c.21 0 .41.08.56.23l3.68 3.68a.75.75 0 1 1-1.06 1.06L8 3.05 4.82 6.17a.75.75 0 0 1-1.06-1.06l3.68-3.68A.79.79 0 0 1 8 1.2Z" />
+    <path d="M8 6.2c.21 0 .41.08.56.23l3.68 3.68a.75.75 0 1 1-1.06 1.06L8 8.05 4.82 11.17a.75.75 0 0 1-1.06-1.06l3.68-3.68A.79.79 0 0 1 8 6.2Z" />
+  </svg>
+)
 export const IcBurger = ({ s = 18 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
     <rect x="1.3" y="2.9" width="13.4" height="2.1" rx="1.05" />
@@ -474,7 +480,7 @@ export function Header() {
             <button onClick={() => nav('/')} aria-label="Tekit Sushi"
               aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
               className={`hidden lg:flex press items-center gap-2 min-w-0 overflow-hidden whitespace-nowrap motion-safe:transition-[opacity,max-width] motion-safe:duration-300 motion-safe:ease-out ${hideBrand ? 'opacity-0 max-w-0 pointer-events-none' : 'opacity-100 max-w-[200px] active:opacity-80'}`}>
-              <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px] shrink-0" />
+              <img src="/logo.png" alt="" className={`w-9 h-9 rounded-[10px] shrink-0 motion-safe:transition-opacity motion-safe:duration-300 ${hideBrand ? 'opacity-0' : 'opacity-100'}`} />
               <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
             </button>
           </div>
@@ -568,7 +574,7 @@ export function SideNav() {
         ))}
       </div>
       <div className="px-5 mt-5 mb-1.5 text-[11px] uppercase tracking-[0.14em] text-[var(--mut2)] font-extrabold">{t.menuT}</div>
-      <nav className="flex-1 overflow-y-auto no-scrollbar px-3" aria-label={t.menuT}>
+      <nav className="flex-1 overflow-y-auto overscroll-contain no-scrollbar px-3" aria-label={t.menuT}>
         {CATS.map(c => {
           const on = activeCat === c.id
           return (
@@ -1639,8 +1645,8 @@ export function ScrollTop() {
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
     }} aria-label="up"
-      className="floating-quick press w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] hover:bg-[var(--soft)] active:scale-95 transition-[transform,background-color] cursor-pointer">
-      <IcArrowUp s={20} />
+      className="floating-quick press w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] bg-[var(--panel)] border border-[var(--line2)] text-[#29A8E0] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] hover:bg-[var(--soft)] active:scale-95 transition-[transform,background-color] cursor-pointer">
+      <IcChevronsUp s={20} />
     </button>
   )
 }
