@@ -45,6 +45,9 @@ export function applyTheme(t: ThemeMode) {
   try {
     TGA?.setHeaderColor?.(THEME_BG[t])
     TGA?.setBackgroundColor?.(THEME_BG[t])
+    // Telegram-native pastki bar: mavjud bo'lsa (yangi klientlar) tema bilan birga yangilanadi.
+    // HTML navigatsiyasi bilan aralashtirilmaydi — bu faqat native xrom rangi.
+    TGA?.setBottomBarColor?.(THEME_BG[t])
   } catch {}
   const meta = document.querySelector('meta[name="theme-color"]')
   if (meta) meta.setAttribute('content', THEME_BG[t])

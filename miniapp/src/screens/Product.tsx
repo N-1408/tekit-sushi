@@ -3,18 +3,17 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore, pName, pImg, pDesc } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import {  TopBar, Qty, IcScale, IcSauce , IcHeart } from '../components/ui'
+import { TopBar, Qty, IcScale, IcSauce, NutritionPanel } from '../components/ui'
 
 export default function Product() {
   const { id } = useParams()
-  const { products, lang, t, add, setQty, cart, favs, toggleFav } = useStore()
+  const { products, lang, t, add, setQty, cart } = useStore()
   const nav = useNavigate()
   const p = products.find(x => x.id === id)
   const [q, setQ] = React.useState(1)
   const sauces = products.filter(x => x.cat === 'sous' && x.id !== id && x.active !== false)
   const qtyOf = (sid: string) => cart.find(l => l.id === sid)?.q || 0
   if (!p) return <div className="pb-28"><TopBar title="…" /></div>
-  const fav = favs.includes(p.id)
   const hasKbju = [p.kcal, p.protein, p.fat, p.carbs].some(v => v != null && (v as number) > 0)
 
   return (
@@ -23,10 +22,6 @@ export default function Product() {
       <div className="lg:max-w-[1240px] lg:mx-auto lg:grid lg:grid-cols-2 lg:gap-10 lg:items-start lg:px-8 lg:pt-6">
       <div className="relative lg:rounded-[26px] lg:overflow-hidden">
         <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover bg-navy-soft" />
-        <button onClick={() => { toggleFav(p.id); haptic(fav ? 'light' : 'medium') }}
-          className="absolute top-3 right-4 w-10 h-10 rounded-full bg-[var(--bg2)]/80 grid place-items-center active:scale-90 transition-transform">
-          <IcHeart s={19} on={fav} />
-        </button>
         {p.pcs ? <span className="absolute bottom-3 left-4 bg-white/95 text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
       </div>
       <div className="px-4 mt-4 lg:px-0 lg:mt-0">
@@ -41,25 +36,12 @@ export default function Product() {
           </div>
         ) : null}
         {hasKbju && (
-          <div className="mt-3 bg-[var(--panel)] border border-navy-line rounded-2xl px-3.5 py-3">
-            <div className="flex items-center justify-between">
-              <span className="text-[10.5px] font-extrabold text-[var(--mut2)] uppercase tracking-widest">КБЖУ</span>
-              <span className="text-[10.5px] font-bold text-[var(--mut2)]">{t.per100}</span>
-            </div>
-            <div className="mt-2 grid grid-cols-4 gap-1.5">
-              {([
-                [t.nKcal, p.kcal],
-                [t.nProt, p.protein],
-                [t.nFat, p.fat],
-                [t.nCarb, p.carbs],
-              ] as const).map(([label, val]) => (
-                <div key={label} className="bg-navy-soft/70 rounded-xl py-2 text-center">
-                  <div className="text-[15px] font-extrabold text-[#29A8E0] leading-none">{val != null ? val : '—'}</div>
-                  <div className="mt-1 text-[9.5px] font-bold text-[var(--mut2)] leading-none">{label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <NutritionPanel
+            className="mt-3 bg-[var(--panel)] border border-navy-line rounded-2xl px-3.5 py-3"
+            items={([[t.nKcal, p.kcal, ''], [t.nProt, p.protein, 'g'], [t.nFat, p.fat, 'g'], [t.nCarb, p.carbs, 'g']] as const)
+              .filter(([, v]) => v != null && (v as number) > 0)}
+            per100={t.per100}
+          />
         )}
         <p className="mt-3 text-[14px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{pDesc(p, lang)}</p>
 
@@ -102,11 +84,18 @@ export default function Product() {
       </div>
       <div className="fixed left-0 right-0 bottom-0 z-40 bg-[var(--bg)] border-t border-[var(--line)] px-4 pt-3 lg:left-[220px]"
         style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
-        <div className="flex gap-2.5 items-center lg:max-w-[1240px] lg:mx-auto">
-          <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
+        <div className="lg:max-w-[1240px] lg:mx-auto">
+          <div className="flex items-center justify-between gap-3 mb-2.5">
+            <Qty q={q} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
+            <div className="text-right min-w-0">
+              <div className="text-[17px] font-extrabold tracking-tight whitespace-nowrap tabular-nums leading-tight">
+                {fmt(p.price * q)}<span className="text-[11px] text-[var(--mut2)] font-bold"> UZS</span>
+              </div>
+            </div>
+          </div>
           <button onClick={() => { add(p.id, q); haptic('medium'); nav(-1) }}
-            className="press flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold flex items-center justify-center gap-2 shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform">
-            {t.addCart} · {fmt(p.price * q)}
+            className="press w-full py-3.5 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15px] font-extrabold flex items-center justify-center active:scale-[.98] transition-transform">
+            {t.addCart}
           </button>
         </div>
       </div>

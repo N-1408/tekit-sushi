@@ -53,12 +53,14 @@ function useCatalogTracking(ids: string[], paused: boolean) {
     if (!el) return
     const nav = navRef.current
     const navH = nav ? nav.offsetHeight : 0
+    // Pinlangan holatdagi yuqori ofset (sat + 6px): computed top var() ni PX ga hal qiladi
+    const pinTop = nav ? (parseFloat(getComputedStyle(nav).top) || 0) : 0
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     // programmatik skroll davomida kuzatuv bloklanadi; yakunlangach haqiqiy joy bilan kelishiladi
     lockRef.current = id
     setActive(id)
     window.scrollTo({
-      top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - navH - 10),
+      top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - navH - pinTop - 10),
       behavior: reduced ? 'auto' : 'smooth',
     })
     cancelAnimationFrame(rafRef.current)
@@ -90,9 +92,10 @@ function useCatalogTracking(ids: string[], paused: boolean) {
       io?.disconnect()
       const navH = nav.offsetHeight
       const vh = window.innerHeight
+      const pinTop = parseFloat(getComputedStyle(nav).top) || 0
       io = new IntersectionObserver(entries => {
         if (entries.some(e => e.isIntersecting)) computeActive()
-      }, { rootMargin: `-${navH}px 0px -${Math.max(0, vh - navH - 4)}px 0px`, threshold: 0 })
+      }, { rootMargin: `-${navH + pinTop}px 0px -${Math.max(0, vh - navH - pinTop - 4)}px 0px`, threshold: 0 })
       for (const id of list) {
         const el = document.getElementById(SEC(id))
         if (el) io.observe(el)
@@ -141,6 +144,9 @@ export default function Home() {
 
   return (
     <div className="pb-28 lg:pb-12">
+      {/* Skroll qilinganda kontent notch/Telegram boshqaruvlari ostida ko'rinmasin:
+          xavfsiz hudud fon bilan qoplanadi (sticky blok o'zi sat+6 ostida pinlanadi). */}
+      <div className="tk-safe-cover" aria-hidden="true" />
       {/* sarlavha aylanadi; sticky blok uning OSTIDA — ko'tarilganda sticky blok
           ustidan o'tadi (z-20 < z-30), vaqtinchalik ustma-ust tushish bo'lmaydi */}
       <div className="relative z-20 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
@@ -149,8 +155,10 @@ export default function Home() {
       {/* sticky blok: mobil brend qatori + burger/qidiruv/kategoriyalar birgalikda
           qoladi. navRef butun blokni o'lchaydi, shuning uchun kategoriya bosilganda
           va faol bo'lim kuzatilganda ofset brend + qator balandligini o'z ichiga oladi. */}
-      <div ref={navRef} className="sticky top-0 z-30 bg-[var(--bg)]">
-        <div className="lg:hidden" style={{ paddingTop: 'calc(6px + var(--sat))', marginTop: 'calc(-6px - var(--sat))' }}>
+      <div ref={navRef} className="sticky z-30 bg-[var(--bg)] tk-sticky-catalog">
+        {/* Inset BIR MARSA: blokning o'zi sat+6 ostida pinlanadi, shuning uchun bu yerda
+            qo'shimcha safe-area paddingi yo'q. Brend qatori toolbar bilan ixcham joylashadi. */}
+        <div className="lg:hidden">
           <div className="max-w-[1240px] mx-auto px-4 pb-1 flex items-center justify-center">
             <button onClick={() => {
               const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches

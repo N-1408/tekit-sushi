@@ -85,6 +85,16 @@ input, textarea, select { font-size: 16px !important; }
 }
 @media (prefers-reduced-motion: reduce) { .floating-row-left { transition: none; } }
 
+/* ---------- mobil sticky katalog: xavfsiz hudud inseti BIR MARSA qo'llanadi.
+   Blok sat+6 ostida pinlanadi; 0..sat+6 zonasi .tk-safe-cover fon bilan qoplanadi
+   (skroll qilingan kontent notch/Telegram boshqaruvlari ostida ko'rinmaydi).
+   Eski padding+negative-margin yechimi margin-collapse tufayli pinlanganda
+   yuqorida sat+6 ortiqcha bo'shliq qoldirardi. ---------- */
+.tk-sticky-catalog { top: calc(6px + var(--sat)); }
+@media (min-width: 1024px) { .tk-sticky-catalog { top: 0; } }
+.tk-safe-cover { position: fixed; left: 0; right: 0; top: 0; height: calc(6px + var(--sat)); background: var(--bg); z-index: 25; pointer-events: none; }
+@media (min-width: 1024px) { .tk-safe-cover { display: none; } }
+
 /* savatga qo'shish tasdigi: ikonka urishi va tugma belgisi */
 @keyframes cartBeat { 0% { transform: scale(1) } 35% { transform: scale(1.16) } 100% { transform: scale(1) } }
 .cart-beat { animation: cartBeat .45s cubic-bezier(.32,.72,0,1); }
@@ -103,8 +113,13 @@ input, textarea, select { font-size: 16px !important; }
 }
 .tk-journey { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
 .tk-j-cart { display: grid; place-items: center; animation: tkJourney .8s cubic-bezier(.42,.06,.32,1) both; will-change: transform; }
-@keyframes tkJourneyLabel { 0% { opacity: 1 } 10% { opacity: 0 } 88% { opacity: 0 } 100% { opacity: 1 } }
-.tk-add-active .tk-add-label { animation: tkJourneyLabel .8s cubic-bezier(.42,.06,.32,1) both; }
+/* Yorliq yo'nalish boshlanishida yashirinadi va YASHIRIN qoladi (100%: 0) —
+   yo'nalish tugagach tugma darhol yakuniy holatga o'tadi, "Savatga" yorlig'i
+   hech qachon qayta yonmaydi (860–1000 baytdagi holat tozalanishi bilan birga).
+   Klass tushganda (modal ichidagi tugmada) opacity o'tishi bilan silliq qaytadi. */
+@keyframes tkJourneyLabel { 0% { opacity: 1 } 10% { opacity: 0 } 100% { opacity: 0 } }
+.tk-add-label { transition: opacity .18s cubic-bezier(.32,.72,0,1); }
+.tk-add-active .tk-add-label { transition: none; animation: tkJourneyLabel .8s cubic-bezier(.42,.06,.32,1) both; }
 
 /* xarita ochiq paytda suzuvchi tugmalar yashirinadi */
 body[data-map-open='1'] .floating-quick { display: none !important; }
