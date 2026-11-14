@@ -85,12 +85,13 @@ export function initTelegram() {
       const st = document.documentElement.style
       const ios = TGA?.platform === 'ios' || /iPhone|iPad|iPod/i.test(navigator.userAgent || '')
       const mob = ios || TGA?.platform === 'android' || /Android/i.test(navigator.userAgent || '')
-      // Telegram suzuvchi Close/Back tugmalari kontent ustida turadi (iOS ham, fullscreen ham):
-      // yuqoriga qo'shimcha bo'shlik ajratamiz
-      st.setProperty('--tg-extra', (mob && (TGA?.isFullscreen || ios)) ? '44px' : '0px')
       const cs = (TGA as any).contentSafeAreaInset || {}
       const top = Number(cs.top) || 0
       const bottom = Number(cs.bottom) || 0
+      // contentSafeAreaInset Telegram xromi balandligini o'zi hisoblab beradi —
+      // u mavjud bo'lsa qo'shimcha 44px IKKI MARSA hisoblanadi va logo juda past
+      // tushardi. Qo'shimcha faqat fullscreen yoki csa bermaydigan eski klientda.
+      st.setProperty('--tg-extra', (mob && (TGA?.isFullscreen || !(top > 0))) ? '44px' : '0px')
       if (top > 0 && mob) st.setProperty('--tg-csa-top', `${top}px`)
       else st.removeProperty('--tg-csa-top')
       if (bottom > 0 && mob) st.setProperty('--tg-csa-bottom', `${bottom}px`)

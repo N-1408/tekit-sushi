@@ -133,6 +133,13 @@ export const IcChevronsUp = ({ s = 20 }: { s?: number }) => (
     <path d="M8 6.2c.21 0 .41.08.56.23l3.68 3.68a.75.75 0 1 1-1.06 1.06L8 8.05 4.82 11.17a.75.75 0 0 1-1.06-1.06l3.68-3.68A.79.79 0 0 1 8 6.2Z" />
   </svg>
 )
+export const IcTop = ({ s = 20 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg">
+    <path d="M5 4h14" />
+    <path d="M12 20V8.5" />
+    <path d="M6.5 14 12 8.5l5.5 5.5" />
+  </svg>
+)
 export const IcBurger = ({ s = 18 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
     <rect x="1.3" y="2.9" width="13.4" height="2.1" rx="1.05" />
@@ -437,7 +444,7 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
 }
 
 /* ---------- bosh sahifa headeri ---------- */
-export function Header() {
+export function Header({ stuck = false }: { stuck?: boolean }) {
   const { t, mode, user, ob } = useStore()
   const { navOpen, setNavOpen } = useNav()
   const nav = useNavigate()
@@ -468,7 +475,7 @@ export function Header() {
         <div className="max-w-[1240px] mx-auto grid grid-cols-[1fr_auto_1fr] items-center px-4 lg:px-6 py-2">
           <div className="flex items-center gap-1 min-[400px]:gap-1.5 min-w-0 justify-self-start">
             {/* mobil: ixcham ikonkali yetkazish/olib-ketish tugmalari */}
-            <div className="flex lg:hidden items-center gap-1">
+            <div className={`flex lg:hidden items-center gap-1 max-w-[120px] overflow-hidden motion-safe:transition-[opacity,max-width] motion-safe:duration-300 motion-safe:ease-out ${stuck ? 'opacity-0 max-w-0 pointer-events-none' : ''}`}>
               {(['delivery', 'pickup'] as const).map(m => (
                 <button key={m} aria-haspopup="dialog" aria-label={m === 'delivery' ? t.deliveryMode : t.pickup}
                   onClick={() => { haptic('light'); if (m === 'delivery') setDelOpen(true); else setPickOpen(true) }}
@@ -486,7 +493,13 @@ export function Header() {
           </div>
           {/* markaz: mobil — brend klasteri; lg — rejim tugmalari */}
           <div className="flex items-center gap-1.5 justify-self-center min-w-0">
-            {/* mobil brend bosh sahifadagi sticky qatorga ko'chirildi: bu yerda ikki marta ko'rinmasin */}
+            {/* mobil: brend markazda, chapda yetkazish/olib-ketish va o'ngda tema bilan
+                BITTA qatorda. lg+ da bu joyda rejim tugmalari, brend chapda. */}
+            <button onClick={() => nav('/')} aria-label="Tekit Sushi"
+              className="lg:hidden press flex items-center gap-2 active:opacity-80">
+              <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px] shrink-0" />
+              <span className="text-[14px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+            </button>
             <div className="hidden lg:flex items-center gap-1.5">
               {(['delivery', 'pickup'] as const).map(m => (
                 <button key={m} aria-haspopup="dialog"
@@ -497,7 +510,7 @@ export function Header() {
               ))}
             </div>
           </div>
-          <div className="flex items-center gap-1 justify-self-end">
+          <div className={`flex items-center gap-1 justify-self-end min-w-0 max-w-[120px] overflow-hidden motion-safe:transition-[opacity,max-width] motion-safe:duration-300 motion-safe:ease-out ${stuck ? 'opacity-0 max-w-0 pointer-events-none' : ''}`}>
             <button onClick={() => nav('/profile')} className="focus-ring hidden lg:flex items-center gap-2 px-3 py-2.5 text-[14px] font-bold active:opacity-80 transition-opacity rounded-lg">
               <IcUser /> {user?.name ? user.name.split(' ')[0] : t.tabProfile}
             </button>
@@ -1652,8 +1665,8 @@ export function ScrollTop() {
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
     }} aria-label="up"
-      className="floating-quick press w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] bg-[var(--panel)] border border-[var(--line2)] text-[#29A8E0] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] hover:bg-[var(--soft)] active:scale-95 transition-[transform,background-color] cursor-pointer">
-      <IcChevronsUp s={20} />
+      className="floating-quick press w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] bg-white border border-black/10 text-[#0A2194] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] hover:bg-[#F1F5F9] active:scale-95 transition-[transform,background-color] cursor-pointer">
+      <IcTop s={20} />
     </button>
   )
 }
@@ -1686,7 +1699,7 @@ export function GiftProgress() {
             <circle cx="28" cy="28" r={R} fill="none" stroke="var(--line2)" strokeWidth="3" />
             <circle cx="28" cy="28" r={R} fill="none" stroke="var(--promo)" strokeWidth="3" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} style={{ transition: 'stroke-dashoffset .5s cubic-bezier(.32,.72,0,1)' }} />
           </svg>
-          <span className="w-[44px] h-[44px] rounded-full bg-[var(--sheet)] border border-[var(--line)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] transition-colors duration-300" style={{ color: done ? 'var(--promo-deep)' : 'var(--ink)' }}>
+          <span className="w-[44px] h-[44px] rounded-full bg-[var(--sheet)] border border-[var(--line)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] transition-colors duration-300" style={{ color: done ? 'var(--promo-deep)' : '#29A8E0' }}>
             <IcTruck s={18} />
           </span>
         </button>

@@ -90,9 +90,10 @@ input, textarea, select { font-size: 16px !important; }
    (skroll qilingan kontent notch/Telegram boshqaruvlari ostida ko'rinmaydi).
    Eski padding+negative-margin yechimi margin-collapse tufayli pinlanganda
    yuqorida sat+6 ortiqcha bo'shliq qoldirardi. ---------- */
-.tk-sticky-catalog { top: calc(6px + var(--sat)); }
-@media (min-width: 1024px) { .tk-sticky-catalog { top: 0; } }
-.tk-safe-cover { position: fixed; left: 0; right: 0; top: 0; height: calc(6px + var(--sat)); background: var(--bg); z-index: 25; pointer-events: none; }
+.tk-sticky-catalog { top: 0; }
+/* Mobil sarlavhaning o'zi sticky: safe-zone chegarasida (sat) pinlanadi */
+.tk-hdr-sticky { top: var(--sat); }
+.tk-safe-cover { position: fixed; left: 0; right: 0; top: 0; height: var(--sat); background: var(--bg); z-index: 25; pointer-events: none; }
 @media (min-width: 1024px) { .tk-safe-cover { display: none; } }
 
 /* savatga qo'shish tasdigi: ikonka urishi va tugma belgisi */
