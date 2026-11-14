@@ -94,6 +94,8 @@ export default function Checkout() {
     setSugs([])
     haptic('medium')
     saveUser({ name: user?.name || '', phone: user?.phone || '', addr: a, lat, lon })
+    /* manzil tasdiqlandi — delivery rejimi endi haqiqiy tanlov */
+    if (mode !== 'delivery') setMode('delivery')
   }
 
   async function applyPromo() {
@@ -109,7 +111,7 @@ export default function Checkout() {
   }
 
   const pickOk = !!(pickup && pickup.branch && pickup.date && pickup.time)
-  const valid = name.trim().length > 1 && phoneD.length === 9 && (mode === 'pickup' ? pickOk : addr.trim().length > 4)
+  const valid = name.trim().length > 1 && phoneD.length === 9 && !!mode && (mode === 'pickup' ? pickOk : addr.trim().length > 4)
 
   async function submit() {
     setBusy(true); setErr('')
@@ -167,8 +169,8 @@ export default function Checkout() {
 
             <Line label={t.howGet}>
               <div className="flex gap-2">
-                <button className={chip(mode === 'delivery')} onClick={() => { setMode('delivery'); haptic() }}>{t.deliveryMode}</button>
-                <button className={chip(mode === 'pickup')} onClick={() => { setMode('pickup'); if (!pickOk) setPickOpen(true); haptic() }}>{t.pickup}</button>
+                <button className={chip(mode === 'delivery')} onClick={() => { if (user?.addr) setMode('delivery'); else setMapOpen(true); haptic() }}>{t.deliveryMode}</button>
+                <button className={chip(mode === 'pickup')} onClick={() => { setPickOpen(true); haptic() }}>{t.pickup}</button>
               </div>
             </Line>
 

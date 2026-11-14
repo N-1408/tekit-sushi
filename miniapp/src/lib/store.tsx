@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState, useCall
 import menu from '../data/menu.json'
 import { T, type Lang, type Trans } from './i18n'
 export type { Lang } from './i18n'
-import { tgUser, haptic, TGA, resolveTheme, applyTheme, onSystemThemeChange, themeTransition, type ThemeMode } from './tg'
+import { tgUser, haptic, TGA, resolveTheme, applyTheme, onSystemThemeChange, type ThemeMode } from './tg'
 
 export type Product = {
   id: string; slug: string; cat: string; price: number; img: string
@@ -53,7 +53,14 @@ export type User = { tg_id?: number; name: string; phone: string; addr: string; 
 
 /* Olib ketish: filial + kun (YYYY-MM-DD) + vaqt (HH:MM). Filiallar va ish vaqti
    hali loyihada konfiguratsiya qilinmagan — Fulfillment.tsx dagi BRANCHES/PICKUP_CFG. */
-export type PickupSel = { branch: string; date: string; time: string }
+export type PickupSel = { branch: string; date?: string; time?: string }
+
+/* Toshkent vaqti: saqlangan olib-ketish jadvalining muddati o'tganini tekshirish */
+function tkNowParts() {
+  const p = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Tashkent', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false }).formatToParts(new Date())
+  const g = (t: string) => p.find(x => x.type === t)?.value || ''
+  return { ymd: `${g('year')}-${g('month')}-${g('day')}`, hm: `${g('hour') === '24' ? '00' : g('hour')}:${g('minute')}` }
+}
 
 export type Store = {
   lang: Lang; setLang: (l: Lang) => void; t: Trans
@@ -73,7 +80,7 @@ export type Store = {
   ob: boolean
   openOb: () => void
   closeOb: () => void
-  mode: 'delivery' | 'pickup'
+  mode: 'delivery' | 'pickup' | null
   setMode: (m: 'delivery' | 'pickup') => void
   pickup: PickupSel | null
   setPickup: (p: PickupSel | null) => void
@@ -116,7 +123,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeS] = useState<ThemeMode>(() => resolveTheme())
   const setTheme = useCallback((next: ThemeMode) => {
     try { localStorage.setItem('tk-theme', next) } catch {}
-    themeTransition()
     applyTheme(next)
     setThemeS(next)
   }, [])
@@ -128,8 +134,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     }
     onSystemThemeChange(onSys)
   }, [theme])
-  const [mode, setModeS] = useState<'delivery' | 'pickup'>(() => (localStorage.getItem('tk-mode') === 'pickup' ? 'pickup' : 'delivery'))
-  const [pickup, setPickupS] = useState<PickupSel | null>(() => load<PickupSel | null>('tk-pickup', null))
+  const [mode, setModeS] = useState<'delivery' | 'pickup' | null>(() => {
+    try {
+      const v = localStorage.getItem('tk-ff')
+      if (v === 'delivery' || v === 'pickup') return v
+      /* eski kalit 'tk-mode' standart sifatida avtomatik yozilgan edi
+         ('delivery' fallback), shuning uchun u tasdiqlangan tanlov emas — o'chiriladi */
+      localStorage.removeItem('tk-mode')
+    } catch {}
+    return null
+  })
+  const [pickup, setPickupS] = useState<PickupSel | null>(() => {
+    const p = load<PickupSel | null>('tk-pickup', null)
+    if (!p || !p.branch) return null
+    if (p.date && p.time) {
+      const n = tkNowParts()
+      if (p.date < n.ymd || (p.date === n.ymd && p.time <= n.hm)) return { branch: p.branch }
+    }
+    return p
+  })
   const [navOpen, setNavOpenS] = useState(false)
   const [deliveryCfg, setDeliveryCfg] = useState<{ fee: number; threshold: number }>(() => ({ fee: 15000, threshold: 200000 }))
 
@@ -142,7 +165,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setLang = useCallback((l: Lang) => setLangS(l), [])
   const setPickup = useCallback((p: PickupSel | null) => { setPickupS(p); try { if (p) localStorage.setItem('tk-pickup', JSON.stringify(p)); else localStorage.removeItem('tk-pickup') } catch {} }, [])
   const setNavOpen = useCallback((v: boolean) => setNavOpenS(v), [])
-  const setMode = useCallback((m: 'delivery' | 'pickup') => { setModeS(m); try { localStorage.setItem('tk-mode', m) } catch {} }, [])
+  const setMode = useCallback((m: 'delivery' | 'pickup') => { setModeS(m); try { localStorage.setItem('tk-ff', m) } catch {} }, [])
   const add = useCallback((id: string, q = 1) => setCartMap(c => ({ ...c, [id]: (c[id] || 0) + q })), [])
   const setQty = useCallback((id: string, q: number) => setCartMap(c => {
     const copy = { ...c }

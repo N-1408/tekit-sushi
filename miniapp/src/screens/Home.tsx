@@ -1,12 +1,10 @@
 import React from 'react'
 import { useStore, pName, CATS, type Product } from '../lib/store'
-import { Header, SearchChips, CityBanner, HeroSlider, InfoTiles, ProductCard, AddressBox } from '../components/ui'
+import { Header, SearchChips, CityBanner, HeroSlider, InfoTiles, ProductCard } from '../components/ui'
 
-type SortT = 'none' | 'asc' | 'desc'
-
-function Section({ title, items, sort }: { title: string; items: Product[]; sort: SortT }) {
+function Section({ title, items }: { title: string; items: Product[] }) {
   if (!items.length) return null
-  const list = sort === 'none' ? items : [...items].sort((a, b) => sort === 'asc' ? a.price - b.price : b.price - a.price)
+  const list = items
   return (
     <section className="mt-7">
       <div className="flex items-center justify-between px-4 lg:px-6 mb-3">
@@ -23,7 +21,6 @@ function Section({ title, items, sort }: { title: string; items: Product[]; sort
 export default function Home() {
   const { t, lang, products } = useStore()
   const [q, setQ] = React.useState('')
-  const [sort, setSort] = React.useState<SortT>('none')
   const hits = products.filter(p => p.hit)
   const sales = products.filter(p => (p as any).sale_active && ((p as any).old_price ?? 0) > p.price)
   const found = q.trim() ? products.filter(p => pName(p, lang).toLowerCase().includes(q.trim().toLowerCase())) : null
@@ -32,10 +29,9 @@ export default function Home() {
     <div className="pb-28 lg:pb-12">
       <div className="sticky top-0 z-30 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
         <Header />
-        <SearchChips q={q} setQ={setQ} sort={sort} setSort={setSort} />
+        <SearchChips q={q} setQ={setQ} />
       </div>
       <div className="lg:max-w-[1240px] lg:mx-auto">
-        <div className="px-4 lg:hidden"><AddressBox mobile /></div>
         <CityBanner />
         {found ? (
           <section className="px-4 lg:px-6 mt-4">
@@ -43,7 +39,7 @@ export default function Home() {
               <div className="py-10 text-center text-[14px] font-semibold text-[var(--mut2)]">— {t.noResults} —</div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7">
-                {(sort === 'none' ? found : [...found].sort((a, b) => sort === 'asc' ? a.price - b.price : b.price - a.price)).map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
+                {found.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
               </div>
             )}
           </section>
@@ -51,11 +47,11 @@ export default function Home() {
           <>
             <HeroSlider />
             <InfoTiles />
-            <Section title={t.aSaleHome} items={sales} sort={sort} />
-            <Section title={t.hit} items={hits} sort={sort} />
+            <Section title={t.aSaleHome} items={sales} />
+            <Section title={t.hit} items={hits} />
             {CATS.map(c => {
               const list = products.filter(p => p.cat === c.id)
-              return <Section key={c.id} title={(c as any)[lang] || t.catNames[c.id]} items={list} sort={sort} />
+              return <Section key={c.id} title={(c as any)[lang] || t.catNames[c.id]} items={list} />
             })}
           </>
         )}

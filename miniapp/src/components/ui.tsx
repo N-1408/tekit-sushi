@@ -6,7 +6,7 @@ import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser } from '../lib/tg'
 import MapPicker from './MapPicker'
-import { DeliveryModal, PickupModal, pickupSummary } from './Fulfillment'
+import { DeliveryModal, PickupModal, InitialChoiceModal, pickupSummary } from './Fulfillment'
 
 const CDN = 'https://cdn.delever.uz/delever/'
 
@@ -432,12 +432,17 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
 
 /* ---------- bosh sahifa headeri ---------- */
 export function Header() {
-  const { t, mode, user, navOpen, setNavOpen, pickup } = useStore()
+  const { t, mode, user, ob, navOpen, setNavOpen, pickup } = useStore()
   const nav = useNavigate()
   const [drawer, setDrawer] = useState(false)
   const [delOpen, setDelOpen] = useState(false)
   const [pickOpen, setPickOpen] = useState(false)
+  const [askState, setAskState] = useState(() => {
+    try { return !sessionStorage.getItem('tk-ff-ask') } catch { return true }
+  })
   const isDesktop = useIsDesktop()
+  // birinchi tanlov: tasdiqlangan rejim yo'q va bu sessiyada so'ralmagan bo'lsa
+  const askOpen = askState && !mode && !!user && !ob
   const burgerRef = useRef<HTMLButtonElement>(null)
   const openNav = () => {
     haptic()
@@ -446,7 +451,7 @@ export function Header() {
   }
   return (
     <>
-      <header className="bg-[var(--bg)] text-[var(--ink)] border-b border-[var(--line)]">
+      <header className="tk-fade bg-[var(--bg)] text-[var(--ink)] border-b border-[var(--line)]">
         <div className="max-w-[1240px] mx-auto flex items-center gap-1.5 px-4 lg:px-6 py-2">
           <button ref={burgerRef} onClick={openNav} aria-label={t.menuT} aria-expanded={isDesktop ? navOpen : drawer}
             className="focus-ring press w-11 h-11 rounded-xl grid place-items-center shrink-0 text-[var(--ink2)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)] active:scale-95">
@@ -456,6 +461,16 @@ export function Header() {
             <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px]" />
             <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap hidden min-[400px]:block">TEKIT SUSHI</span>
           </button>
+          {/* mobil: ixcham ikonkali yetkazish/olib-ketish tugmalari */}
+          <div className="flex lg:hidden items-center gap-1.5 ml-1">
+            {(['delivery', 'pickup'] as const).map(m => (
+              <button key={m} aria-haspopup="dialog" aria-label={m === 'delivery' ? t.deliveryMode : t.pickup}
+                onClick={() => { haptic('light'); if (m === 'delivery') setDelOpen(true); else setPickOpen(true) }}
+                className={`press w-9 h-9 rounded-full grid place-items-center shrink-0 transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
+                {m === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
+              </button>
+            ))}
+          </div>
           <div className="hidden lg:flex flex-col ml-3 min-w-0">
             <div className="flex items-center gap-1.5">
               {(['delivery', 'pickup'] as const).map(m => (
@@ -470,7 +485,6 @@ export function Header() {
               <div className="text-[12.5px] font-semibold text-[var(--mut2)] leading-tight mt-1 ml-2 truncate max-w-[280px]">{pickupSummary(t, pickup)}</div>
             )}
           </div>
-          <AddressBox />
           <div className="flex-1" />
           <button onClick={() => nav('/profile')} className="focus-ring hidden lg:flex items-center gap-2 px-3 py-2.5 text-[14px] font-bold active:opacity-80 transition-opacity rounded-lg">
             <IcUser /> {user?.name ? user.name.split(' ')[0] : t.tabProfile}
@@ -481,6 +495,12 @@ export function Header() {
       <Drawer open={drawer && !isDesktop} onClose={() => { setDrawer(false); burgerRef.current?.focus() }} />
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} />
+      {askOpen && (
+        <InitialChoiceModal
+          open
+          onClose={() => { try { sessionStorage.setItem('tk-ff-ask', '1') } catch {} setAskState(false) }}
+        />
+      )}
     </>
   )
 }
@@ -504,7 +524,7 @@ export function SideNav() {
   const go = (to: string) => { haptic(); setNavOpen(false); nav(to) }
   return (
     <aside aria-label={t.menuT} aria-hidden={!navOpen}
-      className={`hidden lg:flex fixed left-0 top-0 bottom-0 z-[35] w-[300px] flex-col bg-[var(--bg2)] text-[var(--ink)] border-r border-[var(--line)]
+      className={`tk-fade hidden lg:flex fixed left-0 top-0 bottom-0 z-[35] w-[300px] flex-col bg-[var(--bg2)] text-[var(--ink)] border-r border-[var(--line)]
         motion-safe:transition-[transform,visibility] motion-safe:duration-300 motion-safe:ease-out
         ${navOpen ? 'translate-x-0 visible shadow-[10px_0_50px_rgba(4,10,30,.22)]' : '-translate-x-full invisible'}`}
       style={{ paddingTop: 'calc(14px + var(--sat))', paddingBottom: 'calc(14px + var(--sab))' }}>
@@ -583,7 +603,7 @@ export function CityBanner() {
 
 /* ---------- qidiruv + tartiblash (kategoriya qatori o'chirildi: kategoriyalar
    burger menyuda; chip qatoridagi funksiyalar shu yerga ko'chirildi) ---------- */
-export function SearchChips({ q, setQ, sort, setSort }: { q: string; setQ: (s: string) => void; sort: 'none' | 'asc' | 'desc'; setSort: (s: 'none' | 'asc' | 'desc') => void }) {
+export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void }) {
   const { t } = useStore()
   const [open, setOpen] = useState(false)
   return (
@@ -605,10 +625,6 @@ export function SearchChips({ q, setQ, sort, setSort }: { q: string; setQ: (s: s
               className="press focus-ring flex-1 min-w-0 flex items-center gap-2.5 h-[42px] px-4 rounded-full bg-[var(--soft)] text-[var(--mut2)] hover:text-[var(--ink2)] transition-colors text-left text-[15px] font-medium">
               <IcSearch s={17} />
               <span className="truncate">{t.search}</span>
-            </button>
-            <button onClick={() => setSort(sort === 'none' ? 'asc' : sort === 'asc' ? 'desc' : 'none')} aria-label="sort"
-              className={`press focus-ring w-11 h-11 grid place-items-center shrink-0 rounded-full active:scale-95 transition-transform ${sort !== 'none' ? 'text-[#29A8E0] bg-[var(--soft)]' : 'text-[var(--mut2)] hover:bg-[var(--soft)]'}`}>
-              <IcSort />
             </button>
           </div>
         )}
@@ -1240,49 +1256,6 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
       </div>
     </div>,
     document.body
-  )
-}
-
-/* ---------- manzil box (bosh sahifa: xaritadan tanlash + avto-aniqlash) ---------- */
-export function AddressBox({ mobile }: { mobile?: boolean }) {
-  const { t, user, saveUser } = useStore()
-  const [open, setOpen] = useState(false)
-  const [busy, setBusy] = useState(false)
-  const addr = user?.addr || ''
-  async function detect() {
-    if (busy) return
-    setBusy(true)
-    try {
-      const mod = (await import('../lib/tg')) as any
-      const loc = await mod.requestLocation()
-      if (loc?.lat) {
-        const r = await fetch(`/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
-        const j = r.ok ? await r.json() : null
-        saveUser(j?.ok && j.addr ? { addr: j.addr, lat: loc.lat, lon: loc.lon } : { lat: loc.lat, lon: loc.lon })
-      }
-    } catch {}
-    setBusy(false)
-  }
-  const box = mobile
-    ? 'press flex items-center gap-2 w-full bg-[var(--panel)] border border-[var(--line2)] rounded-xl pl-3 pr-1.5 py-1.5 lg:hidden'
-    : 'hidden lg:flex items-center gap-1.5 border border-[var(--line2)] rounded-xl pl-3 pr-1 py-1 min-w-0 w-[240px] xl:w-[300px]'
-  return (
-    <>
-      <div className={box}>
-        <span className="text-[var(--mut2)] shrink-0"><IcPin /></span>
-        <span onClick={() => setOpen(true)} className="flex-1 min-w-0 truncate text-[14px] font-bold text-[var(--ink)] cursor-pointer py-1.5">{addr || t.addrPick}</span>
-        <button onClick={detect} aria-label="locate" className="press w-8 h-8 rounded-lg grid place-items-center text-[#29A8E0] shrink-0 active:scale-90 transition-transform">
-          {busy ? <span className="w-3.5 h-3.5 border-2 border-[#29A8E0]/30 border-t-[#29A8E0] rounded-full animate-spin" /> : <IcLocate s={15} />}
-        </button>
-      </div>
-      <MapPicker
-        open={open}
-        initial={user?.lat && user?.lon ? { lat: user.lat, lon: user.lon } : null}
-        onPick={(a, lat, lon) => { saveUser({ addr: a, lat, lon }) }}
-        onClose={() => setOpen(false)}
-        t={t}
-      />
-    </>
   )
 }
 

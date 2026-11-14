@@ -3,7 +3,7 @@ import Modal from './Modal'
 import { useStore, type PickupSel } from '../lib/store'
 import { requestLocation, haptic } from '../lib/tg'
 import MapPicker from './MapPicker'
-import { IcLocate, IcPin, IcCheck, IcStore, IcChevR } from './ui'
+import { IcLocate, IcPin, IcCheck, IcStore, IcChevR, IcTruck } from './ui'
 
 /* ---------- olib ketish konfiguratsiyasi ----------
  * MUHIM: filiallar ro'yxati loyihada hozircha ma'lumot manbaisiz — bu yerda
@@ -48,8 +48,10 @@ const dowOf = (ymd: string): number => {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay()
 }
 
-/* Header/Cart/Checkout uchun qisqa xulosa: "Sampi filiali · Bugun · 18:30" */
+/* Header/Cart/Checkout uchun qisqa xulosa: "Sampi filiali · Bugun · 18:30".
+   Jadval hali tanlanmagan bo'lsa faqat filial ko'rsatiladi. */
 export function pickupSummary(t: any, p: PickupSel): string {
+  if (!p.date || !p.time) return p.branch
   const today = ymdOf(new Date())
   let day: string
   if (p.date === today) day = t.pickToday
@@ -322,5 +324,40 @@ export function PickupModal({ open, onClose }: { open: boolean; onClose: () => v
         </div>
       </div>
     </Modal>
+  )
+}
+
+/* ============ BIRINCHI TANLOV MODALI ============
+ * Saqlangan, tasdiqlangan tanlov yo'q bo'lsa bir marta ko'rsatiladi.
+ * Tugma bosilishi QORALAMA: mos oqim (manzil yoki filial/jadval) tasdiqlanganda
+ * ginagina rejim saqlanadi. Bekor qilinsa hech narsa yozilmaydi. */
+export function InitialChoiceModal({ open, onClose }: { open: boolean; onClose: () => void }) {
+  const { t } = useStore()
+  const [del, setDel] = useState(false)
+  const [pick, setPick] = useState(false)
+  const opt = 'press focus-ring w-full flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[#29A8E0]/60 text-left transition-colors active:scale-[.99]'
+  return (
+    <>
+      <Modal open={open && !del && !pick} onClose={onClose} title={t.fcTitle} width={480}>
+        <div className="space-y-2.5 pt-1">
+          <button className={opt} data-autofocus onClick={() => setDel(true)}>
+            <span className="w-11 h-11 rounded-xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcTruck s={19} /></span>
+            <span className="min-w-0">
+              <span className="block text-[15.5px] font-extrabold text-[var(--ink)] leading-tight">{t.fcDel}</span>
+              <span className="block text-[13.5px] font-medium text-[var(--mut2)] leading-snug mt-0.5">{t.fcDelSub}</span>
+            </span>
+          </button>
+          <button className={opt} onClick={() => setPick(true)}>
+            <span className="w-11 h-11 rounded-xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcStore s={19} /></span>
+            <span className="min-w-0">
+              <span className="block text-[15.5px] font-extrabold text-[var(--ink)] leading-tight">{t.fcPick}</span>
+              <span className="block text-[13.5px] font-medium text-[var(--mut2)] leading-snug mt-0.5">{t.fcPickSub}</span>
+            </span>
+          </button>
+        </div>
+      </Modal>
+      <DeliveryModal open={del} onClose={() => { setDel(false); onClose() }} />
+      <PickupModal open={pick} onClose={() => { setPick(false); onClose() }} />
+    </>
   )
 }

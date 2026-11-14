@@ -56,7 +56,7 @@ export default function Cart() {
           <div className="lg:w-[380px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4">
           <div className="mx-4 mt-4 bg-[var(--panel)] border border-navy-line rounded-[18px] p-4 lg:mx-0 lg:mt-0">
             <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
-            {mode === 'pickup' ? (
+            {mode === null ? null : mode === 'pickup' ? (
               <div className="flex items-center gap-2 text-[13.5px] font-semibold text-[var(--mut2)] mt-2">
                 <IcStore s={15} />
                 <span className="min-w-0 truncate">{pickup ? pickupSummary(t, pickup) : t.pickBranch}</span>

@@ -76,13 +76,15 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
 :root { color-scheme: light; }
 [data-theme='dark'] { color-scheme: dark; }
 
-/* ---------- tema almashganda silliqlashuv (faqat ranglar, 260ms) ----------
-   html.theming klassi faqat 320ms ga qo'yiladi (setTheme ichida). Layout, rasm
-   va transform animatsiya qilinmaydi; prefers-reduced-motion hurmat qilinadi. */
+/* ---------- tema almashganda silliqlashuv (faqat ranglar) ----------
+   Eski universal `html.theming *` qoidasi yuzlab tugunga bir vaqtda
+   transition o'rnatib, Telegram WebView'da qotib qolishga sabab bo'lgan.
+   Endi faqat asosiy sirtlar (body va .tk-fade) silliq o'tadi, qolganlar
+   bir zumda yangilanadi. Layout va transform hech qachon animatsiya
+   qilinmaydi; prefers-reduced-motion hurmat qilinadi. */
 @media (prefers-reduced-motion: no-preference) {
-  html.theming, html.theming *, html.theming *::before, html.theming *::after {
-    transition: background-color .26s ease, border-color .26s ease, color .26s ease,
-      fill .26s ease, stroke .26s ease, box-shadow .26s ease !important;
+  body, .tk-fade {
+    transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
   }
 }
 

@@ -4,7 +4,7 @@ export const LANGS: Lang[] = ['uz', 'ru', 'en']
 export const T = {
   uz: {
     brand: 'Tekit Sushi', tagline: 'Yapon taomi · Toshkent',
-    freeDelivery: 'Yetkazish bepul', city: 'Toshkent', payLater: 'Naqd yoki kartaga oʻtkazish',
+    freeDelivery: 'Yetkazib berish bepul', city: 'Toshkent', payLater: 'Naqd yoki kartaga oʻtkazish',
     search: 'Menyudan izlash...', noResults: 'topilmadi', menuT: 'Menyu',
     tabHome: 'Asosiy', tabCart: 'Savat', tabOrders: 'Buyurtmalar', tabProfile: 'Profil',
     hit: 'Hit', pcs: 'dona', added: 'Savatga qoʻshildi',
@@ -13,7 +13,7 @@ export const T = {
     cartEmpty: 'Savat boʻsh', cartEmptySub: 'Menyudan biror narsa tanla', toMenu: 'Menyuga qaytish', repeatOrder: 'Oxirgi buyurtmani takrorlash',
     clearCart: 'Savatni tozalash', subtotal: 'Mahsulotlar', delivery: 'Yetkazib berish', free: 'Bepul', total: 'Jami',
     checkout: 'Buyurtma berish', confirmOrder: 'Buyurtmani tasdiqlash', active: 'Faol', archive: 'Arxiv', noActive: 'Faol buyurtma yo\u02bbq', noActiveSub: 'Yangi buyurtma bering', noArchive: 'Arxilda buyurtma yo\u02bbq', noArchiveSub: 'Bajarilgan buyurtmalar shu yerda ko\u02bbrinadi', addCart: 'Savatga qoʻshish', historyTitle: 'Buyurtmalar tarixi', ordersInProfile: 'Bajarilgan buyurtmalar Profil → Buyurtmalar tarixi bo\u02bblimida',
-    yourName: 'Ismingiz', phone: 'Telefon raqam', howGet: 'Qanday olasiz?', deliveryMode: 'Yetkazish', pickup: 'Olib ketish',
+    yourName: 'Ismingiz', phone: 'Telefon raqam', howGet: 'Qanday olasiz?', deliveryMode: 'Yetkazib berish', pickup: 'Olib ketish',
     address: 'Manzil', addressPh: 'Tuman, koʻcha, uy, domofon...',
     payment: 'Toʻlov', cash: 'Naqd', cardTransfer: 'Kartaga oʻtkazish', paySoon: 'Onlayn toʻlov tez orada qoʻshiladi',
     whenDeliver: 'Qachon yetkazaylik?', asap: 'Tezroq', comment: 'Izoh (ixtiyoriy)',
@@ -27,7 +27,7 @@ export const T = {
     promo: 'Promokod', promoApply: 'Qo\u2018llash', promoOk: 'Qo\u2018llandi', promoInvalid: 'Promokod topilmadi', language: 'Til',
     pBranches: 'Filiallar', pContacts: 'Kontaktlar', pDeliveryPay: 'Yetkazib berish', pAbout: 'Biz haqimizda',
     aboutText: 'Tekit Sushi — Toshkentdagi yapon taomlari. Har bir set buyurtma olgandan keyin qo\u02bblda, yangi mahsulotdan tayyorlanadi. 30\u201345 daqiqada issiq va toza yetkazib beramiz.',
-    dpDelivery: 'Yetkazib berish', dpFree: 'Bepul · Toshkent bo\u02bbylab', dpTime: 'Yetkazish vaqti', dpTimeVal: '30\u201345 daqiqa',
+    dpDelivery: 'Yetkazib berish', dpFree: 'Bepul · Toshkent bo\u02bbylab', dpTime: 'Yetkazib berish vaqti', dpTimeVal: '30\u201345 daqiqa',
     dpPay: 'To\u02bblov', dpPayVal: 'Naqd', dpSoon: 'Payme / Click tez orada qo\u02bbshiladi',
     branchName: 'Tekit Sushi · Toshkent', branchSoon: 'Aniq manzil tez orada qo\u02bbshiladi',
     ctTg: 'Telegram', ctTgVal: '@tekitsushi_bot', ctPhone: 'Telefon', ctPhoneVal: '+998 95 155 05 49',
@@ -62,7 +62,7 @@ export const T = {
     cityNote: 'Yetkazib berish faqat Toshkent bo\u02bbylab', cityOk: 'Tushunarli', spAddr: 'Manzilni ko\u02bbrsatish',
     addrPick: 'Manzilni tanlang', fdLeft: 'Yana {x} so\u02bbm', fdTo: 'bepul yetkazib berishgacha', fdDone: 'Yetkazib berish bepul!', fdDoneSub: '200 000 so\u02bbmdan yuqori buyurtmalarda',
     heroB1: 'Chegirma', heroT1: 'Birinchi buyurtmaga \u221210%', heroS1: 'TEKIT10 promokodini ishlating',
-    heroB2: 'Yetkazish', heroT2: 'Yetkazib berish bepul', heroS2: 'Toshkent bo\u02bbylab 30\u201345 daqiqa',
+    heroB2: 'Yetkazib berish', heroT2: 'Yetkazib berish bepul', heroS2: 'Toshkent bo\u02bbylab 30\u201345 daqiqa',
     heroB3: 'Xit', heroT3: 'Hit taomlar', heroS3: 'Mijozlar sevimlilari',
     heroB4: 'Setlar', heroT4: 'Katta setlar', heroS4: "Do\u02bbstlar uchun",
     promoTileSub: 'Birinchi buyurtmaga 10% chegirma',
@@ -86,6 +86,11 @@ export const T = {
     pickExpired: 'Tanlangan vaqt o\u2018tib ketdi \u2014 boshqa vaqt tanlang',
     pickWhen: 'Olib ketish vaqti',
     pickChange: 'O\u2018zgartirish',
+    fcTitle: 'Buyurtmani qanday qabul qilasiz?',
+    fcDel: 'Yetkazib berish',
+    fcDelSub: 'Buyurtmani manzilingizga yetkazamiz.',
+    fcPick: 'Olib ketish',
+    fcPickSub: 'Buyurtmani filialdan olib ketasiz.',
 
   },
   ru: {
@@ -172,6 +177,11 @@ export const T = {
     pickExpired: 'Выбранное время прошло — выберите другое',
     pickWhen: 'Время самовывоза',
     pickChange: 'Изменить',
+    fcTitle: 'Как вы хотите получить заказ?',
+    fcDel: 'Доставка',
+    fcDelSub: 'Доставим заказ по вашему адресу.',
+    fcPick: 'Самовывоз',
+    fcPickSub: 'Заберёте заказ из филиала.',
 
   },
   en: {
@@ -258,6 +268,11 @@ export const T = {
     pickExpired: 'The selected time has passed — pick another one',
     pickWhen: 'Pickup time',
     pickChange: 'Change',
+    fcTitle: 'How would you like your order?',
+    fcDel: 'Delivery',
+    fcDelSub: 'We deliver the order to your address.',
+    fcPick: 'Pickup',
+    fcPickSub: 'You pick the order up at the branch.',
 
   },
 } as const
