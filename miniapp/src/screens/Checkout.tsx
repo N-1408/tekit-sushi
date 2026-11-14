@@ -3,14 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, pName } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, BigButton, IcTruck, IcCheck, IcPin, IcStore, IcChevR } from '../components/ui'
+import { TopBar, BigButton, IcTruck, IcCheck, IcPin, IcStore, IcChevR, IcCash } from '../components/ui'
 import MapPicker from '../components/MapPicker'
-import { PickupModal, pickupSummary } from '../components/Fulfillment'
+import { PickupModal, pickupSummary, branchLabel } from '../components/Fulfillment'
 
 const Line = ({ label, children }: any) => <div><div className="text-[13px] font-bold text-[var(--mut2)] mb-1.5">{label}</div>{children}</div>
 
 export default function Checkout() {
-  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser, saveMyOrder, refreshOrders, mode, setMode, deliveryCfg, pickup } = useStore()
+  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser, saveMyOrder, refreshOrders, mode, setMode, deliveryCfg, pickup, ff } = useStore()
   const nav = useNavigate()
   const sum = cart.filter(l => l.q > 0).reduce((s, l) => s + l.q * l.price, 0)
   const last = myOrders[0]
@@ -39,20 +39,25 @@ export default function Checkout() {
   const discount = promoPct > 0 ? Math.round(sum * promoPct / 100) : 0
   const threshold = deliveryCfg?.threshold || 200000
   // 200 000 so'mdan past buyurtma: narx Millennium/Noor API'dan avtomatik olinadi
-  const [qFee, setQFee] = React.useState<number | null>(null)
+  const [quote, setQuote] = React.useState<{ fee: number; coverage: string } | null>(null)
   React.useEffect(() => {
-    if (mode !== 'delivery' || sum >= threshold) { setQFee(null); return }
+    if (mode !== 'delivery' || !addr.trim()) { setQuote(null); return }
     const tm = setTimeout(async () => {
       try {
-        const r = await fetch(`/api/delivery-quote?subtotal=${sum}&address=${encodeURIComponent(addr)}`)
+        const r = await fetch('/api/delivery-quote', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ subtotal: sum, address: addr, lat: user?.lat, lon: user?.lon }),
+        })
         const j = await r.json()
-        setQFee(j?.ok ? (j.free ? 0 : Math.max(0, Math.round(Number(j.fee) || 0))) : (deliveryCfg?.fee ?? 15000))
-      } catch { setQFee(deliveryCfg?.fee ?? 15000) }
+        setQuote(j?.ok ? { fee: j.free ? 0 : Math.max(0, Math.round(Number(j.fee) || 0)), coverage: j.coverage || 'unknown' } : null)
+      } catch { setQuote(null) }
     }, 400)
     return () => clearTimeout(tm)
-  }, [sum, mode, addr, threshold])
-  const dFee = mode === 'delivery' ? (sum >= threshold ? 0 : (qFee ?? deliveryCfg?.fee ?? 15000)) : 0
+  }, [sum, mode, addr, user?.lat, user?.lon])
+  const dFee = mode === 'delivery' ? (sum >= threshold ? 0 : (quote?.fee ?? deliveryCfg?.fee ?? 0)) : 0
+  const outside = mode === 'delivery' && !!addr.trim() && quote?.coverage === 'outside'
   const grand = sum - discount + dFee
+  const idemRef = React.useRef<string>('')
 
   async function detectLoc() {
     setLocBusy(true); setLocMsg('')
@@ -110,32 +115,52 @@ export default function Checkout() {
     setPromoBusy(false)
   }
 
-  const pickOk = !!(pickup && pickup.branch && pickup.date && pickup.time)
-  const valid = name.trim().length > 1 && phoneD.length === 9 && !!mode && (mode === 'pickup' ? pickOk : addr.trim().length > 4)
+  const pickOk = !!(pickup && pickup.branch && (pickup.asap || (pickup.date && pickup.time)))
+  const valid = name.trim().length > 1 && phoneD.length === 9 && !!mode && !outside && (mode === 'pickup' ? pickOk : addr.trim().length > 4)
 
   async function submit() {
     setBusy(true); setErr('')
+    // Idempotentlik: bir urinish = bitta ref; xato bo'lsa xuddi shu ref bilan qayta uriniladi
+    if (!idemRef.current) {
+      idemRef.current = (typeof crypto !== 'undefined' && 'randomUUID' in crypto) ? crypto.randomUUID() : `ref-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    }
+    const pickupWhen = pickup && !pickup.asap && pickup.date && pickup.time ? `${pickup.date} ${pickup.time}` : null
     try {
       const items = cart.filter(l => l.q > 0).map(l => ({ id: l.id, slug: l.slug, title: pName(l, lang), q: l.q, price: l.price }))
       const r = await fetch('/api/order', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name, phone: '+998' + phoneD, mode, addr: mode === 'delivery' ? addr : (pickup ? pickupSummary(t, pickup) : ''), pay, note,
+          name, phone: '+998' + phoneD, mode,
+          delivery_type: mode,
+          address: mode === 'delivery' ? addr : null,
+          lat: mode === 'delivery' ? (user?.lat ?? null) : null,
+          lon: mode === 'delivery' ? (user?.lon ?? null) : null,
           branch: mode === 'pickup' && pickup ? pickup.branch : null,
-          when: mode === 'pickup' && pickup ? `${pickup.date} ${pickup.time}` : null,
+          when: pickupWhen,
+          pay, payment: pay, note,
           change_amount: pay === 'cash' && changeAmt.replace(/\D/g, '') ? Number(changeAmt.replace(/\D/g, '')) : null,
           promo: promoPct > 0 ? promoCode : '',
           total: sum, lang, tg_user_id: (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id ?? null,
+          client_ref: idemRef.current,
           items,
         }),
       })
-      if (!r.ok) throw new Error()
-      const j = await r.json()
-      setDone({ oid: j.order_id })
-      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum: grand, mode, pay, addr: mode === 'delivery' ? addr : (pickup ? pickupSummary(t, pickup) : ''), name, phone: '+998' + phoneD, branch: mode === 'pickup' && pickup ? pickup.branch : null, when: mode === 'pickup' && pickup ? `${pickup.date} ${pickup.time}` : null })
-      clearCart()
-      setTimeout(refreshOrders, 2500)
-      saveUser({ name: name.trim() || user?.name || '', phone: phoneD.length === 9 ? '+998' + phoneD : (user?.phone || ''), addr: mode === 'delivery' && addr.trim() ? addr.trim() : (user?.addr ?? '') })
+      if (!r.ok) {
+        const j = await r.json().catch(() => null)
+        if (j?.error === 'outside_coverage') setErr(t.delCoverageOut)
+        else if (j?.error === 'when_too_soon' || j?.error === 'when_invalid' || j?.error === 'when_out_of_range') setErr(t.pickExpired)
+        else if (j?.error === 'branch_invalid') setErr(t.pickNeed)
+        else if (j?.error === 'unavailable_items') setErr(t.orderFail)
+        else throw new Error()
+      } else {
+        const j = await r.json()
+        setDone({ oid: j.order_id })
+        saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum: j.grand_total ?? grand, mode, pay, addr: mode === 'delivery' ? addr : branchLabel(t, pickup?.branch, ff.branches, lang), name, phone: '+998' + phoneD, branch: mode === 'pickup' && pickup ? pickup.branch : null, when: pickupWhen, fee: mode === 'delivery' ? dFee : 0, discount })
+        clearCart()
+        idemRef.current = ''
+        setTimeout(refreshOrders, 2500)
+        saveUser({ name: name.trim() || user?.name || '', phone: phoneD.length === 9 ? '+998' + phoneD : (user?.phone || ''), addr: mode === 'delivery' && addr.trim() ? addr.trim() : (user?.addr ?? '') })
+      }
     } catch { setErr(t.orderFail) }
     setBusy(false)
   }
@@ -180,7 +205,7 @@ export default function Checkout() {
                   className="press focus-ring w-full text-left bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 flex items-center gap-3 active:scale-[.99] transition-transform">
                   <span className={`w-9 h-9 rounded-xl grid place-items-center shrink-0 ${pickup ? 'bg-navy text-white' : 'bg-navy-soft text-[#29A8E0]'}`}><IcStore s={16} /></span>
                   <span className="flex-1 min-w-0">
-                    <span className="block text-[15px] font-bold text-[var(--ink)] truncate">{pickup ? pickupSummary(t, pickup) : t.pickNeed}</span>
+                    <span className="block text-[15px] font-bold text-[var(--ink)] truncate">{pickup ? pickupSummary(t, pickup, ff.branches, lang) : t.pickNeed}</span>
                     <span className="block text-[13px] font-semibold text-[var(--mut2)]">{pickup ? t.pickChange : t.pickBranch}</span>
                   </span>
                   <span className="text-[var(--mut2)] shrink-0"><IcChevR s={16} /></span>
@@ -221,7 +246,7 @@ export default function Checkout() {
 
             <Line label={t.payment}>
               <div className="flex gap-2">
-                <span className={chip(true)}>💵 {t.cash}</span>
+                <span className={chip(true)}><span className="inline-flex items-center gap-1.5"><IcCash s={15} />{t.cash}</span></span>
               </div>
               {pay === 'cash' && (
                 <div className="mt-2.5 space-y-2.5">
@@ -247,6 +272,25 @@ export default function Checkout() {
           </div>
             <div className="lg:w-[400px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4 lg:mt-4">
             <div className="bg-[var(--panel)] border border-navy-line rounded-[18px] p-4">
+              {mode && (
+                <div className="mb-2.5 pb-2.5 border-b border-[var(--line)] space-y-1">
+                  <div className="flex items-center gap-2 text-[13.5px] font-extrabold text-[var(--ink)]">
+                    {mode === 'delivery' ? <IcTruck s={15} /> : <IcStore s={15} />}
+                    {mode === 'delivery' ? t.deliveryMode : t.pickup}
+                  </div>
+                  {mode === 'delivery'
+                    ? <div className="text-[12.5px] font-semibold text-[var(--mut2)] leading-snug break-words">{addr || '—'}</div>
+                    : <div className="text-[12.5px] font-semibold text-[var(--mut2)] leading-snug">{pickup ? pickupSummary(t, pickup, ff.branches, lang) : '—'}</div>}
+                  <div className="pt-1 space-y-0.5">
+                    {cart.filter(l => l.q > 0).map(l => (
+                      <div key={l.id} className="flex justify-between text-[12.5px] font-semibold text-[var(--mut2)]">
+                        <span className="min-w-0 truncate pr-2">{l.q}× {pName(l, lang)}</span>
+                        <span className="shrink-0">{fmt(l.price * l.q)} UZS</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
               {mode === 'delivery' && (<>
                 <div className="mt-3 rounded-2xl bg-[var(--bg2)] px-3.5 py-3 border border-[var(--line)]">
@@ -265,6 +309,7 @@ export default function Checkout() {
               <div className="flex justify-between text-[17px] font-extrabold"><span>{t.total}</span><span>{fmt(grand)} UZS</span></div>
             </div>
 
+            {outside && <div className="mt-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-[13.5px] font-semibold text-[var(--ink)] leading-snug">{t.delCoverageOut}</div>}
             {err && <div className="text-[14px] font-bold text-red-500 text-center">{err}</div>}
           <div className="px-4 mt-5 lg:px-0">
             <BigButton disabled={!valid || busy} onClick={submit}>{busy ? '…' : `${t.confirmOrder} · ${fmt(grand)}`}</BigButton>

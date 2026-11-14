@@ -48,13 +48,24 @@ export type MyOrder = {
   oid: number; at: string; status: string; items: OrderItem[]
   sum: number; mode: string; pay: string; addr: string; name: string; phone: string
   branch?: string | null; when?: string | null  // olib ketish: filial + 'YYYY-MM-DD HH:MM'
+  fee?: number | null; discount?: number | null  // yetkazib berish narxi / chegirma
+  payStatus?: string | null
 }
 
 export type User = { tg_id?: number; name: string; phone: string; addr: string; lat?: number; lon?: number }
 
-/* Olib ketish: filial + kun (YYYY-MM-DD) + vaqt (HH:MM). Filiallar va ish vaqti
-   hali loyihada konfiguratsiya qilinmagan — Fulfillment.tsx dagi BRANCHES/PICKUP_CFG. */
-export type PickupSel = { branch: string; date?: string; time?: string }
+/* Olib ketish tanlovi: filial + rejim. asap=true — imkon qadar tezroq
+   (date/time bo'sh); aks holda kun (YYYY-MM-DD) + vaqt (HH:MM). */
+export type PickupSel = { branch: string; asap?: boolean; date?: string; time?: string }
+
+/* Filial yozuvi (tasdiqlangan faktlar): server /api/branches ham shu ma'lumotni beradi.
+   Bu faqat o'zgaruvchi emas: server javob kelmaganda ham ishonchli fallback. */
+export type Branch = { id: string; name: { uz: string; ru: string; en?: string }; hours_24_7: boolean; address: string | null; lat: number | null; lon: number | null }
+export type FF = {
+  branches: Branch[]
+  pickup_cfg: { prep_minutes?: number; slot_minutes?: number; days_ahead?: number } | null
+  delivery: { fee: number; threshold: number; eta_minutes: number | null }
+}
 
 /* Toshkent vaqti: saqlangan olib-ketish jadvalining muddati o'tganini tekshirish */
 function tkNowParts() {
@@ -86,6 +97,7 @@ export type Store = {
   pickup: PickupSel | null
   setPickup: (p: PickupSel | null) => void
   deliveryCfg: { fee: number; threshold: number }
+  ff: FF
 }
 
 const Ctx = createContext<Store>(null as any)
@@ -153,6 +165,16 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   })
   const [navOpen, setNavOpenS] = useState(false)
   const [deliveryCfg, setDeliveryCfg] = useState<{ fee: number; threshold: number }>(() => ({ fee: 15000, threshold: 200000 }))
+  // Filiallar va fulfillment sozlamalari: server /api/branches (yagona manba).
+  // Fallback: server javob bermasa tasdiqlangan faktlar (2 filial, 24/7).
+  const [ff, setFF] = useState<FF>(() => ({
+    branches: [
+      { id: 'nukus', name: { uz: 'Nukus ko\u2018cha filiali', ru: 'Филиал на Нукус коча' }, hours_24_7: true, address: null, lat: null, lon: null },
+      { id: 'sampi', name: { uz: 'Sampi filiali', ru: 'Филиал Сампи' }, hours_24_7: true, address: null, lat: null, lon: null },
+    ],
+    pickup_cfg: null,
+    delivery: { fee: 0, threshold: 200000, eta_minutes: null },
+  }))
 
   useEffect(() => { localStorage.setItem('tk-lang', JSON.stringify(lang)) }, [lang])
   useEffect(() => { localStorage.setItem('tk-cart', JSON.stringify(cartMap)) }, [cartMap])
@@ -184,9 +206,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const mapped: MyOrder[] = (j.orders as any[]).map(o => ({
         oid: o.id, at: o.created_at, status: o.status || 'new',
         items: typeof o.items === 'string' ? JSON.parse(o.items) : (o.items || []),
-        sum: Number(o.total) || 0, mode: o.delivery_type || 'delivery', pay: o.payment || 'cash',
+        sum: o.grand_total != null ? Number(o.grand_total) : Number(o.total) || 0,
+        mode: o.delivery_type || 'delivery', pay: o.payment || 'cash',
         addr: o.address || '', name: o.name || '', phone: o.phone || '',
         branch: o.branch || null, when: o.delivery_time || null,
+        fee: o.delivery_fee != null ? Number(o.delivery_fee) : null,
+        discount: o.discount != null ? Number(o.discount) : null,
+        payStatus: o.payment_status || null,
       }))
       setMyOrders(prev => {
         const ids = new Set(mapped.map(x => x.oid))
@@ -207,6 +233,21 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (j.delivery) setDeliveryCfg({ fee: Number(j.delivery.fee) || 15000, threshold: Number(j.delivery.threshold) || 200000 })
       try { localStorage.setItem('tk-menu-v2', JSON.stringify(j.items)) } catch {}
     }).catch(() => {})
+    fetch('/api/branches').then(r => r.ok ? r.json() : null).then(j => {
+      if (dead || !j?.ok || !Array.isArray(j.branches) || !j.branches.length) return
+      setFF(prev => ({
+        branches: j.branches.map((b: any) => ({
+          id: String(b.id), name: { uz: b.name?.uz || '', ru: b.name?.ru || '', en: b.name?.en || undefined },
+          hours_24_7: !!b.hours_24_7, address: b.address ?? null, lat: b.lat ?? null, lon: b.lon ?? null,
+        })),
+        pickup_cfg: j.pickup_cfg || null,
+        delivery: {
+          fee: Number(j.delivery?.fee) || 15000,
+          threshold: Number(j.delivery?.threshold) || 200000,
+          eta_minutes: j.delivery?.eta_minutes ?? null,
+        },
+      }))
+    }).catch(() => {})
     return () => { dead = true }
   }, [])
 
@@ -223,8 +264,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .filter(Boolean) as CartLine[]
     const count = lines.reduce((s, l) => s + l.q, 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff])
 
   const navValue = useMemo<NavState>(() => ({ navOpen, setNavOpen }), [navOpen, setNavOpen])
   return (

@@ -7,7 +7,7 @@ import { TopBar, Qty, Empty, BigButton, IcX, IcStore } from '../components/ui'
 import { pickupSummary } from '../components/Fulfillment'
 
 export default function Cart() {
-  const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add, mode, pickup } = useStore()
+  const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add, mode, pickup, ff, deliveryCfg } = useStore()
   const nav = useNavigate()
   const lines = cart.filter(l => l.q > 0)
   const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
@@ -59,13 +59,13 @@ export default function Cart() {
             {mode === null ? null : mode === 'pickup' ? (
               <div className="flex items-center gap-2 text-[13.5px] font-semibold text-[var(--mut2)] mt-2">
                 <IcStore s={15} />
-                <span className="min-w-0 truncate">{pickup ? pickupSummary(t, pickup) : t.pickBranch}</span>
+                <span className="min-w-0 truncate">{pickup ? pickupSummary(t, pickup, ff.branches, lang) : t.pickBranch}</span>
               </div>
             ) : (
-              <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.delivery}</span><span className="text-emerald-600 font-bold">{t.free}</span></div>
+              <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.delivery}</span><span className={deliveryCfg?.fee > 0 ? 'text-[var(--ink)] font-bold' : 'text-emerald-600 font-bold'}>{deliveryCfg?.fee > 0 ? `${fmt(deliveryCfg.fee)} UZS` : t.free}</span></div>
             )}
             <div className="h-px bg-navy-line my-3" />
-            <div className="flex justify-between text-[16px] font-extrabold"><span>{t.total}</span><span>{fmt(sum)} UZS</span></div>
+            <div className="flex justify-between text-[16px] font-extrabold"><span>{t.total}</span><span>{fmt(sum + (mode === 'delivery' ? (deliveryCfg?.fee || 0) : 0))} UZS</span></div>
           </div>
           <div className="px-4 mt-4 flex flex-col gap-2.5 lg:px-0">
             <BigButton onClick={() => { haptic(); nav('/checkout') }}>{t.checkout} · {fmt(sum)}</BigButton>

@@ -500,8 +500,8 @@ export function Header() {
         </div>
       </header>
       <Drawer open={navOpen && !isWide} onClose={() => setNavOpen(false)} />
-      <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} />
-      <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} />
+      <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} switchTo={() => { setDelOpen(false); setPickOpen(true) }} />
+      <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} switchTo={() => { setPickOpen(false); setDelOpen(true) }} />
       {askOpen && (
         <InitialChoiceModal
           open

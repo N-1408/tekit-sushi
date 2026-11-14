@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, type MyOrder } from '../lib/store'
 import { fmt } from '../lib/money'
 import { TopBar, Empty, BigButton } from '../components/ui'
-import { pickupWhenText } from '../components/Fulfillment'
+import { branchLabel, pickupWhenText } from '../components/Fulfillment'
 
 const ACTIVE = ['new', 'confirmed', 'cooking', 'delivering']
 const ARCHIVE = ['done', 'cancelled']
@@ -31,16 +31,18 @@ function ago(at: string, t: any) {
 }
 
 function Stepper({ o, t }: { o: MyOrder; t: any }) {
-  const stage = STAGE[o.status] ?? 0
+  // Olib ketishda 'delivering' bosqichi mavjud emas: yangi → tasdiqlandi → tayyor
+  const steps = o.mode === 'pickup' ? (['new', 'confirmed', 'done'] as const) : STEPS
+  const stage = o.mode === 'pickup' ? (o.status === 'done' ? 2 : o.status === 'new' ? 0 : 1) : (STAGE[o.status] ?? 0)
   return (
     <div className="mt-3.5">
       <div className="relative flex items-center">
         <div className="absolute left-[7%] right-[7%] top-[5px] h-[3px] rounded-full bg-navy-line" />
         <div
           className="absolute left-[7%] top-[5px] h-[3px] rounded-full bg-navy transition-all duration-500"
-          style={{ width: `${(stage / 3) * 86}%` }}
+          style={{ width: `${(stage / (steps.length - 1)) * 86}%` }}
         />
-        {STEPS.map((s, i) => (
+        {steps.map((s, i) => (
           <div key={s} className="relative flex-1 flex flex-col items-center gap-1.5">
             <span
               className={`w-[13px] h-[13px] rounded-full border-[3px] transition-all duration-300 ${
@@ -58,7 +60,7 @@ function Stepper({ o, t }: { o: MyOrder; t: any }) {
 }
 
 export default function Orders() {
-  const { t, myOrders, refreshOrders } = useStore()
+  const { t, lang, myOrders, refreshOrders, ff } = useStore()
   const nav = useNavigate()
 
   React.useEffect(() => {
@@ -86,10 +88,13 @@ export default function Orders() {
           </span>
           <span className="text-[11px] font-semibold text-[var(--mut2)]">{o.mode === 'delivery' ? t.deliveryMode : t.pickup} · {o.pay === 'cash' ? t.cash : t.cardTransfer}</span>
         </div>
-        {o.mode === 'pickup' && (o.branch || pickupWhenText(t, o.when)) && (
+        {o.mode === 'pickup' && (o.branch || o.when) && (
           <div className="mt-1 text-[12px] font-semibold text-[var(--mut2)]">
-            {[o.branch, pickupWhenText(t, o.when)].filter(Boolean).join(' · ')}
+            {[branchLabel(t, o.branch, ff.branches, lang), o.when ? pickupWhenText(t, o.when) : t.pickAsap].filter(Boolean).join(' · ')}
           </div>
+        )}
+        {o.mode === 'delivery' && o.addr && (
+          <div className="mt-1 text-[12px] font-semibold text-[var(--mut2)] truncate">{o.addr}</div>
         )}
         <Stepper o={o} t={t} />
         <div className="mt-3.5 flex flex-wrap gap-1.5">
