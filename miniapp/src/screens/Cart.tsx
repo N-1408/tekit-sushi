@@ -3,10 +3,11 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, pName, pImg } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty, Empty, BigButton, IcX } from '../components/ui'
+import { TopBar, Qty, Empty, BigButton, IcX, IcStore } from '../components/ui'
+import { pickupSummary } from '../components/Fulfillment'
 
 export default function Cart() {
-  const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add } = useStore()
+  const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add, mode, pickup } = useStore()
   const nav = useNavigate()
   const lines = cart.filter(l => l.q > 0)
   const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
@@ -39,8 +40,8 @@ export default function Cart() {
                 <img src={pImg(l)} alt="" className="w-[68px] h-[68px] rounded-xl object-cover bg-navy-soft cursor-pointer"
                   onClick={() => { haptic(); openP(l) }} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[13.5px] font-bold line-clamp-2">{pName(l, lang)}</div>
-                  <div className="text-[12px] font-semibold text-[var(--mut2)] mt-0.5">{l.weight}</div>
+                  <div className="text-[14.5px] font-bold line-clamp-2">{pName(l, lang)}</div>
+                  <div className="text-[13px] font-semibold text-[var(--mut2)] mt-0.5">{l.weight}</div>
                   <div className="text-[14px] font-extrabold mt-1">{fmt(l.price * l.q)} <span className="text-[10px] text-[var(--mut2)]">UZS</span></div>
                 </div>
                 <div className="flex flex-col justify-between items-end">
@@ -55,7 +56,14 @@ export default function Cart() {
           <div className="lg:w-[380px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4">
           <div className="mx-4 mt-4 bg-[var(--panel)] border border-navy-line rounded-[18px] p-4 lg:mx-0 lg:mt-0">
             <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
-            <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.delivery}</span><span className="text-emerald-600 font-bold">{t.free}</span></div>
+            {mode === 'pickup' ? (
+              <div className="flex items-center gap-2 text-[13.5px] font-semibold text-[var(--mut2)] mt-2">
+                <IcStore s={15} />
+                <span className="min-w-0 truncate">{pickup ? pickupSummary(t, pickup) : t.pickBranch}</span>
+              </div>
+            ) : (
+              <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.delivery}</span><span className="text-emerald-600 font-bold">{t.free}</span></div>
+            )}
             <div className="h-px bg-navy-line my-3" />
             <div className="flex justify-between text-[16px] font-extrabold"><span>{t.total}</span><span>{fmt(sum)} UZS</span></div>
           </div>

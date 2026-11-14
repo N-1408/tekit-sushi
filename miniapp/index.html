@@ -6,6 +6,8 @@
       var m = localStorage.getItem('tk-theme');
       var d = m ? m === 'dark' : (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
       document.documentElement.dataset.theme = d ? 'dark' : 'light';
+      var meta = document.querySelector('meta[name="theme-color"]');
+      if (meta) meta.setAttribute('content', d ? '#0F1720' : '#F6F7FB');
     } catch (e) { document.documentElement.dataset.theme = 'dark'; }
   </script>
 

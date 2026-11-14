@@ -6,6 +6,7 @@ import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser } from '../lib/tg'
 import MapPicker from './MapPicker'
+import { DeliveryModal, PickupModal, pickupSummary } from './Fulfillment'
 
 const CDN = 'https://cdn.delever.uz/delever/'
 
@@ -306,14 +307,18 @@ function LangPicker({ dark }: { dark?: boolean }) {
 /* ---------- mavzu almashtirish tugmasi ---------- */
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useStore()
+  const { theme, setTheme, t } = useStore()
   const dark = theme === 'dark'
   return (
-    <button aria-label="theme" onClick={() => { haptic('light'); setTheme(dark ? 'light' : 'dark') }}
-      className={`press relative shrink-0 w-[52px] h-[30px] rounded-full border border-[var(--line2)] transition-colors ${dark ? 'bg-[var(--soft)]' : 'bg-[#E4E9F2]'}`}>
-      <span className={`absolute top-[3px] w-6 h-6 rounded-full grid place-items-center shadow-[0_2px_6px_rgba(0,0,0,.25)] transition-all duration-300 ${dark ? 'left-[25px] bg-[#2A3442] text-[#E9EDF1]' : 'left-[3px] bg-white text-[#0A2194]'}`}>
-        {dark ? <IcMoon s={13} /> : <IcSun s={13} />}
-      </span>
+    <button role="switch" aria-checked={dark} aria-label={t.themeLabel}
+      onClick={() => { haptic('light'); setTheme(dark ? 'light' : 'dark') }}
+      className={`focus-ring press relative shrink-0 w-[62px] h-[34px] rounded-full ${dark ? 'bg-[#222B39] border border-[#2A3442]' : 'bg-[#DEE5EF] border border-[#C9D3E1]'} motion-safe:transition-colors motion-safe:duration-300`}>
+      <span className={`absolute left-[8px] top-1/2 -translate-y-1/2 z-10 ${dark ? 'text-[#5A6472]' : 'text-[#0A2194]'}`}><IcSun s={11} /></span>
+      <span className={`absolute right-[8px] top-1/2 -translate-y-1/2 z-10 ${dark ? 'text-[#E9EDF1]' : 'text-[#5A6472]'}`}><IcMoon s={11} /></span>
+      <span
+        className="absolute top-[3px] left-[3px] w-[26px] h-[26px] rounded-full shadow-[0_1px_4px_rgba(0,0,0,.28)] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out"
+        style={{ transform: dark ? 'translateX(30px)' : 'translateX(0)', background: dark ? '#0F1720' : '#FFFFFF' }}
+      />
     </button>
   )
 }
@@ -333,8 +338,8 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
           <>
             <WhaleMark />
             <div className="flex-1 min-w-0">
-              <div className="text-[15px] font-extrabold leading-tight">{t.brand}</div>
-              <div className="text-[10.5px] font-semibold text-[var(--mut2)] leading-tight truncate">{hiName(t, user)}</div>
+              <div className="text-[16px] font-extrabold leading-tight">{t.brand}</div>
+              <div className="text-[12.5px] font-semibold text-[var(--mut2)] leading-tight truncate">{hiName(t, user)}</div>
             </div>
           </>
         )}
@@ -355,15 +360,24 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
 export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t, lang, setLang, user } = useStore()
   const nav = useNavigate()
+  const loc = useLocation()
+  const activeCat = loc.pathname.startsWith('/cat/') ? loc.pathname.slice(5) : null
   useEffect(() => {
     if (!open) return
     const prev = document.body.style.overflow
+    const prevFocus = document.activeElement as HTMLElement | null
     document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
-  }, [open])
+    const on = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    window.addEventListener('keydown', on)
+    return () => {
+      document.body.style.overflow = prev
+      window.removeEventListener('keydown', on)
+      try { prevFocus?.focus?.() } catch {}
+    }
+  }, [open, onClose])
   if (!open) return null
   return createPortal(
-    <div className="fixed inset-0 z-[70]">
+    <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label={t.menuT}>
       <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px] anim-fade" onClick={onClose} />
       <aside className="absolute left-0 top-0 bottom-0 w-[302px] lg:w-[340px] bg-[var(--bg2)] text-[var(--ink)] flex flex-col anim-drawer shadow-2xl"
         style={{ paddingTop: 'calc(16px + var(--sat))', paddingBottom: 'calc(16px + var(--sab))' }}>
@@ -378,17 +392,17 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
         <div className="px-5 mt-4 flex gap-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic('light') }}
-              className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[12px] font-extrabold transition-colors ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--panel)] text-[var(--mut2)] active:scale-95'}`}>
+              className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-extrabold transition-colors ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--panel)] text-[var(--mut2)] active:scale-95'}`}>
               <FlagOf l={l} s={15} />{l.toUpperCase()}
             </button>
           ))}
         </div>
 
-        <div className="px-5 mt-5 mb-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--mut2)] font-extrabold">{t.menuT}</div>
+        <div className="px-5 mt-5 mb-1.5 text-[11px] uppercase tracking-[0.14em] text-[var(--mut2)] font-extrabold">{t.menuT}</div>
         <nav className="flex-1 overflow-y-auto no-scrollbar px-3">
           {CATS.map(c => (
             <button key={c.id} onClick={() => { haptic(); onClose(); nav(`/cat/${c.id}`) }}
-              className="press w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[14px] font-bold text-[var(--ink)] active:bg-[var(--panel)] transition-colors">
+              className={`press w-full flex items-center justify-between px-3 py-3 rounded-xl text-[15.5px] font-bold transition-colors ${activeCat === c.id ? 'bg-[var(--soft)] text-[var(--ink)]' : 'text-[var(--ink)] active:bg-[var(--panel)]'}`}>
               {(c as any)[lang] || t.catNames[c.id]}
               <span className="text-[var(--line2)]"><IcChevR /></span>
             </button>
@@ -396,16 +410,16 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
         </nav>
 
         <div className="px-5 pt-3 mt-2 border-t border-[var(--line)] space-y-0.5">
-          <button onClick={() => { onClose(); nav('/orders') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[var(--ink)] active:opacity-70">
+          <button onClick={() => { onClose(); nav('/orders') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)] active:opacity-70">
             <IcBag /> {t.tabOrders}
           </button>
-          <button onClick={() => { onClose(); nav('/profile') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[var(--ink)] active:opacity-70">
+          <button onClick={() => { onClose(); nav('/profile') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)] active:opacity-70">
             <IcUser /> {t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
           </button>
-          <a href="tel:+998951550549" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[var(--ink)]">
+          <a href="tel:+998951550549" className="flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)]">
             <IcCash /> {t.ctPhoneVal}
           </a>
-          <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 py-2.5 text-[13.5px] font-bold text-[var(--ink)]">
+          <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)]">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.25.25-.45.45-.9.45l.3-4.6L18.2 6.8c.35-.3-.1-.5-.55-.2L7.7 13.1l-4.4-1.4c-1-.3-1-1 .2-1.45L20.6 3.3c.8-.3 1.5.2 1.3 1.3Z" /></svg>
             {t.ctTgVal}
           </a>
@@ -418,39 +432,129 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
 
 /* ---------- bosh sahifa headeri ---------- */
 export function Header() {
-  const { t, mode, setMode, user } = useStore()
+  const { t, mode, user, navOpen, setNavOpen, pickup } = useStore()
   const nav = useNavigate()
   const [drawer, setDrawer] = useState(false)
+  const [delOpen, setDelOpen] = useState(false)
+  const [pickOpen, setPickOpen] = useState(false)
+  const isDesktop = useIsDesktop()
+  const burgerRef = useRef<HTMLButtonElement>(null)
+  const openNav = () => {
+    haptic()
+    if (isDesktop) setNavOpen(!navOpen)
+    else setDrawer(true)
+  }
   return (
     <>
       <header className="bg-[var(--bg)] text-[var(--ink)] border-b border-[var(--line)]">
-        <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 py-2">
-          <button aria-label="menu" onClick={() => { haptic(); setDrawer(true) }}
-            className="press w-12 h-12 rounded-2xl bg-[var(--btn)] text-[var(--bg2)] grid place-items-center shrink-0 active:scale-95 transition-transform">
-            <IcBurger />
+        <div className="max-w-[1240px] mx-auto flex items-center gap-1.5 px-4 lg:px-6 py-2">
+          <button ref={burgerRef} onClick={openNav} aria-label={t.menuT} aria-expanded={isDesktop ? navOpen : drawer}
+            className="focus-ring press w-11 h-11 rounded-xl grid place-items-center shrink-0 text-[var(--ink2)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)] active:scale-95">
+            <IcBurger s={20} />
           </button>
-          <button onClick={() => nav('/')} className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
+          <button onClick={() => nav('/')} aria-label="Tekit Sushi" className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
             <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px]" />
-            <span className="text-[14.5px] font-extrabold tracking-[0.08em] whitespace-nowrap hidden min-[400px]:block">TEKIT SUSHI</span>
+            <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap hidden min-[400px]:block">TEKIT SUSHI</span>
           </button>
-          <div className="hidden lg:flex items-center gap-1.5 ml-2">
-            {(['delivery', 'pickup'] as const).map(m => (
-              <button key={m} onClick={() => { if (m !== mode) { setMode(m); haptic('light') } }}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[12.5px] font-extrabold transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
-                <span className="flex items-center gap-1.5">{m === 'delivery' ? <IcTruck s={14} /> : <IcStore s={14} />}{m === 'delivery' ? t.deliveryMode : t.pickup}</span>
-              </button>
-            ))}
+          <div className="hidden lg:flex flex-col ml-3 min-w-0">
+            <div className="flex items-center gap-1.5">
+              {(['delivery', 'pickup'] as const).map(m => (
+                <button key={m} aria-haspopup="dialog"
+                  onClick={() => { haptic('light'); if (m === 'delivery') setDelOpen(true); else setPickOpen(true) }}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-[14px] font-bold transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
+                  {m === 'delivery' ? <IcTruck s={15} /> : <IcStore s={15} />}{m === 'delivery' ? t.deliveryMode : t.pickup}
+                </button>
+              ))}
+            </div>
+            {mode === 'pickup' && pickup && (
+              <div className="text-[12.5px] font-semibold text-[var(--mut2)] leading-tight mt-1 ml-2 truncate max-w-[280px]">{pickupSummary(t, pickup)}</div>
+            )}
           </div>
           <AddressBox />
           <div className="flex-1" />
-          <button onClick={() => nav('/profile')} className="hidden lg:flex items-center gap-2 px-3 py-2.5 text-[12.5px] font-bold active:opacity-80 transition-opacity">
+          <button onClick={() => nav('/profile')} className="focus-ring hidden lg:flex items-center gap-2 px-3 py-2.5 text-[14px] font-bold active:opacity-80 transition-opacity rounded-lg">
             <IcUser /> {user?.name ? user.name.split(' ')[0] : t.tabProfile}
           </button>
           <ThemeToggle />
         </div>
       </header>
-      <Drawer open={drawer} onClose={() => setDrawer(false)} />
+      <Drawer open={drawer && !isDesktop} onClose={() => { setDrawer(false); burgerRef.current?.focus() }} />
+      <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} />
+      <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} />
     </>
+  )
+}
+
+/* ---------- ish stoli uchun push-sidebar (lg+): kontent o'ngga suriladi,
+   ustma-ust emas. Mobil (<lg) Drawer ishlatiladi. ---------- */
+export function SideNav() {
+  const { t, lang, setLang, user, navOpen, setNavOpen } = useStore()
+  const nav = useNavigate()
+  const loc = useLocation()
+  const activeCat = loc.pathname.startsWith('/cat/') ? loc.pathname.slice(5) : null
+  useEffect(() => {
+    if (navOpen && (loc.pathname.startsWith('/p/') || loc.pathname.startsWith('/admin'))) setNavOpen(false)
+  }, [loc.pathname, navOpen, setNavOpen])
+  useEffect(() => {
+    if (!navOpen) return
+    const on = (e: KeyboardEvent) => { if (e.key === 'Escape') setNavOpen(false) }
+    window.addEventListener('keydown', on)
+    return () => window.removeEventListener('keydown', on)
+  }, [navOpen, setNavOpen])
+  const go = (to: string) => { haptic(); setNavOpen(false); nav(to) }
+  return (
+    <aside aria-label={t.menuT} aria-hidden={!navOpen}
+      className={`hidden lg:flex fixed left-0 top-0 bottom-0 z-[35] w-[300px] flex-col bg-[var(--bg2)] text-[var(--ink)] border-r border-[var(--line)]
+        motion-safe:transition-[transform,visibility] motion-safe:duration-300 motion-safe:ease-out
+        ${navOpen ? 'translate-x-0 visible shadow-[10px_0_50px_rgba(4,10,30,.22)]' : '-translate-x-full invisible'}`}
+      style={{ paddingTop: 'calc(14px + var(--sat))', paddingBottom: 'calc(14px + var(--sab))' }}>
+      <div className="flex items-center justify-between px-5 pb-3">
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.png" alt="" className="w-9 h-9 rounded-[10px]" />
+          <span className="text-[15px] font-extrabold tracking-[0.08em]">TEKIT SUSHI</span>
+        </div>
+        <button onClick={() => setNavOpen(false)} aria-label="close-menu"
+          className="press focus-ring w-9 h-9 rounded-xl grid place-items-center text-[var(--mut2)] hover:bg-[var(--soft)] active:scale-95 transition-colors">
+          <IcX s={15} />
+        </button>
+      </div>
+      <div className="px-5 flex gap-2">
+        {(['uz', 'ru', 'en'] as const).map(l => (
+          <button key={l} onClick={() => { setLang(l); haptic('light') }}
+            className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-extrabold transition-colors ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--panel)] text-[var(--mut2)] hover:text-[var(--ink2)]'}`}>
+            <FlagOf l={l} s={15} />{l.toUpperCase()}
+          </button>
+        ))}
+      </div>
+      <div className="px-5 mt-5 mb-1.5 text-[11px] uppercase tracking-[0.14em] text-[var(--mut2)] font-extrabold">{t.menuT}</div>
+      <nav className="flex-1 overflow-y-auto no-scrollbar px-3" aria-label={t.menuT}>
+        {CATS.map(c => {
+          const on = activeCat === c.id
+          return (
+            <button key={c.id} onClick={() => go(`/cat/${c.id}`)} aria-current={on ? 'page' : undefined}
+              className={`focus-ring press w-full flex items-center justify-between px-3 py-3 rounded-xl text-[15.5px] font-bold transition-colors ${on ? 'bg-[var(--soft)] text-[var(--ink)]' : 'text-[var(--ink2)] hover:bg-[var(--soft)] hover:text-[var(--ink)]'}`}>
+              {(c as any)[lang] || t.catNames[c.id]}
+              <span className="text-[var(--mut3)]"><IcChevR /></span>
+            </button>
+          )
+        })}
+      </nav>
+      <div className="px-5 pt-3 mt-2 border-t border-[var(--line)] space-y-0.5">
+        <button onClick={() => go('/orders')} className="press focus-ring w-full flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)] active:opacity-70">
+          <IcBag /> {t.tabOrders}
+        </button>
+        <button onClick={() => go('/profile')} className="press focus-ring w-full flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)] active:opacity-70">
+          <IcUser /> {t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
+        </button>
+        <a href="tel:+998951550549" className="flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)]">
+          <IcCash /> {t.ctPhoneVal}
+        </a>
+        <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)]">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.25.25-.45.45-.9.45l.3-4.6L18.2 6.8c.35-.3-.1-.5-.55-.2L7.7 13.1l-4.4-1.4c-1-.3-1-1 .2-1.45L20.6 3.3c.8-.3 1.5.2 1.3 1.3Z" /></svg>
+          {t.ctTgVal}
+        </a>
+      </div>
+    </aside>
   )
 }
 
@@ -466,9 +570,9 @@ export function CityBanner() {
       <div className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(66px + var(--sat))' }}>
       <div className="flex items-center gap-3 bg-[var(--panel)] border border-[var(--line2)] rounded-2xl px-4 py-3 shadow-[0_18px_44px_-14px_rgba(0,0,0,.6)]">
         <span className="text-[#29A8E0] shrink-0"><IcPin /></span>
-        <div className="flex-1 text-[12.5px] font-bold text-[var(--ink)] leading-snug">{t.cityNote}</div>
+        <div className="flex-1 text-[14px] font-bold text-[var(--ink)] leading-snug">{t.cityNote}</div>
         <button onClick={close}
-          className="press shrink-0 bg-[var(--chip-on)] text-[var(--chip-on-ink)] text-[12px] font-extrabold px-3.5 py-2 rounded-xl active:scale-95 transition-transform">
+          className="press shrink-0 bg-[var(--chip-on)] text-[var(--chip-on-ink)] text-[13.5px] font-extrabold px-3.5 py-2 rounded-xl active:scale-95 transition-transform">
           {t.cityOk}
         </button>
       </div>
@@ -477,42 +581,37 @@ export function CityBanner() {
   )
 }
 
-/* ---------- qidiruv + kategoriya chip-lari ---------- */
+/* ---------- qidiruv + tartiblash (kategoriya qatori o'chirildi: kategoriyalar
+   burger menyuda; chip qatoridagi funksiyalar shu yerga ko'chirildi) ---------- */
 export function SearchChips({ q, setQ, sort, setSort }: { q: string; setQ: (s: string) => void; sort: 'none' | 'asc' | 'desc'; setSort: (s: 'none' | 'asc' | 'desc') => void }) {
-  const { t, lang } = useStore()
-  const nav = useNavigate()
+  const { t } = useStore()
   const [open, setOpen] = useState(false)
-  const loc = window.location.pathname
-  const activeCat = loc.startsWith('/cat/') ? loc.slice(5) : null
-  const chip = (on: boolean) => `press shrink-0 px-4 h-10 rounded-full text-[12.5px] font-extrabold whitespace-nowrap transition-colors active:scale-95 ${on ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)]'}`
   return (
-    <div className="bg-paper/95 backdrop-blur-md border-b border-navy-line">
-      <div className="max-w-[1240px] mx-auto px-4 lg:px-6 pt-2.5 pb-2">
-        {open && (
-          <div className="relative mb-2.5">
-            <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search}
-              className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-10 pr-10 text-[13.5px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
-            <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
-            <button onClick={() => { setOpen(false); setQ('') }} className="press absolute right-2.5 top-1/2 -translate-y-1/2 w-7 h-7 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
+    <div className="bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)]">
+      <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
+        {open ? (
+          <div className="relative">
+            <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
+              className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
+            <button onClick={() => { setOpen(false); setQ('') }} aria-label="close-search"
+              className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
               <IcX s={14} />
             </button>
           </div>
-        )}
-        <div className="flex items-center gap-2">
-          <button onClick={() => setOpen(v => !v)} aria-label="search"
-            className="press w-9 h-9 grid place-items-center shrink-0 text-[#29A8E0] active:scale-95 transition-transform"><IcSearch /></button>
-          <span className="w-px h-5 bg-[var(--line2)] shrink-0" />
-          <button onClick={() => setSort(sort === 'none' ? 'asc' : sort === 'asc' ? 'desc' : 'none')} aria-label="sort"
-            className={`press w-9 h-9 grid place-items-center shrink-0 active:scale-95 transition-transform ${sort !== 'none' ? 'text-[#29A8E0]' : 'text-[var(--mut2)]'}`}><IcSort /></button>
-          <div className="flex gap-2 overflow-x-auto no-scrollbar -mr-4 pr-4 lg:mr-0 lg:pr-0">
-          <button className={chip(!activeCat)} onClick={() => { if (loc !== '/') { haptic(); nav('/') } else window.scrollTo({ top: 0 }) }}>{t.all}</button>
-          {CATS.map(c => (
-            <button key={c.id} className={chip(activeCat === c.id)} onClick={() => { haptic(); nav(`/cat/${c.id}`) }}>
-              {(c as any)[lang] || t.catNames[c.id]}
+        ) : (
+          <div className="flex items-center gap-2">
+            <button onClick={() => setOpen(true)} aria-label={t.search}
+              className="press focus-ring flex-1 min-w-0 flex items-center gap-2.5 h-[42px] px-4 rounded-full bg-[var(--soft)] text-[var(--mut2)] hover:text-[var(--ink2)] transition-colors text-left text-[15px] font-medium">
+              <IcSearch s={17} />
+              <span className="truncate">{t.search}</span>
             </button>
-          ))}
+            <button onClick={() => setSort(sort === 'none' ? 'asc' : sort === 'asc' ? 'desc' : 'none')} aria-label="sort"
+              className={`press focus-ring w-11 h-11 grid place-items-center shrink-0 rounded-full active:scale-95 transition-transform ${sort !== 'none' ? 'text-[#29A8E0] bg-[var(--soft)]' : 'text-[var(--mut2)] hover:bg-[var(--soft)]'}`}>
+              <IcSort />
+            </button>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )
@@ -643,8 +742,8 @@ export function InfoTiles() {
         <div key={k} className={`shrink-0 w-[290px] lg:w-auto snap-start rounded-[20px] px-4 py-4 flex items-center gap-3.5 ${x.cls}`}>
           <span className={`w-11 h-11 rounded-xl grid place-items-center shrink-0 ${x.iconCls}`}>{x.icon}</span>
           <div className="min-w-0">
-            <div className="text-[14.5px] font-extrabold leading-tight">{x.title}</div>
-            <div className="text-[11.5px] font-medium opacity-70 leading-snug mt-0.5">{x.sub}</div>
+            <div className="text-[15.5px] font-extrabold leading-tight">{x.title}</div>
+            <div className="text-[13px] font-medium opacity-80 leading-snug mt-0.5">{x.sub}</div>
           </div>
         </div>
       ))}
@@ -679,7 +778,7 @@ export function TabBar() {
           const on = loc === tb.to
           return (
             <button key={tb.id} onClick={() => { if (!on) { haptic(); nav(tb.to) } }}
-              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${on ? 'text-white' : 'text-[var(--mut2)]'}`}>
+              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[11.5px] font-bold transition-colors ${on ? 'text-white' : 'text-[var(--mut2)]'}`}>
               <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${on ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
                 <svg width="23" height="23" viewBox="0 0 16 16" fill="currentColor">{ICONS(on)[tb.icon]}</svg>
                 {tb.id === 'cart' && cartCount > 0 && (
@@ -708,7 +807,7 @@ export function QtyPill({ p, small }: { p: { id: string }; small?: boolean }) {
         className={`press ${sW} rounded-full bg-navy-soft text-[#29A8E0] grid place-items-center active:scale-90 transition-transform`}>
         <IcMinus s={13} />
       </button>
-      <span className={`text-[12px] font-extrabold text-[#29A8E0] ${small ? 'w-3.5' : 'w-4'} text-center`}>{q}</span>
+      <span className={`text-[13px] font-extrabold text-[#29A8E0] ${small ? 'w-3.5' : 'w-4'} text-center`}>{q}</span>
       <button onClick={() => { add(p.id); haptic('medium') }}
         className={`press ${sW} rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform`}>
         <IcPlus s={13} />
@@ -734,19 +833,19 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           className="absolute top-2 right-2 w-9 h-9 rounded-full bg-[var(--bg2)]/80 grid place-items-center active:scale-90 transition-transform">
           <IcHeart s={15} on={fav} />
         </button>
-        <span className="absolute top-2 left-2 flex items-center gap-1 bg-[var(--bg2)]/85 text-white text-[10.5px] font-extrabold px-1.5 py-1 rounded-[8px]">
+        <span className="absolute top-2 left-2 flex items-center gap-1 bg-[var(--bg2)]/85 text-white text-[11px] font-extrabold px-1.5 py-1 rounded-[8px]">
           <IcStar s={10} /> {((p as any).rating ?? RSEED(p.id)).toFixed(1)}
         </span>
         {sale ? (
           <span className="absolute top-11 left-2 flex flex-col items-start gap-1">
-            <span className="bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
-            <span className="bg-black/45 text-white text-[10px] font-bold px-2 py-0.5 rounded-[8px] line-through">{fmt(p.old_price)} UZS</span>
+            <span className="bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[11px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">−{p.sale_percent || Math.round((1 - p.price / (p.old_price || p.price)) * 100)}%</span>
+            <span className="bg-black/45 text-white text-[10.5px] font-bold px-2 py-0.5 rounded-[8px] line-through">{fmt(p.old_price)} UZS</span>
           </span>
-        ) : p.hit ? <span className="absolute top-11 left-2 bg-[var(--bg2)]/85 text-white text-[10.5px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">{t.hit}</span> : null}
-        {wtxt && <span className="absolute bottom-2 left-2 bg-black/45 text-white text-[10.5px] font-bold px-2 py-1 rounded-[8px] backdrop-blur-[2px]">{wtxt}</span>}
+        ) : p.hit ? <span className="absolute top-11 left-2 bg-[var(--bg2)]/85 text-white text-[11px] font-extrabold tracking-wide px-2 py-1 rounded-[8px]">{t.hit}</span> : null}
+        {wtxt && <span className="absolute bottom-2 left-2 bg-black/45 text-white text-[11px] font-bold px-2 py-1 rounded-[8px] backdrop-blur-[2px]">{wtxt}</span>}
       </div>
       <div className="mt-auto pt-2 flex flex-col">
-        <div className="text-[14.5px] font-bold leading-snug text-[var(--ink)] line-clamp-2">{pName(p, lang)}</div>
+        <div className="text-[15px] font-bold leading-snug text-[var(--ink)] line-clamp-2">{pName(p, lang)}</div>
         {q > 0 ? (
           <div className="mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-between px-1.5">
             <button onClick={e => { e.stopPropagation(); setQty(p.id, q - 1); haptic('light') }}
@@ -761,8 +860,8 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           </div>
         ) : (
           <button onClick={e => { e.stopPropagation(); add(p.id); haptic('medium') }}
-            className="press mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-center gap-2 text-[14.5px] font-extrabold active:scale-[.98] transition-transform">
-            <IcBag s={17} /> {fmt(p.price)} <span className="text-[11px] font-bold opacity-70">UZS</span>
+            className="press mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--bg2)] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform">
+            <IcBag s={17} /> {fmt(p.price)} <span className="text-[12px] font-bold opacity-70">UZS</span>
           </button>
         )}
       </div>
@@ -867,7 +966,7 @@ export function Empty({ emoji, title, sub, action }: { emoji?: string; title: st
         <div className="relative tekit-pattern w-28 h-28 rounded-[30px] grid place-items-center text-white shadow-[0_16px_34px_-14px_rgba(10,33,148,.45)]"><IcPlate /></div>
       </div>
       <div className="mt-5 text-[17px] font-extrabold">{title}</div>
-      {sub && <div className="mt-1.5 text-[13px] font-medium text-[var(--mut2)] max-w-[280px] mx-auto leading-relaxed">{sub}</div>}
+      {sub && <div className="mt-1.5 text-[14px] font-medium text-[var(--mut2)] max-w-[300px] mx-auto leading-relaxed">{sub}</div>}
       {action && <div className="mt-5">{action}</div>}
     </div>
   )
@@ -878,7 +977,7 @@ export function BigButton({ children, onClick, disabled, ghost, type }: {
 }) {
   return (
     <button type={type} onClick={onClick} disabled={disabled}
-      className={`press w-full py-4 rounded-2xl text-[15.5px] font-extrabold flex items-center justify-center gap-2 transition-all
+      className={`press w-full py-4 rounded-2xl text-[16px] font-extrabold flex items-center justify-center gap-2 transition-all
         ${ghost ? 'bg-white text-navy-ink border border-navy-line' : 'bg-navy text-white shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)]'} disabled:opacity-40`}>
       {children}
     </button>
@@ -1171,7 +1270,7 @@ export function AddressBox({ mobile }: { mobile?: boolean }) {
     <>
       <div className={box}>
         <span className="text-[var(--mut2)] shrink-0"><IcPin /></span>
-        <span onClick={() => setOpen(true)} className="flex-1 min-w-0 truncate text-[12.5px] font-bold text-[var(--ink)] cursor-pointer py-1.5">{addr || t.addrPick}</span>
+        <span onClick={() => setOpen(true)} className="flex-1 min-w-0 truncate text-[14px] font-bold text-[var(--ink)] cursor-pointer py-1.5">{addr || t.addrPick}</span>
         <button onClick={detect} aria-label="locate" className="press w-8 h-8 rounded-lg grid place-items-center text-[#29A8E0] shrink-0 active:scale-90 transition-transform">
           {busy ? <span className="w-3.5 h-3.5 border-2 border-[#29A8E0]/30 border-t-[#29A8E0] rounded-full animate-spin" /> : <IcLocate s={15} />}
         </button>

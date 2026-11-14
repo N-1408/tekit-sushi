@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState, useCall
 import menu from '../data/menu.json'
 import { T, type Lang, type Trans } from './i18n'
 export type { Lang } from './i18n'
-import { tgUser, haptic, TGA, resolveTheme, applyTheme, onSystemThemeChange, type ThemeMode } from './tg'
+import { tgUser, haptic, TGA, resolveTheme, applyTheme, onSystemThemeChange, themeTransition, type ThemeMode } from './tg'
 
 export type Product = {
   id: string; slug: string; cat: string; price: number; img: string
@@ -51,6 +51,10 @@ export type MyOrder = {
 
 export type User = { tg_id?: number; name: string; phone: string; addr: string; lat?: number; lon?: number }
 
+/* Olib ketish: filial + kun (YYYY-MM-DD) + vaqt (HH:MM). Filiallar va ish vaqti
+   hali loyihada konfiguratsiya qilinmagan — Fulfillment.tsx dagi BRANCHES/PICKUP_CFG. */
+export type PickupSel = { branch: string; date: string; time: string }
+
 export type Store = {
   lang: Lang; setLang: (l: Lang) => void; t: Trans
   products: Product[]
@@ -71,6 +75,10 @@ export type Store = {
   closeOb: () => void
   mode: 'delivery' | 'pickup'
   setMode: (m: 'delivery' | 'pickup') => void
+  pickup: PickupSel | null
+  setPickup: (p: PickupSel | null) => void
+  navOpen: boolean
+  setNavOpen: (v: boolean) => void
   theme: ThemeMode
   setTheme: (t: ThemeMode) => void
   deliveryCfg: { fee: number; threshold: number }
@@ -108,6 +116,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeS] = useState<ThemeMode>(() => resolveTheme())
   const setTheme = useCallback((next: ThemeMode) => {
     try { localStorage.setItem('tk-theme', next) } catch {}
+    themeTransition()
     applyTheme(next)
     setThemeS(next)
   }, [])
@@ -120,6 +129,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     onSystemThemeChange(onSys)
   }, [theme])
   const [mode, setModeS] = useState<'delivery' | 'pickup'>(() => (localStorage.getItem('tk-mode') === 'pickup' ? 'pickup' : 'delivery'))
+  const [pickup, setPickupS] = useState<PickupSel | null>(() => load<PickupSel | null>('tk-pickup', null))
+  const [navOpen, setNavOpenS] = useState(false)
   const [deliveryCfg, setDeliveryCfg] = useState<{ fee: number; threshold: number }>(() => ({ fee: 15000, threshold: 200000 }))
 
   useEffect(() => { localStorage.setItem('tk-lang', JSON.stringify(lang)) }, [lang])
@@ -129,6 +140,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { if (user) localStorage.setItem('tk-user', JSON.stringify(user)) }, [user])
 
   const setLang = useCallback((l: Lang) => setLangS(l), [])
+  const setPickup = useCallback((p: PickupSel | null) => { setPickupS(p); try { if (p) localStorage.setItem('tk-pickup', JSON.stringify(p)); else localStorage.removeItem('tk-pickup') } catch {} }, [])
+  const setNavOpen = useCallback((v: boolean) => setNavOpenS(v), [])
   const setMode = useCallback((m: 'delivery' | 'pickup') => { setModeS(m); try { localStorage.setItem('tk-mode', m) } catch {} }, [])
   const add = useCallback((id: string, q = 1) => setCartMap(c => ({ ...c, [id]: (c[id] || 0) + q })), [])
   const setQty = useCallback((id: string, q: number) => setCartMap(c => {
@@ -188,8 +201,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       .filter(Boolean) as CartLine[]
     const count = lines.reduce((s, l) => s + l.q, 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, theme, setTheme, deliveryCfg }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, theme, setTheme, deliveryCfg])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, navOpen, setNavOpen, theme, setTheme, deliveryCfg }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, navOpen, setNavOpen, theme, setTheme, deliveryCfg])
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>
 }

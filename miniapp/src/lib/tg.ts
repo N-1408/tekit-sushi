@@ -32,6 +32,21 @@ export function applyTheme(t: ThemeMode) {
   if (meta) meta.setAttribute('content', THEME_BG[t])
 }
 
+let themeAnimT: ReturnType<typeof setTimeout> | undefined
+/* Tema almashuvi paytida html elementiga 320ms ga .theming klass qo'yiladi:
+   CSS faqat rang xususiyatlarini silliq o'tkazadi (layout/transform emas). */
+export function themeTransition() {
+  try {
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return
+    const el = document.documentElement
+    el.classList.remove('theming')
+    void el.offsetWidth
+    el.classList.add('theming')
+    clearTimeout(themeAnimT)
+    themeAnimT = setTimeout(() => el.classList.remove('theming'), 340)
+  } catch {}
+}
+
 export function onSystemThemeChange(cb: () => void) {
   try { TGA?.onEvent?.('themeChanged', cb) } catch {}
   try { window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', cb) } catch {}

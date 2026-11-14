@@ -71,3 +71,32 @@ input, textarea, select { font-size: 16px !important; }
 
 /* xarita ochiq paytda suzuvchi tugmalar yashirinadi */
 body[data-map-open='1'] .floating-quick { display: none !important; }
+
+/* ---------- o'qishlik: aralash qator balandliklari uchun umumiy yo'riqnoma ---------- */
+:root { color-scheme: light; }
+[data-theme='dark'] { color-scheme: dark; }
+
+/* ---------- tema almashganda silliqlashuv (faqat ranglar, 260ms) ----------
+   html.theming klassi faqat 320ms ga qo'yiladi (setTheme ichida). Layout, rasm
+   va transform animatsiya qilinmaydi; prefers-reduced-motion hurmat qilinadi. */
+@media (prefers-reduced-motion: no-preference) {
+  html.theming, html.theming *, html.theming *::before, html.theming *::after {
+    transition: background-color .26s ease, border-color .26s ease, color .26s ease,
+      fill .26s ease, stroke .26s ease, box-shadow .26s ease !important;
+  }
+}
+
+/* ---------- umumiy modal tizimi ---------- */
+@keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(.985) } to { opacity: 1; transform: none } }
+.anim-modal { animation: modalIn .26s cubic-bezier(.32,.72,0,1) both; }
+@keyframes modalOut { from { opacity: 1; transform: none } to { opacity: 0; transform: translateY(8px) scale(.99) } }
+.anim-modal-out { animation: modalOut .18s ease-in both; }
+
+/* focus ring: klaviatura fokusini yorqin ko'rsatish */
+.focus-ring:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px rgba(41,168,224,.65); }
+
+/* harakatni kamaytirishni hurmat qilish */
+@media (prefers-reduced-motion: reduce) {
+  .anim-sheet, .anim-modal, .anim-modal-out, .anim-fade, .anim-drawer, .anim-up, .anim-page, .anim-pop { animation: none !important; }
+  .press:active { transform: none; }
+}

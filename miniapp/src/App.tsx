@@ -15,12 +15,12 @@ import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
-import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, FloatingBonus } from './components/ui'
+import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, FloatingBonus, SideNav } from './components/ui'
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 
 export default function App() {
-  const { initTg, toast, user, ob } = useStore()
+  const { initTg, toast, user, ob, navOpen } = useStore()
   const loc = useLocation()
   const isAdmin = loc.pathname.startsWith('/admin')
   useEffect(() => { initTg() }, [])
@@ -28,6 +28,8 @@ export default function App() {
   const wide = !isAdmin && !loc.pathname.startsWith('/p/')
   return (
     <>
+      <SideNav />
+      <div className={`motion-safe:transition-[padding] motion-safe:duration-300 motion-safe:ease-out ${wide && navOpen ? 'lg:pl-[300px]' : ''}`}>
       <div className={wide ? 'lg:max-w-[1240px] lg:mx-auto' : undefined}>
       <Routes>
         <Route path="/" element={<Home />} />
@@ -49,6 +51,7 @@ export default function App() {
         <Route path="/admin/cats" element={<AdminGate><AdminCats /></AdminGate>} />
         <Route path="/admin/promos" element={<AdminShell><AdminPromos /></AdminShell>} />
       </Routes>
+      </div>
       </div>
       {!isAdmin && (!user || ob) && <Onboarding />}
       {!isAdmin && <><TabBar /><FloatingBonus /><FloatingCart /><ScrollTop /><GiftProgress /></>}

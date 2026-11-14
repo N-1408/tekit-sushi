@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, pName } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, BigButton, IcTruck, IcCheck, IcPin } from '../components/ui'
+import { TopBar, BigButton, IcTruck, IcCheck, IcPin, IcStore, IcChevR } from '../components/ui'
 import MapPicker from '../components/MapPicker'
+import { PickupModal, pickupSummary } from '../components/Fulfillment'
 
-const Line = ({ label, children }: any) => <div><div className="text-[12px] font-bold text-[var(--mut2)] mb-1.5">{label}</div>{children}</div>
+const Line = ({ label, children }: any) => <div><div className="text-[13px] font-bold text-[var(--mut2)] mb-1.5">{label}</div>{children}</div>
 
 export default function Checkout() {
-  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser, saveMyOrder, refreshOrders, mode, setMode, deliveryCfg } = useStore()
+  const { t, lang, cart, myOrders, setLang, clearCart, user, saveUser, saveMyOrder, refreshOrders, mode, setMode, deliveryCfg, pickup } = useStore()
   const nav = useNavigate()
   const sum = cart.filter(l => l.q > 0).reduce((s, l) => s + l.q * l.price, 0)
   const last = myOrders[0]
@@ -31,6 +32,7 @@ export default function Checkout() {
   const [promoBusy, setPromoBusy] = React.useState(false)
   const [sugs, setSugs] = React.useState<{ label: string; lat: number; lon: number }[]>([])
   const [mapOpen, setMapOpen] = React.useState(false)
+  const [pickOpen, setPickOpen] = React.useState(false)
   const sugT = React.useRef<ReturnType<typeof setTimeout> | null>(null)
   const [locBusy, setLocBusy] = React.useState(false)
   const [locMsg, setLocMsg] = React.useState('')
@@ -106,7 +108,8 @@ export default function Checkout() {
     setPromoBusy(false)
   }
 
-  const valid = name.trim().length > 1 && phoneD.length === 9 && (mode === 'pickup' || addr.trim().length > 4)
+  const pickOk = !!(pickup && pickup.branch && pickup.date && pickup.time)
+  const valid = name.trim().length > 1 && phoneD.length === 9 && (mode === 'pickup' ? pickOk : addr.trim().length > 4)
 
   async function submit() {
     setBusy(true); setErr('')
@@ -115,7 +118,9 @@ export default function Checkout() {
       const r = await fetch('/api/order', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name, phone: '+998' + phoneD, mode, addr: mode === 'delivery' ? addr : '', pay, note,
+          name, phone: '+998' + phoneD, mode, addr: mode === 'delivery' ? addr : (pickup ? pickupSummary(t, pickup) : ''), pay, note,
+          branch: mode === 'pickup' && pickup ? pickup.branch : null,
+          when: mode === 'pickup' && pickup ? `${pickup.date} ${pickup.time}` : null,
           change_amount: pay === 'cash' && changeAmt.replace(/\D/g, '') ? Number(changeAmt.replace(/\D/g, '')) : null,
           promo: promoPct > 0 ? promoCode : '',
           total: sum, lang, tg_user_id: (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.id ?? null,
@@ -125,7 +130,7 @@ export default function Checkout() {
       if (!r.ok) throw new Error()
       const j = await r.json()
       setDone({ oid: j.order_id })
-      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum: grand, mode, pay, addr: mode === 'delivery' ? addr : '', name, phone: '+998' + phoneD })
+      saveMyOrder({ oid: j.order_id, at: new Date().toISOString(), status: 'new', items, sum: grand, mode, pay, addr: mode === 'delivery' ? addr : (pickup ? pickupSummary(t, pickup) : ''), name, phone: '+998' + phoneD })
       clearCart()
       setTimeout(refreshOrders, 2500)
       saveUser({ name: name.trim() || user?.name || '', phone: phoneD.length === 9 ? '+998' + phoneD : (user?.phone || ''), addr: mode === 'delivery' && addr.trim() ? addr.trim() : (user?.addr ?? '') })
@@ -163,9 +168,23 @@ export default function Checkout() {
             <Line label={t.howGet}>
               <div className="flex gap-2">
                 <button className={chip(mode === 'delivery')} onClick={() => { setMode('delivery'); haptic() }}>{t.deliveryMode}</button>
-                <button className={chip(mode === 'pickup')} onClick={() => { setMode('pickup'); haptic() }}>{t.pickup}</button>
+                <button className={chip(mode === 'pickup')} onClick={() => { setMode('pickup'); if (!pickOk) setPickOpen(true); haptic() }}>{t.pickup}</button>
               </div>
             </Line>
+
+            {mode === 'pickup' && (
+              <Line label={t.pickWhen}>
+                <button onClick={() => setPickOpen(true)}
+                  className="press focus-ring w-full text-left bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 flex items-center gap-3 active:scale-[.99] transition-transform">
+                  <span className={`w-9 h-9 rounded-xl grid place-items-center shrink-0 ${pickup ? 'bg-navy text-white' : 'bg-navy-soft text-[#29A8E0]'}`}><IcStore s={16} /></span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block text-[15px] font-bold text-[var(--ink)] truncate">{pickup ? pickupSummary(t, pickup) : t.pickNeed}</span>
+                    <span className="block text-[13px] font-semibold text-[var(--mut2)]">{pickup ? t.pickChange : t.pickBranch}</span>
+                  </span>
+                  <span className="text-[var(--mut2)] shrink-0"><IcChevR s={16} /></span>
+                </button>
+              </Line>
+            )}
 
             {mode === 'delivery' && (
               <Line label={t.address}>
@@ -183,14 +202,14 @@ export default function Checkout() {
                   )}
                 </div>
                 <button onClick={detectLoc} disabled={locBusy}
-                  className="press mt-2 w-full py-2.5 rounded-xl bg-navy-soft text-[#29A8E0] text-[12.5px] font-bold flex items-center justify-center gap-2 disabled:opacity-60">
+                  className="press mt-2 w-full py-3 rounded-xl bg-navy-soft text-[#29A8E0] text-[14px] font-bold flex items-center justify-center gap-2 disabled:opacity-60">
                   {locBusy ? <span className="w-3.5 h-3.5 border-2 border-navy/30 border-t-navy rounded-full animate-spin" /> : (
                     <IcPin s={15} />
                   )}
                   {locBusy ? t.obLocDetecting : t.obLocBtn}
                 </button>
                 <button onClick={() => setMapOpen(true)}
-                  className="press mt-2 w-full py-2.5 rounded-xl bg-navy-soft text-[#29A8E0] text-[12.5px] font-bold flex items-center justify-center gap-2">
+                  className="press mt-2 w-full py-3 rounded-xl bg-navy-soft text-[#29A8E0] text-[14px] font-bold flex items-center justify-center gap-2">
                   <IcPin s={15} />
                   {t.mapBtn}
                 </button>
@@ -204,13 +223,13 @@ export default function Checkout() {
               </div>
               {pay === 'cash' && (
                 <div className="mt-2.5 space-y-2.5">
-                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[11.5px] font-semibold text-amber-800 leading-snug">{t.cashWarn}</div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[13.5px] font-semibold text-amber-800 leading-snug">{t.cashWarn}</div>
                   <input className={input} value={changeAmt} onChange={e => setChangeAmt(e.target.value.replace(/[^0-9 ]/g, ''))}
                     placeholder={t.changePlaceholder} inputMode="numeric" />
-                  <div className="text-[11px] font-semibold text-[var(--mut2)] -mt-1.5">{t.changeLabel} · {t.changeHint}</div>
+                  <div className="text-[12.5px] font-semibold text-[var(--mut2)] -mt-1.5">{t.changeLabel} · {t.changeHint}</div>
                 </div>
               )}
-              <div className="text-[11.5px] font-semibold text-[var(--mut2)] mt-1.5">{t.paySoon}</div>
+              <div className="text-[12.5px] font-semibold text-[var(--mut2)] mt-1.5">{t.paySoon}</div>
             </Line>
 
             <Line label={t.promo}>
@@ -219,7 +238,7 @@ export default function Checkout() {
                 <button onClick={applyPromo} disabled={promoBusy || !promoCode.trim()}
                   className="press px-5 rounded-xl bg-navy text-white text-[13px] font-bold disabled:opacity-40">{t.promoApply}</button>
               </div>
-              {promoMsg && <div className={`text-[11.5px] font-bold mt-1.5 ${promoPct > 0 ? 'text-emerald-600' : 'text-[var(--mut2)]'}`}>{promoMsg}</div>}
+              {promoMsg && <div className={`text-[13px] font-bold mt-1.5 ${promoPct > 0 ? 'text-emerald-600' : 'text-[var(--mut2)]'}`}>{promoMsg}</div>}
             </Line>
             <Line label={t.comment}><input className={input} value={note} onChange={e => setNote(e.target.value)} placeholder="…" /></Line>
 
@@ -236,7 +255,7 @@ export default function Checkout() {
                   <div className="mt-2.5 h-[7px] rounded-full bg-[var(--line2)] overflow-hidden">
                     <div className="h-full rounded-full bg-gradient-to-r from-[#0A2194] to-[#29A8E0] transition-all duration-700" style={{ width: `${Math.round(Math.min(1, sum / threshold) * 100)}%` }} />
                   </div>
-                  <div className={`mt-1.5 text-[11.5px] font-semibold ${dFee > 0 ? 'text-[var(--mut2)]' : 'text-emerald-600'}`}>{dFee > 0 ? `${t.fdLeft.replace('{x}', fmt(threshold - sum))} · ${t.fdTo}` : t.fdDone}</div>
+                  <div className={`mt-1.5 text-[12.5px] font-semibold ${dFee > 0 ? 'text-[var(--mut2)]' : 'text-emerald-600'}`}>{dFee > 0 ? `${t.fdLeft.replace('{x}', fmt(threshold - sum))} · ${t.fdTo}` : t.fdDone}</div>
                 </div>
               </>)}
               {discount > 0 && <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.promo} ({promoCode})</span><span className="text-emerald-600 font-bold">−{fmt(discount)} UZS</span></div>}
@@ -244,7 +263,7 @@ export default function Checkout() {
               <div className="flex justify-between text-[17px] font-extrabold"><span>{t.total}</span><span>{fmt(grand)} UZS</span></div>
             </div>
 
-            {err && <div className="text-[13px] font-bold text-red-500 text-center">{err}</div>}
+            {err && <div className="text-[14px] font-bold text-red-500 text-center">{err}</div>}
           <div className="px-4 mt-5 lg:px-0">
             <BigButton disabled={!valid || busy} onClick={submit}>{busy ? '…' : `${t.confirmOrder} · ${fmt(grand)}`}</BigButton>
           </div>
@@ -259,6 +278,7 @@ export default function Checkout() {
         onClose={() => setMapOpen(false)}
         t={t}
       />
+      <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} />
     </div>
   )
 }
