@@ -51,43 +51,14 @@ export function applyTheme(t: ThemeMode) {
   themeSubs.forEach(cb => { try { cb(t) } catch {} })
 }
 
-/* --- tema almashuvi: yangi mavzu ekranning PASTIDAN yuqoriga ochilib keladi.
-   document.startViewTransition (MDN: View Transition API) eski holatning
-   statik tasvirini ostida qoldiradi, callback ichida yangi tema DOMga
-   yoziladi va ::view-transition-new(root) tasviri clip-path bilan
-   inset(100% 0 0 0) → inset(0 0 0 0) bo'ylab ochiladi (faqat kompozit).
-   API yo'q bo'lsa yoki reduced-motion bo'lsa: bir zumda o'zgaradi
-   (mavjud ixcham CSS rang o'tishlari ishlaydi). --- */
-let vtGen = 0
+/* --- tema almashtirish: ochilish effekti Magic UI AnimatedThemeToggler
+   komponentida (View Transitions, doira tugmadan ochiladi).
+   Bu yerda faqat saqlash + qo'llash; hech qanday VT kod yo'q. --- */
 export function changeTheme(next: ThemeMode) {
   try { localStorage.setItem('tk-theme', next) } catch {}
-  const docAny = document as any
-  const reduced = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (reduced || typeof docAny.startViewTransition !== 'function') {
-    applyTheme(next)
-    return
-  }
-  const gen = ++vtGen
-  const root = document.documentElement
-  root.classList.add('theme-vt')
-  const commit = () => { applyTheme(next) }
-  const vt = docAny.startViewTransition(commit)
-  vt.ready.then(() => {
-    if (gen !== vtGen) return
-    root.animate(
-      { clipPath: ['inset(100% 0 0 0)', 'inset(0% 0 0 0)'] },
-      {
-        duration: 450,
-        easing: 'cubic-bezier(.32,.72,0,1)',
-        pseudoElement: '::view-transition-new(root)',
-        fill: 'both',
-      }
-    )
-  }).catch(() => {})
-  vt.finished.finally(() => {
-    if (gen === vtGen) { vtGen = 0; root.classList.remove('theme-vt') }
-  })
+  applyTheme(next)
 }
+
 
 
 export function onSystemThemeChange(cb: () => void) {

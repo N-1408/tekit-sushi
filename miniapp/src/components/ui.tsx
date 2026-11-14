@@ -5,6 +5,7 @@ import { useStore, pName, pImg, CATS, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode } from '../lib/tg'
+import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import MapPicker from './MapPicker'
 import { DeliveryModal, PickupModal, InitialChoiceModal, pickupSummary } from './Fulfillment'
 
@@ -310,18 +311,14 @@ export function ThemeToggle() {
   const { t } = useStore()
   const [theme, setThemeL] = useState<ThemeMode>(() => currentTheme())
   useEffect(() => subscribeTheme(setThemeL), [])
-  const dark = theme === 'dark'
   return (
-    <button role="switch" aria-checked={dark} aria-label={t.themeLabel}
-      onClick={() => { haptic('light'); changeTheme(dark ? 'light' : 'dark') }}
-      className={`focus-ring press relative shrink-0 w-[62px] h-[34px] rounded-full ${dark ? 'bg-[#222B39] border border-[#2A3442]' : 'bg-[#DEE5EF] border border-[#C9D3E1]'} motion-safe:transition-colors motion-safe:duration-300`}>
-      <span className={`absolute left-[8px] top-1/2 -translate-y-1/2 z-10 ${dark ? 'text-[#5A6472]' : 'text-[#0A2194]'}`}><IcSun s={11} /></span>
-      <span className={`absolute right-[8px] top-1/2 -translate-y-1/2 z-10 ${dark ? 'text-[#E9EDF1]' : 'text-[#5A6472]'}`}><IcMoon s={11} /></span>
-      <span
-        className="absolute top-[3px] left-[3px] w-[26px] h-[26px] rounded-full shadow-[0_1px_4px_rgba(0,0,0,.28)] motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out"
-        style={{ transform: dark ? 'translateX(30px)' : 'translateX(0)', background: dark ? '#0F1720' : '#FFFFFF' }}
-      />
-    </button>
+    <AnimatedThemeToggler
+      theme={theme}
+      onThemeChange={changeTheme}
+      aria-label={t.themeLabel}
+      icon={(dark) => (dark ? <IcSun s={17} /> : <IcMoon s={17} />)}
+      className="focus-ring press grid place-items-center w-10 h-10 rounded-full bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)] active:scale-95 transition-colors shrink-0"
+    />
   )
 }
 

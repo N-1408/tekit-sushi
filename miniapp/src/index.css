@@ -76,28 +76,12 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
 :root { color-scheme: light; }
 [data-theme='dark'] { color-scheme: dark; }
 
-/* ---------- tema almashganda silliqlashuv (faqat ranglar) ----------
-   Eski universal `html.theming *` qoidasi yuzlab tugunga bir vaqtda
-   transition o'rnatib, Telegram WebView'da qotib qolishga sabab bo'lgan.
-   Endi faqat asosiy sirtlar (body va .tk-fade) silliq o'tadi, qolganlar
-   bir zumda yangilanadi. Layout va transform hech qachon animatsiya
-   qilinmaydi; prefers-reduced-motion hurmat qilinadi. */
-@media (prefers-reduced-motion: no-preference) {
-  body, .tk-fade {
-    transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease;
-  }
-}
-
-/* ---------- tema: pastdan yuqoriga ko'rinish o'tishi (View Transitions) ----------
-   MDN View Transition API: startViewTransition eski holat tasvirini ostida
-   saqlaydi; ::view-transition-new(root) pastdan inset(100% 0 0 0) →
-   inset(0 0 0 0) bo'ylab ochiladi (faqat kompozit, asosiy oqim bo'sh).
-   Default fade animatsiyalarini o'chirib, yangi tasvirni ustga qo'yamiz. */
+/* ---------- tema: Magic UI AnimatedThemeToggler (View Transitions) ----------
+   Rasmiy registry CSS: ikkala tasvirning default fade animatsiyasi
+   o'chiriladi, yangi holat tasviri JS tomonida clip-path bilan
+   ochiladi (komponent o'zi boshqaradi). Boshqa rang-o'tish qoidalari
+   yo'q: doiraviy ochilishning o'zida silliq kelinadi. */
 ::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
-::view-transition-old(root) { z-index: 1; }
-::view-transition-new(root) { z-index: 2; }
-/* Ko'rinish o'tishi davomida eski CSS rang o'tishlari bellashmasin */
-html.theme-vt body, html.theme-vt .tk-fade { transition: none !important; }
 
 /* ---------- umumiy modal tizimi ---------- */
 @keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(.985) } to { opacity: 1; transform: none } }
