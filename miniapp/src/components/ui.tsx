@@ -123,7 +123,7 @@ export const IcChevR = ({ s = 18 }: { s?: number }) => (
 
 export const IcArrowUp = ({ s = 20 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <path d="M7.74407 4.24409C7.41864 4.56953 7.41864 5.09717 7.74407 5.4226C8.06951 5.74804 8.59715 5.74804 8.92259 5.4226L10.1667 4.17853L10.1667 13.8333C10.1667 14.2936 10.5398 14.6667 11 14.6667C11.4602 14.6667 11.8333 14.2936 11.8333 13.8333V4.17845L13.0775 5.4226C13.4029 5.74804 13.9306 5.74804 14.256 5.4226C14.5814 5.09717 14.5814 4.56953 14.256 4.24409L11.5893 1.57739C11.4937 1.4818 11.3807 1.41428 11.2604 1.37485C11.2047 1.35652 11.1463 1.34392 11.0861 1.33774C10.9573 1.32445 10.8259 1.34109 10.7034 1.38768C10.6005 1.4268 10.5038 1.48703 10.4199 1.56837L10.4092 1.57895L7.74407 4.24409Z" />
+    <path transform="translate(-3 0)" d="M7.74407 4.24409C7.41864 4.56953 7.41864 5.09717 7.74407 5.4226C8.06951 5.74804 8.59715 5.74804 8.92259 5.4226L10.1667 4.17853L10.1667 13.8333C10.1667 14.2936 10.5398 14.6667 11 14.6667C11.4602 14.6667 11.8333 14.2936 11.8333 13.8333V4.17845L13.0775 5.4226C13.4029 5.74804 13.9306 5.74804 14.256 5.4226C14.5814 5.09717 14.5814 4.56953 14.256 4.24409L11.5893 1.57739C11.4937 1.4818 11.3807 1.41428 11.2604 1.37485C11.2047 1.35652 11.1463 1.34392 11.0861 1.33774C10.9573 1.32445 10.8259 1.34109 10.7034 1.38768C10.6005 1.4268 10.5038 1.48703 10.4199 1.56837L10.4092 1.57895L7.74407 4.24409Z" />
   </svg>
 )
 export const IcBurger = ({ s = 18 }: { s?: number }) => (
@@ -438,12 +438,12 @@ export function Header() {
   const [askState, setAskState] = useState(() => {
     try { return !localStorage.getItem('tk-onboarded') } catch { return true }
   })
-  const isDesktop = useIsDesktop()
+  const isWide = useIsWide()
   // birinchi tashrif: bayroq yo'q bo'lsa bir marta so'raladi; yopilsa ham yoziladi
   const askOpen = askState && !!user && !ob
   // Desktopda sidebar ochiqligida brend sarlavhadan yashiriladi (sidebar o'z brendini ko'rsatadi).
-  // Faqat lg+ da ishlaydi: navOpen holati breakpoint o'tishida mobil brendga tasir qilmaydi.
-  const hideBrand = isDesktop && navOpen
+  // Faqat md+ da ishlaydi: navOpen holati breakpoint o'tishida mobil brendga tasir qilmaydi.
+  const hideBrand = isWide && navOpen
   return (
     <>
       <header className="tk-fade relative z-[31] bg-[var(--bg)] text-[var(--ink)]">
@@ -487,7 +487,7 @@ export function Header() {
           </div>
         </div>
       </header>
-      <Drawer open={navOpen && !isDesktop} onClose={() => setNavOpen(false)} />
+      <Drawer open={navOpen && !isWide} onClose={() => setNavOpen(false)} />
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} />
       {askOpen && (
@@ -506,10 +506,20 @@ export function SideNav() {
   const { t, lang, setLang, user, navOpen, setNavOpen } = useStore()
   const nav = useNavigate()
   const loc = useLocation()
+  const isWide = useIsWide()
   const activeCat = loc.pathname.startsWith('/cat/') ? loc.pathname.slice(5) : null
   useEffect(() => {
     if (navOpen && (loc.pathname.startsWith('/p/') || loc.pathname.startsWith('/admin'))) setNavOpen(false)
   }, [loc.pathname, navOpen, setNavOpen])
+  /* Breakpoint o'tishida menyuni yopamiz: aks holda torayganda eski holat
+     mobil Drawerni o'zi ochib qo'yardi (fon qatlami + skroll qulfi qolardi). */
+  useEffect(() => { setNavOpen(false) }, [isWide, setNavOpen])
+  /* Suzuvchi chap qator kontent bilan birga surilishi uchun umumiy o'zgaruvchi */
+  useEffect(() => {
+    const el = document.documentElement
+    el.style.setProperty('--nav-w', navOpen && isWide ? '300px' : '0px')
+    return () => { el.style.setProperty('--nav-w', '0px') }
+  }, [navOpen, isWide])
   /* Mobil Drawer o'z Escape ishlovchisiga ega. Desktopda bu qolimli panel:
      modal fokus-trapi yo'q, Escape uni yopmaydi — faqat X tugmasi. */
   const closeNav = () => {
@@ -521,7 +531,7 @@ export function SideNav() {
   const go = (to: string) => { haptic(); nav(to) }
   return (
     <aside id="tk-sidenav" aria-label={t.menuT} aria-hidden={!navOpen}
-      className={`hidden lg:flex flex-col shrink-0 overflow-hidden sticky top-0 self-start h-dvh z-[35] bg-[var(--bg2)] text-[var(--ink)]
+      className={`hidden md:flex flex-col shrink-0 overflow-hidden sticky top-0 self-start h-dvh z-[35] bg-[var(--bg2)] text-[var(--ink)]
         motion-safe:transition-[width,visibility] motion-safe:duration-300 motion-safe:ease-out
         ${navOpen ? 'w-[300px] visible border-r border-[var(--line)]' : 'w-0 invisible'}`}
       style={{ paddingTop: 'calc(14px + var(--sat))', paddingBottom: 'calc(14px + var(--sab))' }}>
@@ -909,23 +919,23 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
       <div className="mt-auto pt-2 flex flex-col">
         <div className="text-[15px] font-bold leading-snug text-[var(--ink)] line-clamp-2">{pName(p, lang)}</div>
         <div className="mt-1 flex items-baseline gap-1.5">
-          <span className={`text-[16px] font-extrabold tracking-tight whitespace-nowrap ${sale ? 'text-[var(--sale-ink)]' : 'text-[var(--ink)]'}`}>{fmt(p.price)}</span>
+          <span className={`text-[16px] font-extrabold tracking-tight whitespace-nowrap ${sale ? 'text-[var(--promo-deep)]' : 'text-[var(--ink)]'}`}>{fmt(p.price)}</span>
           <span className="text-[11px] font-bold text-[var(--mut2)]">UZS</span>
           {sale && (
             <>
               <span className="text-[12px] font-bold text-[var(--mut2)] line-through whitespace-nowrap">{fmt(p.old_price)}</span>
-              <span className="text-[10.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--sale-soft)] text-[var(--sale-ink)] leading-none">−{salePct}%</span>
+              <span className="text-[10.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-[var(--promo)] text-[var(--promo-ink)] leading-none">−{salePct}%</span>
             </>
           )}
         </div>
         {/* Qo'shish tasdig'i ko'rinib bo'lgach miqdor boshqaruvi chiqadi */}
         {inCart && !ok ? (
-          <QtyStepper full className="mt-1.5" q={q} min={1}
+          <QtyStepper full className="mt-1.5" q={q} min={0}
             onDec={() => { setQty(p.id, q - 1); haptic('light') }}
             onInc={() => { add(p.id); haptic('medium') }} />
         ) : (
           <button onClick={e => { e.stopPropagation(); onAdd() }}
-            className="press mt-1.5 w-full h-[44px] rounded-[12px] bg-[var(--btn)] text-[var(--btn-ink)] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform">
+            className={`press mt-1.5 w-full h-[44px] rounded-[12px] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform ${sale ? 'bg-[var(--promo-deep)] text-white hover:brightness-110' : 'bg-[var(--btn)] text-[var(--btn-ink)]'}`}>
             {ok ? <span className="add-ok grid place-items-center"><IcCheck s={17} /></span> : <IcBag s={17} />}
             {t.cardAdd}
           </button>
@@ -1097,7 +1107,19 @@ export function StatusChip({ status, label }: { status: string; label: string })
   return <span className={`text-[11px] font-bold px-2.5 py-1 rounded-lg ${colors[status] || 'bg-navy-soft text-navy-ink'}`}>{label}</span>
 }
 
-/* ---------- desktop aniqlash ---------- */
+/* ---------- navigatsiya uchun keng ekran aniqlash (md+: push-sidebar zona) ---------- */
+function useIsWide() {
+  const [w, setW] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width:768px)').matches)
+  useEffect(() => {
+    const m = window.matchMedia('(min-width:768px)')
+    const f = () => setW(m.matches)
+    m.addEventListener ? m.addEventListener('change', f) : m.addListener(f)
+    return () => { m.removeEventListener ? m.removeEventListener('change', f) : m.removeListener(f) }
+  }, [])
+  return w
+}
+
+/* ---------- desktop aniqlash (modal uchun lg+) ---------- */
 function useIsDesktop() {
   const [d, setD] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width:1024px)').matches)
   useEffect(() => {
@@ -1262,10 +1284,10 @@ export function ProductSheet() {
         <div className="text-[19px] font-extrabold leading-tight flex-1 min-w-0">{pName(p, m.lang)}</div>
         <div className="text-right shrink-0">
           {m.sale && <div className="text-[12px] font-bold text-[var(--mut2)] line-through">{fmt(p.old_price)} UZS</div>}
-          <div className={`text-[18px] font-extrabold tracking-tight whitespace-nowrap ${m.sale ? 'text-[var(--sale-ink)]' : ''}`}>
+          <div className={`text-[18px] font-extrabold tracking-tight whitespace-nowrap ${m.sale ? 'text-[var(--promo-deep)]' : ''}`}>
             {fmt(p.price)}<span className="text-[12px] text-[var(--mut2)] font-bold"> UZS</span>
           </div>
-          {m.sale && <div className="mt-0.5 text-[10.5px] font-extrabold text-[var(--sale-ink)]">−{m.salePct}%</div>}
+          {m.sale && <div className="mt-0.5 text-[10.5px] font-extrabold text-[var(--promo-deep)]">−{m.salePct}%</div>}
         </div>
       </div>
       <div className="mt-2"><NutritionRow items={m.nutrition} per100={m.t.per100} /></div>
@@ -1337,7 +1359,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
                   <IcHeart s={20} on={m.fav} />
                 </button>
                 {m.sale && (
-                  <span className="absolute top-3 left-3 bg-gradient-to-r from-[#FF8A3C] to-[#F5493D] text-white text-[12px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-[9px]">
+                  <span className="absolute top-3 left-3 bg-[var(--promo)] text-[var(--promo-ink)] text-[12px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-[9px]">
                     −{m.salePct}%
                   </span>
                 )}
@@ -1349,7 +1371,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
               <div className="overflow-y-auto no-scrollbar px-7 pt-7 pb-5 flex-1 min-h-0">
                 <div className="text-[23px] font-extrabold leading-tight pr-10">{pName(p, m.lang)}</div>
                 <div className="mt-2.5 flex items-baseline gap-3">
-                  <div className={`text-[25px] font-extrabold tracking-tight ${m.sale ? 'text-[var(--sale-ink)]' : ''}`}>{fmt(p.price)}<span className="text-[13px] text-[var(--mut2)] font-bold"> UZS</span></div>
+                  <div className={`text-[25px] font-extrabold tracking-tight ${m.sale ? 'text-[var(--promo-deep)]' : ''}`}>{fmt(p.price)}<span className="text-[13px] text-[var(--mut2)] font-bold"> UZS</span></div>
                   {m.sale && <div className="text-[14px] font-bold text-[var(--mut2)] line-through">{fmt(p.old_price)} UZS</div>}
                 </div>
                 <div className="mt-2.5"><NutritionRow items={m.nutrition} per100={m.t.per100} /></div>
@@ -1456,9 +1478,9 @@ export function GiftProgress() {
         <button onClick={() => { haptic('light'); setOpen(true) }} aria-label="gift" className="relative w-[var(--float-size)] h-[var(--float-size)] grid place-items-center active:scale-95 transition-transform cursor-pointer">
           <svg width="56" height="56" viewBox="0 0 56 56" className="absolute inset-0 -rotate-90">
             <circle cx="28" cy="28" r={R} fill="none" stroke="var(--line2)" strokeWidth="3" />
-            <circle cx="28" cy="28" r={R} fill="none" stroke="#29A8E0" strokeWidth="3" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} style={{ transition: 'stroke-dashoffset .5s cubic-bezier(.32,.72,0,1)' }} />
+            <circle cx="28" cy="28" r={R} fill="none" stroke="var(--promo)" strokeWidth="3" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} style={{ transition: 'stroke-dashoffset .5s cubic-bezier(.32,.72,0,1)' }} />
           </svg>
-          <span className="w-[44px] h-[44px] rounded-full bg-[var(--sheet)] border border-[var(--line)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] transition-colors duration-300" style={{ color: done ? '#29A8E0' : 'var(--ink)' }}>
+          <span className="w-[44px] h-[44px] rounded-full bg-[var(--sheet)] border border-[var(--line)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] transition-colors duration-300" style={{ color: done ? 'var(--promo-deep)' : 'var(--ink)' }}>
             <IcTruck s={18} />
           </span>
         </button>

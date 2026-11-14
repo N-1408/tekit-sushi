@@ -70,10 +70,20 @@ input, textarea, select { font-size: 16px !important; }
 .anim-fade { animation: fadeIn .25s ease-out both; }
 
 /* suzuvchi boshqaruvlar: yagona o'lchov tokeni va bitta qator */
-:root { --float-size: 56px; --sale-ink: #C0361F; --sale-soft: rgba(245, 73, 61, .10); }
-[data-theme='dark'] { --sale-ink: #FF9D57; --sale-soft: rgba(255, 138, 60, .14); }
-.floating-row { position: fixed; right: 16px; bottom: calc(92px + var(--sab)); z-index: 45; display: flex; align-items: center; gap: 12px; }
-@media (min-width: 1024px) { .floating-row { right: 24px; bottom: 32px; } }
+/* Promo aksenti: yorqin sirt + uning ustidagi to'q matn, chuqur sirt + oq matn (ikkala tema) */
+:root { --float-size: 56px; --float-bottom: calc(92px + var(--sab)); --float-side: 16px; --nav-w: 0px;
+  --promo: #F97316; --promo-ink: #431407; --promo-deep: #C2410C; --promo-soft: rgba(249, 115, 22, .14); }
+[data-theme='dark'] { --promo: #FF8A3C; --promo-ink: #2A1204; --promo-deep: #D14E00; --promo-soft: rgba(255, 138, 60, .18); }
+/* Suzuvchi boshqaruvlar: chapda "yuqoriga chiqish", o'ngda yetkazib berish + savat.
+   Uchalasi bir bazaviy chiziqda (--float-bottom) va bir o'lchamda (--float-size).
+   Desktopda sidebar ochilganda chap qator kontent bilan birga suriladi (--nav-w). */
+.floating-row-left { position: fixed; left: calc(var(--float-side) + var(--nav-w)); bottom: var(--float-bottom); z-index: 45; display: flex; align-items: center; }
+.floating-row-right { position: fixed; right: var(--float-side); bottom: var(--float-bottom); z-index: 45; display: flex; align-items: center; gap: 12px; }
+@media (min-width: 768px) {
+  :root { --float-bottom: 32px; --float-side: 24px; }
+  .floating-row-left { transition: left .3s cubic-bezier(.32, .72, 0, 1); }
+}
+@media (prefers-reduced-motion: reduce) { .floating-row-left { transition: none; } }
 
 /* savatga qo'shish tasdigi: ikonka urishi va tugma belgisi */
 @keyframes cartBeat { 0% { transform: scale(1) } 35% { transform: scale(1.16) } 100% { transform: scale(1) } }

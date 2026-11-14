@@ -59,11 +59,8 @@ export default function App() {
       {!isAdmin && <>
         <TabBar />
         {/* uchala suzuvchi boshqaruv bitta qatorda, o'lchamlari bir xil */}
-        <div className="floating-row">
-          <ScrollTop />
-          <GiftProgress />
-          <FloatingCart />
-        </div>
+        <div className="floating-row-left"><ScrollTop /></div>
+        <div className="floating-row-right"><GiftProgress /><FloatingCart /></div>
       </>}
       {!isAdmin && <ProductSheet />}
       {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-1/2 z-[60] bg-navy text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
