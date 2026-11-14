@@ -1042,7 +1042,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
     <div className="fixed inset-0 z-50">
       <div className={`absolute inset-0 bg-black/55 backdrop-blur-[3px] transition-opacity duration-300 ${enter ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
       <div className="absolute inset-0 grid place-items-center p-8 pointer-events-none">
-        <div className={`pointer-events-auto relative w-[900px] max-w-full max-h-[86vh] rounded-[26px] bg-[var(--sheet)] shadow-[0_40px_120px_rgba(4,10,40,.55)] grid grid-cols-[minmax(340px,0.92fr)_1fr] overflow-hidden transition-all duration-300 ${enter ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.96] translate-y-2'}`}>
+        <div className={`pointer-events-auto relative w-[900px] max-w-full rounded-[26px] bg-[var(--sheet)] shadow-[0_40px_120px_rgba(4,10,40,.55)] grid grid-cols-[minmax(340px,0.92fr)_1fr] overflow-hidden transition-all duration-300 ${enter ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.96] translate-y-2'}`}>
           {/* chap: rasm */}
           <div className="relative bg-navy-soft min-h-[520px]">
             <img src={pImg(p)} alt={pName(p, lang)} className="absolute inset-0 w-full h-full object-cover" />
@@ -1061,7 +1061,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
             {wtxt && <span className="absolute bottom-4 left-4 bg-black/45 text-white text-[12px] font-bold px-2.5 py-1.5 rounded-[9px] backdrop-blur-[2px]">{wtxt}</span>}
           </div>
           {/* o'ng: mazmun */}
-          <div className="flex flex-col min-h-0">
+          <div className="flex flex-col min-h-0 max-h-[86vh]">
             <button onClick={onClose} aria-label="close"
               className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] hover:text-[var(--ink)] hover:bg-navy-soft active:scale-90 transition-all cursor-pointer"
               style={{ position: 'absolute', right: '1rem', top: '1rem' }}>
