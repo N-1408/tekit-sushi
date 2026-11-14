@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useStore, pName, pImg, CATS, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
-import { haptic, useNativeBack, tgUser } from '../lib/tg'
+import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode } from '../lib/tg'
 import MapPicker from './MapPicker'
 import { DeliveryModal, PickupModal, InitialChoiceModal, pickupSummary } from './Fulfillment'
 
@@ -307,11 +307,13 @@ function LangPicker({ dark }: { dark?: boolean }) {
 /* ---------- mavzu almashtirish tugmasi ---------- */
 
 export function ThemeToggle() {
-  const { theme, setTheme, t } = useStore()
+  const { t } = useStore()
+  const [theme, setThemeL] = useState<ThemeMode>(() => currentTheme())
+  useEffect(() => subscribeTheme(setThemeL), [])
   const dark = theme === 'dark'
   return (
     <button role="switch" aria-checked={dark} aria-label={t.themeLabel}
-      onClick={() => { haptic('light'); setTheme(dark ? 'light' : 'dark') }}
+      onClick={() => { haptic('light'); changeTheme(dark ? 'light' : 'dark') }}
       className={`focus-ring press relative shrink-0 w-[62px] h-[34px] rounded-full ${dark ? 'bg-[#222B39] border border-[#2A3442]' : 'bg-[#DEE5EF] border border-[#C9D3E1]'} motion-safe:transition-colors motion-safe:duration-300`}>
       <span className={`absolute left-[8px] top-1/2 -translate-y-1/2 z-10 ${dark ? 'text-[#5A6472]' : 'text-[#0A2194]'}`}><IcSun s={11} /></span>
       <span className={`absolute right-[8px] top-1/2 -translate-y-1/2 z-10 ${dark ? 'text-[#E9EDF1]' : 'text-[#5A6472]'}`}><IcMoon s={11} /></span>

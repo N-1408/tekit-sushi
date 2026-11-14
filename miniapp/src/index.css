@@ -88,6 +88,17 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
   }
 }
 
+/* ---------- tema: pastdan yuqoriga ko'rinish o'tishi (View Transitions) ----------
+   MDN View Transition API: startViewTransition eski holat tasvirini ostida
+   saqlaydi; ::view-transition-new(root) pastdan inset(100% 0 0 0) →
+   inset(0 0 0 0) bo'ylab ochiladi (faqat kompozit, asosiy oqim bo'sh).
+   Default fade animatsiyalarini o'chirib, yangi tasvirni ustga qo'yamiz. */
+::view-transition-old(root), ::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root) { z-index: 1; }
+::view-transition-new(root) { z-index: 2; }
+/* Ko'rinish o'tishi davomida eski CSS rang o'tishlari bellashmasin */
+html.theme-vt body, html.theme-vt .tk-fade { transition: none !important; }
+
 /* ---------- umumiy modal tizimi ---------- */
 @keyframes modalIn { from { opacity: 0; transform: translateY(10px) scale(.985) } to { opacity: 1; transform: none } }
 .anim-modal { animation: modalIn .26s cubic-bezier(.32,.72,0,1) both; }
