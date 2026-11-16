@@ -3,7 +3,7 @@ import { useStore } from '../lib/store'
 import { tgUser, requestLocation, haptic } from '../lib/tg'
 import { IcPin } from '../components/ui'
 
-const input = 'w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 placeholder:text-[#A2A9C6]'
+const input = 'w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium text-[#101821] outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 placeholder:text-[#A2A9C6]'
 
 export default function Onboarding() {
   const { t, user, saveUser, closeOb } = useStore()
@@ -46,7 +46,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="fixed inset-0 z-[70] bg-[#0A2194] overflow-y-auto">
+    <div className="tk-ob fixed inset-0 z-[70] bg-[#0A2194] overflow-y-auto">
       <div className="min-h-full flex flex-col">
         <div className="px-5 pt-[calc(env(safe-area-inset-top)+var(--tg-csa-top,0px)+var(--tg-extra,0px)+22px)] pb-7 text-white lg:max-w-[620px] lg:mx-auto lg:pt-10">
           <div className="flex items-center justify-between">
@@ -71,7 +71,7 @@ export default function Onboarding() {
                 <div className="text-[12px] font-bold text-[#8A93B8] mb-1.5">{t.phone}</div>
                 <div className="flex items-stretch gap-0 rounded-xl border border-navy-line bg-white overflow-hidden focus-within:border-navy focus-within:ring-2 focus-within:ring-navy/10">
                   <span className="grid place-items-center px-3.5 text-[14px] font-bold text-[#4A5270] bg-white border-r border-navy-line select-none">+998</span>
-                  <input className="flex-1 px-3.5 py-3 text-[14px] font-medium outline-none bg-white placeholder:text-[#A2A9C6]" type="tel" inputMode="numeric" value={fmtPhone(phoneD)} onChange={e => setPhoneD(e.target.value.replace(/\D/g, '').replace(/^998/, '').slice(0, 9))} placeholder="90 123 45 67" />
+                  <input className="flex-1 px-3.5 py-3 text-[14px] font-medium text-[#101821] outline-none bg-white placeholder:text-[#A2A9C6]" type="tel" inputMode="numeric" value={fmtPhone(phoneD)} onChange={e => setPhoneD(e.target.value.replace(/\D/g, '').replace(/^998/, '').slice(0, 9))} placeholder="90 123 45 67" />
                 </div>
               </div>
               <button onClick={() => { if (valid1) { haptic(); setStep(1) } }}

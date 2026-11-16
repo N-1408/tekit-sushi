@@ -82,7 +82,9 @@ export type Store = {
   favs: string[]; toggleFav: (id: string) => void
   toast: string | null; showToast: (s: string) => void
   myOrders: MyOrder[]; saveMyOrder: (o: MyOrder) => void
-  initTg: () => void
+  menuLoading: boolean
+  ordersLoaded: boolean
+  userChecked: boolean
   sheetP: Product | null; openP: (p: Product) => void; closeP: () => void
   role: string | null
   roleReady: boolean
@@ -116,24 +118,34 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [cartMap, setCartMap] = useState<Record<string, number>>(() => load('tk-cart', {} as Record<string, number>))
   const [favs, setFavs] = useState<string[]>(() => load('tk-favs', [] as string[]))
   const [toast, setToast] = useState<string | null>(null)
-  const [myOrders, setMyOrders] = useState<MyOrder[]>(() => load('tk-orders', [] as MyOrder[]))
+  const [myOrders, setMyOrders] = useState<MyOrder[]>([])
   const [sheetP, setSheetP] = useState<Product | null>(null)
-  const [products, setProducts] = useState<Product[]>(() => load<Product[]>('tk-menu-v2', PRODUCTS))
+  /* Menyu KESHLANMAYDI: serverdan yuklanadi, kelguncha skelet ko'rsatiladi.
+     Server javob bermasa — ilova ichidagi asosiy menyu ishlaydi. */
+  const [products, setProducts] = useState<Product[]>([])
+  const [menuLoading, setMenuLoading] = useState(true)
+  const [ordersLoaded, setOrdersLoaded] = useState(false)
   const [role, setRole] = useState<string | null>(null)
   const [roleReady, setRoleReady] = useState(false)
+  /* Foydalanuvchi profili Telegram sessiyasida KESHLANMAYDI: ochilishida
+     server (/api/me) darhol tekshiradi — u yerda bo'lsa profili qaytadi,
+     bo'lmasa onboarding. Brauzerda (Telegram tashqarisida) mehmon profili
+     mahalliy qoladi — bu faqat UI holati. ?demo=1 — ko'rish uchun demo. */
   const [user, setUser] = useState<User | null>(() => {
-    const saved = load<User | null>('tk-user', null)
-    if (saved) return saved
-    // preview: ?demo=1 — faqat brauzerda ko'rish uchun mahalliy mehmon foydalanuvchisi
     try {
+      if (TGA?.initData && tgUser()) return null
+      const g = load<User | null>('tk-guest', null)
+      if (g) return g
       if (new URLSearchParams(window.location.search).has('demo')) {
         const d = { tg_id: undefined, name: 'Demo mijoz', phone: '+998901234567', addr: 'Toshkent' } as any
-        localStorage.setItem('tk-user', JSON.stringify(d))
+        localStorage.setItem('tk-guest', JSON.stringify(d))
         return d
       }
     } catch {}
     return null
   })
+  /* Server tekshiruvi tugaguncha (Telegram sessiyasida) boot splash ko'rsatiladi */
+  const [userChecked, setUserChecked] = useState(() => !TGA?.initData)
   const [ob, setOb] = useState(false)
   /* Tema holati kontekstdan chiqarildi (tg.ts moduli). Sabab: theme
      kontekst qiymatida turganda har almashtirish butun daraxtni qayta
@@ -179,8 +191,6 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => { localStorage.setItem('tk-lang', JSON.stringify(lang)) }, [lang])
   useEffect(() => { localStorage.setItem('tk-cart', JSON.stringify(cartMap)) }, [cartMap])
   useEffect(() => { localStorage.setItem('tk-favs', JSON.stringify(favs)) }, [favs])
-  useEffect(() => { localStorage.setItem('tk-orders', JSON.stringify(myOrders.slice(0, 30))) }, [myOrders])
-  useEffect(() => { if (user) localStorage.setItem('tk-user', JSON.stringify(user)) }, [user])
 
   const setLang = useCallback((l: Lang) => setLangS(l), [])
   const setPickup = useCallback((p: PickupSel | null) => { setPickupS(p); try { if (p) localStorage.setItem('tk-pickup', JSON.stringify(p)); else localStorage.removeItem('tk-pickup') } catch {} }, [])
@@ -197,10 +207,26 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const showToast = useCallback((s: string) => { setToast(s); setTimeout(() => setToast(null), 1800) }, [])
   const saveMyOrder = useCallback((o: MyOrder) => setMyOrders(a => [o, ...a].slice(0, 30)), [])
   const openP = useCallback((p: Product) => setSheetP(p), [])
-  const saveUser = useCallback((p: Partial<User>) => setUser(u => ({ ...(u || {}), ...p } as User)), [])
+  const saveUser = useCallback((p: Partial<User>) => setUser(u => {
+    const merged = { ...(u || {}), ...p } as User
+    /* Profil o'zgartirilganda serverga yoziladi (Telegram sessiyasida):
+       keyingi yuklanishda u yerdan qaytadi. Brauzerda — UI holati sifatida. */
+    try {
+      if (TGA?.initData && merged.tg_id) {
+        fetch('/api/me', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Init-Data': TGA.initData },
+          body: JSON.stringify({ name: merged.name || '', phone: merged.phone || '', addr: merged.addr || '', lat: merged.lat ?? null, lon: merged.lon ?? null }),
+        }).catch(() => {})
+      } else {
+        localStorage.setItem('tk-guest', JSON.stringify(merged))
+      }
+    } catch {}
+    return merged
+  }), [])
   const refreshOrders = useCallback(() => {
     const u = tgUser()
-    if (!u) return
+    if (!u) { setOrdersLoaded(true); return }
     fetch('/api/orders', { headers: { 'X-Init-Data': TGA?.initData || '' } }).then(r => r.ok ? r.json() : null).then(j => {
       if (!j || !j.orders) return
       const mapped: MyOrder[] = (j.orders as any[]).map(o => ({
@@ -219,20 +245,47 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const localOnly = prev.filter(x => !ids.has(x.oid))
         return [...mapped, ...localOnly].slice(0, 30)
       })
-    }).catch(() => {})
+      setOrdersLoaded(true)
+    }).catch(() => setOrdersLoaded(true))
   }, [])
   const openOb = useCallback(() => setOb(true), [])
   const closeOb = useCallback(() => setOb(false), [])
   const closeP = useCallback(() => setSheetP(null), [])
 
+  /* Boot sinxronizatsiyasi: ilova ochilishi bilan server bilan bog'lanadi.
+     1) Foydalanuvchi mavjudligi (/api/me): u yerda bo'lsa profili keladi,
+        bo'lmasa onboarding ko'rsatiladi.
+     2) Menyu: serverdan, kelguncha skelet.
+     3) Filiallar va yetkazib berish sozlamalari: server yagona manba.
+     4) Buyurtmalar: serverdan.
+     Keshda faqat UI holati qoladi (til, tema, savat, saralanganlar, rejim). */
   useEffect(() => {
     let dead = false
-    fetch('/api/menu').then(r => r.ok ? r.json() : null).then(j => {
-      if (dead || !j?.ok || !Array.isArray(j.items) || !j.items.length) return
-      setProducts(j.items)
-      if (j.delivery) setDeliveryCfg({ fee: Number(j.delivery.fee) || 15000, threshold: Number(j.delivery.threshold) || 200000 })
-      try { localStorage.setItem('tk-menu-v2', JSON.stringify(j.items)) } catch {}
-    }).catch(() => {})
+    // eski ma'lumot-keshlari tozalanadi (endi faqat UI holati keshlanadi)
+    try { localStorage.removeItem('tk-user'); localStorage.removeItem('tk-menu-v2'); localStorage.removeItem('tk-orders') } catch {}
+    if (TGA?.initData && tgUser()) {
+      fetch('/api/me', { headers: { 'X-Init-Data': TGA.initData } })
+        .then(r => r.ok ? r.json() : null).then((j: any) => {
+          if (dead) return
+          setRole(j?.role || null); setRoleReady(true); setUserChecked(true)
+          if (j?.ok && j.exists && j.user) {
+            const u = tgUser()
+            setUser({ tg_id: u?.id, name: j.user.name || u?.first_name || '', phone: j.user.phone || '', addr: j.user.addr || '', lat: j.user.lat ?? undefined, lon: j.user.lon ?? undefined })
+          } else {
+            setUser(null) // serverda yo'q — onboarding ko'rsatiladi
+          }
+        }).catch(() => { if (!dead) { setRoleReady(true); setUserChecked(true) } })
+    }
+    fetch('/api/menu').then(r => r.ok ? r.json() : null).then((j: any) => {
+      if (dead) return
+      if (j?.ok && Array.isArray(j.items) && j.items.length) {
+        setProducts(j.items)
+        if (j.delivery) setDeliveryCfg({ fee: Number(j.delivery.fee) || 15000, threshold: Number(j.delivery.threshold) || 200000 })
+      } else {
+        setProducts(PRODUCTS) // server javob bermasa: ilova ichidagi asosiy menyu
+      }
+      setMenuLoading(false)
+    }).catch(() => { if (!dead) { setProducts(PRODUCTS); setMenuLoading(false) } })
     fetch('/api/branches').then(r => r.ok ? r.json() : null).then(j => {
       if (dead || !j?.ok || !Array.isArray(j.branches) || !j.branches.length) return
       setFF(prev => ({
@@ -248,24 +301,19 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         },
       }))
     }).catch(() => {})
+    refreshOrders()
     return () => { dead = true }
   }, [])
-
-  const initTg = useCallback(() => {
-    const u = tgUser()
-    if (!u) return
-    fetch('/api/me', { headers: { 'X-Init-Data': TGA?.initData || '' } }).then(r => r.ok ? r.json() : null).then(j => { setRole(j?.role || null); setRoleReady(true) }).catch(() => { setRoleReady(true) })
-    refreshOrders()
-  }, [refreshOrders])
 
   const value = useMemo<Store>(() => {
     const lines: CartLine[] = Object.entries(cartMap)
       .map(([id, q]) => { const p = products.find(x => x.id === id); return p ? { ...p, q } : null })
       .filter(Boolean) as CartLine[]
-    const count = lines.reduce((s, l) => s + l.q, 0)
+    // Badge savat xaritasidan: menyu hali yuklanmagan bo'lsa ham to'g'ri
+    const count = Object.values(cartMap).reduce((s, q) => s + (q || 0), 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, initTg, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, initTg, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked])
 
   const navValue = useMemo<NavState>(() => ({ navOpen, setNavOpen }), [navOpen, setNavOpen])
   return (

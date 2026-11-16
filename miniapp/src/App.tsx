@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React from 'react'
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import Home from './screens/Home'
 import Cat from './screens/Cat'
@@ -19,11 +19,20 @@ import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, SideNav } 
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 
+/* Boot splash: server foydalanuvchini tekshirguncha (Telegram sessiyasida) */
+function BootSplash() {
+  return (
+    <div className="fixed inset-0 z-[90] bg-[#0A2194] grid place-items-center">
+      <img src="/logo.png" alt="Tekit Sushi" className="w-16 h-16 rounded-2xl anim-pop shadow-xl" />
+    </div>
+  )
+}
+
 export default function App() {
-  const { initTg, toast, user, ob } = useStore()
+  const { toast, user, ob, userChecked } = useStore()
   const loc = useLocation()
   const isAdmin = loc.pathname.startsWith('/admin')
-  useEffect(() => { initTg() }, [])
+  const booting = !isAdmin && !userChecked
 
   const wide = !isAdmin && !loc.pathname.startsWith('/p/')
   return (
@@ -55,7 +64,8 @@ export default function App() {
       </div>
         </div>
       </div>
-      {!isAdmin && (!user || ob) && <Onboarding />}
+      {!isAdmin && booting && <BootSplash />}
+      {!isAdmin && !booting && (!user || ob) && <Onboarding />}
       {!isAdmin && <>
         <TabBar />
         {/* uchala suzuvchi boshqaruv bitta qatorda, o'lchamlari bir xil */}
