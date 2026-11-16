@@ -229,9 +229,13 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
 :root { --glass: rgba(255, 255, 255, .65); --glass-line: rgba(16, 24, 33, .08); }
 [data-theme='dark'] { --glass: rgba(255, 255, 255, .07); --glass-line: rgba(255, 255, 255, .12); }
 
-.tk-brand-row { overflow: hidden; max-height: 120px; opacity: 1;
-  transition: max-height .34s cubic-bezier(.32, .72, 0, 1), opacity .26s ease; }
-.tk-brand-row.is-collapsed { max-height: 0; opacity: 0; pointer-events: none; }
+.tk-brand-row { display: grid; grid-template-rows: 1fr; opacity: 1;
+  transition: grid-template-rows .3s cubic-bezier(.32, .72, 0, 1), opacity .3s cubic-bezier(.32, .72, 0, 1); }
+.tk-brand-row.is-collapsed { grid-template-rows: 0fr; opacity: 0; pointer-events: none; }
+.tk-brand-clip { min-height: 0; overflow: hidden; }
+.tk-glass-chip { background: var(--glass); border: 1px solid var(--glass-line);
+  -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: 0 6px 18px -10px rgba(16, 24, 33, .25); }
 
 .tk-search-btn { background: var(--glass); border: 1px solid var(--glass-line); color: var(--ink2);
   -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);

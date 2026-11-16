@@ -208,12 +208,12 @@ export default function Home() {
             <div className="relative z-20 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
               <Header />
             </div>
-            <div ref={navRef} className="sticky z-30 bg-[var(--bg)] tk-sticky-catalog">
+            <div ref={navRef} className="sticky z-30 tk-sticky-catalog">
               {catalogNav}
             </div>
           </>
         ) : (
-          <div ref={navRef} className="sticky z-30 bg-[var(--bg)] tk-hdr-sticky">
+          <div ref={navRef} className="sticky z-30 tk-hdr-sticky">
             <Header collapsed={stuck} />
             {catalogNav}
           </div>
