@@ -1,9 +1,10 @@
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useStore, pImg } from '../../lib/store'
+import { useStore, pImg, isSpicy } from '../../lib/store'
 import { fmt } from '../../lib/money'
 import { AdminTopBar, Btn, Toggle, useAdmin } from './common'
 import { haptic } from '../../lib/tg'
+import { IcChili } from '../../components/ui'
 
 type Item = any
 type Cat = any
@@ -22,8 +23,11 @@ function Body() {
   const cats: Cat[] = a.data?.cats || []
 
   const catsWith = cats.filter(c => c.active || (items.filter(i => i.cat === c.slug).length > 0))
-  const cur = catParam && cats.some(c => c.slug === catParam) ? catParam : catsWith[0]?.slug
-  let shown = items.filter(i => i.cat === cur)
+  const spicyCount = items.filter(it => isSpicy(it)).length
+  const cur = catParam === 'spicy'
+    ? 'spicy'
+    : catParam && cats.some(c => c.slug === catParam) ? catParam : catsWith[0]?.slug
+  let shown = catParam === 'spicy' ? items.filter(isSpicy) : items.filter(i => i.cat === cur)
   if (q.trim()) {
     const s = q.trim().toLowerCase()
     shown = items.filter(i => String(i.t_uz || '').toLowerCase().includes(s) || String(i.slug || '').includes(s))
@@ -57,6 +61,12 @@ function Body() {
               {c.sale_active && c.sale_percent > 0 && <span className="ml-1 text-[10px]">%</span>}
             </button>
           ))}
+          {spicyCount > 0 && (
+            <button onClick={() => nav('/admin/menu/spicy')}
+              className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all inline-flex items-center gap-1.5 ${cur === 'spicy' ? 'bg-navy text-white shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
+              <IcChili s={13} /> {t.catNames.spicy} · {spicyCount}
+            </button>
+          )}
         </div>
       )}
 
@@ -83,6 +93,7 @@ function Body() {
                         </span>
                         {onSale && <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-red-100 text-red-600">🔥 {t.aSaleA}{it.sale_price > 0 && it.sale_price < it.price ? '' : ` −${it.sale_percent}%`}</span>}
                         {it.hit && <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-navy-soft text-navy-ink">{t.hit}</span>}
+                        {isSpicy(it) && <span className="text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md bg-orange-100 text-orange-700 inline-flex items-center gap-1"><IcChili s={11} />{t.catNames.spicy}</span>}
                       </div>
                       <div className="mt-0.5 text-[13px] font-extrabold">
                         {fmt(eff)} <span className="text-[10px] text-[var(--mut)]">UZS</span>

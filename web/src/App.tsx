@@ -18,6 +18,7 @@ import { AdminShell, AdminGate } from './screens/admin/common'
 import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, SideNav } from './components/ui'
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
+import { useScrollHide } from './lib/scrollHide'
 
 /* Boot splash: server foydalanuvchini tekshirguncha (Telegram sessiyasida) */
 function BootSplash() {
@@ -39,23 +40,15 @@ export default function App() {
   /* Skroll yo'nalishi: pastga qaralganda suzuvchi savat va sovg'a halqasi
      sirg'alib yashiriladi, yuqoriga yoki tepada qayta ko'rinadi
      (html[data-floats]; CSS o'tishlari index.cssda). */
+    // Skroll gisterezisi: pastga — yashirish, yuqoriga — qayta ko'rsatish.
+  // (html[data-floats]; CSS o'tishlari index.cssda.)
+  const { hidden: floatsHidden } = useScrollHide()
   React.useEffect(() => {
     const el = document.documentElement
-    let lastY = window.scrollY
-    let raf = 0
-    const fn = () => {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => {
-        const y = window.scrollY
-        const dy = y - lastY
-        if (dy > 1 && y > 72) el.dataset.floats = '1'
-        else if (dy < -1 || y <= 72) delete el.dataset.floats
-        lastY = y
-      })
-    }
-    window.addEventListener('scroll', fn, { passive: true })
-    return () => { window.removeEventListener('scroll', fn); cancelAnimationFrame(raf); delete el.dataset.floats }
-  }, [loc.pathname])
+    if (floatsHidden) el.dataset.floats = '1'
+    else delete el.dataset.floats
+    return () => { delete el.dataset.floats }
+  }, [floatsHidden, loc.pathname])
 
   return (
     <>
