@@ -1,29 +1,24 @@
-# 🍣 Tekit Sushi — Telegram Bot + Mini App
+# Tekit Sushi — Telegram Bot + Mini App + Dedicated Backend
 
-Professional full-screen Telegram Mini App + bot, yaponamama.uz uslubida.
-Ranglar: **havorang** (azure #29A8E0) va **delfin** (kulrang-binafsha #5C7683).
+Monorepo (branch `feat/vps-monorepo`) prepared for the VPS phase. `master`
+still deploys the old single-folder layout to Vercel until the switch.
 
 ## Struktura
-- `bot/` — grammY asosidagi bot (`/start`, web_app tugma, buyurtmalarni qabul qilish)
-- `miniapp/` — statik full-screen mini ilova (menyu, savat, checkout, buyurtmalar)
+- `web/` — React + TypeScript + Vite mini app (Telegram) va standalone website
+- `api/` — dedicated backend: bitta Node/TypeScript app (Fastify), VPS-ready
+  - `src/integrations/` — clean adapter modules, DISABLED until env flags:
+    - `rahmat.ts` — Rahmat PAY (payments, docs app.docs.rhmt.uz)
+    - `iiko.ts` — menu + order sync (docs api.iiko.help)
+    - `taximaster.ts` — Millennium taxi dispatch (docs help.taximaster.ru TM_API)
+    - `eskiz.ts` — SMS phone confirmation (docs notify.eskiz.uz)
+- `bot/` — grammY bot
+- `admin/` — admin panel (uz/ru/en)
+- `shared/` — shared TypeScript types (Order, Branch, ...)
 
-## Sozlash
-1. BotFather'da `/newbot` → `BOT_TOKEN` oling.
-2. Mini ilovani deploy qiling (Vercel/Netlify) → HTTPS URL.
-3. BotFather → `/setmenubutton` → URL ni kiriting (yoki `bot.js` dagi InlineKeyboard ishlatadi).
-4. `.env`:
-   - `BOT_TOKEN` — BotFather'dan
-   - `WEBAPP_URL` — mini ilova URL
-   - `ADMIN_CHAT_ID` — buyurtma keladigan chat (ixtiyoriy)
-5. `cd bot && npm i && npm start`
+## Sozlash (api)
+```
+cd api && cp .env.example .env  # fill values; adapters stay off until flags set
+npm install && npm run dev
+```
 
-## Mini App imkoniyatlari (eng yangi Telegram API)
-- `requestFullscreen()` — to'liq ekran rejimi
-- `safeAreaInset` / `contentSafeAreaInset` — notch ostida kontent
-- `disableVerticalSwipes`, `enableClosingConfirmation`, BackButton
-- Haptic Feedback (qo'shish, bosish, xato)
-- Buyurtmalar `sendData` orqali botga tushadi va `orders.json`ga yoziladi
-
-Dizayn Emil Kowalski design-engineering qoidalari bo'yicha: `:active scale(0.97)`,
-`ease-out` 300ms dan kichik transitionlar, `tabular-nums` narxlarda, safe-area,
-native scroll feel.
+Dizayn Emil Kowalski design-engineering qoidalari bo'yicha.
