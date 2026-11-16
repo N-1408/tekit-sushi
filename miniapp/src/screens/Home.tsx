@@ -1,6 +1,7 @@
 import React from 'react'
 import { useStore, pName, CATS, inCat, type Product } from '../lib/store'
 import { Header, CatalogNav, CityBanner, HeroSlider, ProductCard } from '../components/ui'
+import { useScrollHide } from '../lib/scrollHide'
 
 const SEC = (id: string) => `cat-${id}`
 
@@ -53,6 +54,9 @@ function useCatalogTracking(ids: string[], paused: boolean) {
   const rafRef = React.useRef(0)
   const idsKey = ids.join('|')
 
+  /* Faol kategoriya har skroll hodisasida (rAF bilan cheklangan) hisoblanadi:
+     IntersectionObserver moslashtirilmaydigan holatlarda (sarlavha yig'ilib
+     ochilganda, tez skrollda) faol nom belgisi shovqinli almashtirardi. */
   const computeActive = React.useCallback(() => {
     if (lockRef.current) return
     const list = idsKey ? idsKey.split('|') : []
@@ -106,43 +110,21 @@ function useCatalogTracking(ids: string[], paused: boolean) {
 
   React.useEffect(() => {
     if (paused) { setActive(null); return }
-    const nav = navRef.current
-    if (!nav) return
-    let io: IntersectionObserver | null = null
-    let endIo: IntersectionObserver | null = null
-    const list = idsKey ? idsKey.split('|') : []
-    const setup = () => {
-      io?.disconnect()
-      const navH = nav.offsetHeight
-      const vh = window.innerHeight
-      const pinTop = parseFloat(getComputedStyle(nav).top) || 0
-      io = new IntersectionObserver(entries => {
-        if (entries.some(e => e.isIntersecting)) computeActive()
-      }, { rootMargin: `-${navH + pinTop}px 0px -${Math.max(0, vh - navH - pinTop - 4)}px 0px`, threshold: 0 })
-      for (const id of list) {
-        const el = document.getElementById(SEC(id))
-        if (el) io.observe(el)
-      }
-      computeActive()
+    let raf = 0
+    const fn = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(computeActive)
     }
-    setup()
-    const onResize = () => setup()
-    window.addEventListener('resize', onResize)
-    // sahifa eng pastki qismiga yetganda oxirgi kategoriya faol bo'ladi
-    const end = document.getElementById('catalog-end')
-    if (end) {
-      endIo = new IntersectionObserver(es => {
-        if (es.some(e => e.isIntersecting) && !lockRef.current && list.length) {
-          setActive(list[list.length - 1])
-        }
-      })
-      endIo.observe(end)
-    }
+    window.addEventListener('scroll', fn, { passive: true })
+    window.addEventListener('resize', fn)
+    computeActive()
+    // layout barqarorlashgach bir marta qayta hisoblash (skelet/rasm almashinuvi)
+    const t = window.setTimeout(computeActive, 350)
     return () => {
-      io?.disconnect()
-      endIo?.disconnect()
-      window.removeEventListener('resize', onResize)
-      cancelAnimationFrame(rafRef.current)
+      window.removeEventListener('scroll', fn)
+      window.removeEventListener('resize', fn)
+      cancelAnimationFrame(raf)
+      window.clearTimeout(t)
     }
   }, [idsKey, paused, computeActive])
 
@@ -180,26 +162,7 @@ export default function Home() {
   const wide = useWideScreen()
   // Yo'nalishga sezgir brend qatori: pastga skroll — yig'iladi, yuqoriga —
   // darhol qaytadi (faqat tepada emas, istalgan joyda). Kategoriyalar qatori qoladi.
-  const [showBrand, setShowBrand] = React.useState(true)
-  const [scrolled, setScrolled] = React.useState(false)
-  React.useEffect(() => {
-    let raf = 0
-    let lastY = window.scrollY
-    const fn = () => {
-      cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => {
-        const y = window.scrollY
-        setScrolled(y > 24)
-        if (y <= 24) setShowBrand(true)
-        else if (y > lastY + 6) setShowBrand(false)
-        else if (y < lastY - 6) setShowBrand(true)
-        lastY = y
-      })
-    }
-    window.addEventListener('scroll', fn, { passive: true })
-    fn()
-    return () => { window.removeEventListener('scroll', fn); cancelAnimationFrame(raf) }
-  }, [])
+  const { hidden: brandHidden, atTop: scrolledTop } = useScrollHide()
   const { navRef, active, onSelect } = useCatalogTracking(chips.map(c => c.id), searching)
 
   return (
@@ -221,7 +184,7 @@ export default function Home() {
           </>
         ) : (
           <div ref={navRef} className="sticky z-30 tk-hdr-sticky">
-            <Header collapsed={!showBrand} floating={scrolled && showBrand} />
+            <Header collapsed={brandHidden} floating={scrolledTop && !brandHidden} />
             {catalogNav}
           </div>
         )

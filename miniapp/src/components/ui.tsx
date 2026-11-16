@@ -482,17 +482,19 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
     <>
       {/* Kollaps faqat header elementida: modallar transformdan TASHQARIDA turadi,
           aks holda fixed modallarning containing-blocki buzilardi. */}
-      <header className={`tk-fade relative z-[31] text-[var(--ink)] tk-brand-row ${collapsed ? 'is-collapsed' : ''} ${isWide ? 'bg-[var(--bg)]' : ''}`}>
-        <div className="tk-brand-clip">
-        <div className="max-w-[1240px] mx-auto flex items-center justify-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2">
-          <button onClick={() => nav('/')} aria-label="Tekit Sushi"
-            aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
-            className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${floating && !isWide ? 'tk-brand-pill' : ''} ${hideBrand ? 'opacity-0 pointer-events-none' : ''}`}>
-            <BrandLogo size={36} />
-            <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
-          </button>
-        </div>
-      </div>
+      <header className={`tk-fade relative z-[31] text-[var(--ink)] ${isWide ? 'bg-[var(--bg)]' : ''}`}>
+        {/* Yig'ilish darhol va silliqsiz: yashirish ko'rinmaydi, qaytish ham.
+            Skroll gisterezisi (useScrollHide) tez-tez almashtirishning oldini oladi. */}
+        {!collapsed && (
+          <div className="max-w-[1240px] mx-auto flex items-center justify-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2">
+            <button onClick={() => nav('/')} aria-label="Tekit Sushi"
+              aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
+              className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${floating && !isWide ? 'tk-brand-pill' : ''} ${hideBrand ? 'opacity-0 pointer-events-none' : ''}`}>
+              <BrandLogo size={36} />
+              <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+            </button>
+          </div>
+        )}
       </header>
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} switchTo={() => { setDelOpen(false); setPickOpen(true) }} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} switchTo={() => { setPickOpen(false); setDelOpen(true) }} />
@@ -999,12 +1001,11 @@ export function TabBar() {
 export function IcChili({ s = 16, className }: { s?: number; className?: string }) {
   return (
     <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
-      <g className="tk-flame">
-        <path d="M12 3.2c1.6 1.9 2.4 3.2 2.4 4.5 0 1.6-1.1 2.8-2.4 2.8S9.6 9.3 9.6 7.7c0-1.3.8-2.6 2.4-4.5z" fill="#FFB020" />
-        <path d="M12 6.4c.7.9 1 1.5 1 2.1 0 .9-.6 1.4-1 1.4s-1-.5-1-1.4c0-.6.3-1.2 1-2.1z" fill="#FF7A1A" />
-      </g>
-      <path d="M18.4 8c1.2 1.9 1 4.6-.8 7-2.2 3-6 4.9-9.7 4.5-2-.2-3.6-1.1-4.3-2.3 2.2.1 4.4-.6 6.2-2.2 2.4-2.1 3.2-4.7 4-6.1.8-1.6 3.4-2.4 4.6-.9z" fill="#E8462B" />
-      <path d="M17.8 7.6c.2-1.4 1.3-2.5 2.8-2.7" stroke="#4E9B47" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M13.9 1.2c2 2 3 3.6 3 5 0 1.8-1.3 3-3 3s-3-1.2-3-3c0-1.4 1-3 3-5z" fill="#FFB020" />
+      <path d="M13.9 4.1c.9 1 1.4 1.7 1.4 2.3 0 .8-.6 1.3-1.4 1.3s-1.4-.5-1.4-1.3c0-.6.5-1.3 1.4-2.3z" fill="#FF7A1A" />
+      <path d="M20.2 6.8c2.1 1.7 2 4.6.2 7.4-2.4 3.8-6.9 6.6-11.4 6.1-2.4-.3-4.2-1.4-4.9-2.9 1.3.4 3.1.2 5-.6 4.2-1.8 7.6-5.1 8.9-8.3.5-1.1 1.4-2.2 2.2-1.7z" fill="#E8462B" />
+      <path d="M20.2 6.8c-.8-.5-1.7.6-2.2 1.7-.5 1.1-1.2 2.3-2.2 3.5.3-2 1.5-4.6 4.4-5.2z" fill="#FF7A5A" opacity=".5" />
+      <path d="M20.6 5.4c1-.6 2.2-.8 3.2-.5-.5 1.1-1.5 2-2.7 2.2-.4.1-.9 0-1.2-.1.2-.6.4-1.2.7-1.6z" fill="#3E8E3E" />
     </svg>
   )
 }
@@ -1098,22 +1099,17 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
       </div>
       {strip && (
         <div onClick={e => e.stopPropagation()}
-          className={`absolute left-1.5 right-1.5 bottom-[58px] z-20 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] shadow-[0_14px_34px_-14px_rgba(10,15,50,.45)] px-2 py-2 ${stripOut ? 'tk-strip-out' : 'tk-strip-in'}`}>
+          className={`mt-1.5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] shadow-[0_10px_24px_-16px_rgba(10,15,50,.4)] px-2 py-2 ${stripOut ? 'tk-strip-out' : 'tk-strip-in'}`}>
           <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
             {sauces.map(s => {
               const sq = cart.find(l => l.id === s.id)?.q ?? 0
               return (
-                <div key={s.id} className="shrink-0 flex items-center gap-1.5 rounded-full bg-[var(--soft)] pl-1 pr-1 py-1">
+                <div key={s.id} className={`shrink-0 flex items-center gap-1.5 rounded-full pl-1 pr-1 py-1 ${sq > 0 ? 'bg-navy-soft' : 'bg-[var(--soft)]'}`}>
                   <img src={pImg(s)} alt={pName(s, lang)} loading="lazy" className="w-7 h-7 rounded-full object-cover bg-navy-soft" />
                   <div className="pr-0.5">
                     <div className="text-[10.5px] font-extrabold leading-none whitespace-nowrap">{pName(s, lang)}</div>
-                    <div className="text-[9.5px] font-bold text-[var(--mut2)] mt-0.5 leading-none whitespace-nowrap">{fmt(s.price)}</div>
+                    <div className="text-[9.5px] font-bold text-[var(--mut2)] mt-0.5 leading-none whitespace-nowrap">{sq > 1 ? `\u00d7${sq} ` : ''}{fmt(s.price)}</div>
                   </div>
-                  {sq > 0 && (
-                    <button onClick={e => { e.stopPropagation(); setQty(s.id, sq - 1); haptic() }}
-                      className="press w-6 h-6 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center active:scale-90 transition-transform shrink-0"><IcMinus s={11} /></button>
-                  )}
-                  {sq > 0 && <span className="text-[11px] font-extrabold tabular-nums w-3 text-center shrink-0">{sq}</span>}
                   <button onClick={e => { e.stopPropagation(); if (sq > 0) setQty(s.id, sq + 1); else add(s.id); haptic(sq > 0 ? undefined : 'medium') }}
                     className="press w-6 h-6 rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform shrink-0"><IcPlus s={11} /></button>
                 </div>
@@ -1406,18 +1402,9 @@ function SaucePicker({ sauces, qtyOf, setQty, horizontal, onShow }: {
                 <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
                 <div className="pr-0.5">
                   <div className="text-[12.5px] font-extrabold leading-none whitespace-nowrap">{pName(sa, lang)}</div>
-                  <div className="text-[10.5px] font-bold text-[var(--mut2)] mt-1 leading-none whitespace-nowrap">{fmt(sa.price)} UZS</div>
+                  <div className="text-[10.5px] font-bold text-[var(--mut2)] mt-1 leading-none whitespace-nowrap">{sq > 1 ? `\u00d7${sq} ` : ''}{fmt(sa.price)} UZS</div>
                 </div>
               </button>
-              {sq > 0 && (
-                <div className="flex items-center gap-1 ml-0.5">
-                  <button onClick={() => { setQty(sa.id, sq - 1); haptic() }}
-                    className="press w-7 h-7 rounded-full bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] grid place-items-center hover:bg-navy-soft active:scale-90 transition-all cursor-pointer">
-                    <IcMinus s={12} />
-                  </button>
-                  <span className="w-3.5 text-center text-[11.5px] font-extrabold tabular-nums">{sq}</span>
-                </div>
-              )}
               <button onClick={() => { setQty(sa.id, sq + 1); haptic(sq > 0 ? undefined : 'light') }}
                 className="press w-7 h-7 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] hover:brightness-110 active:scale-90 transition-all cursor-pointer">
                 <IcPlus s={13} />
@@ -1644,11 +1631,17 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   const [entered, setEntered] = useState(false)
   const [dy, setDy] = useState(0)
   const [drag, setDrag] = useState(false)
+  // YARIM OCHIQ rejim: varaq ekranning 56% ini egallaydi; kontent pastki
+  // chegarasiga yetganda TO'LIQ ekranga cho'ziladi, yuqoriga surilsa ham.
+  const [expanded, setExpanded] = useState(false)
+  const expandedRef = useRef(false)
+  useEffect(() => { expandedRef.current = expanded }, [expanded])
   const panelRef = useRef<HTMLDivElement | null>(null)
   const [mini, setMini] = useState<Product | null>(null)
   /* Telegram qo'llanmasi: popapni X bilan emas, BackButton bilan yopish.
      Brauzerda avvalgi ko'rinish (X) saqlanadi. */
   const inTg = !!TGA?.BackButton?.show
+  const nav = useNavigate()
   const loc = useLocation()
   useEffect(() => {
     const bb = TGA?.BackButton
@@ -1661,28 +1654,45 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
       if (!TAB_PATHS.includes(loc.pathname)) { try { bb.show() } catch {} }
     }
   }, [onClose, loc.pathname])
-  // Kontent eng tepada turib yana pastga surilsa: varaq sirg'alib yopiladi
-  // (Telegram bottom-sheet uslubi). Faqat scrollTop <= 0 da faollashadi.
+  // Kontent eng tepasida yana pastga surilsa: yarim ochiq varaq yopiladi,
+  // to'liq ochiq varaq esa yarim holatga qaytadi (scrollTop <= 0 da faol).
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const sw = useRef<{ y0: number; engaged: boolean } | null>(null)
   const sDown = (e: React.TouchEvent) => { sw.current = { y0: e.touches[0].clientY, engaged: false } }
   const sMove = (e: React.TouchEvent) => {
-    const s = sw.current
-    if (!s) return
-    const dyv = e.touches[0].clientY - s.y0
+    const st = sw.current
+    if (!st) return
+    const dyv = e.touches[0].clientY - st.y0
     const el = scrollRef.current
-    if (!s.engaged && dyv > 8 && el && el.scrollTop <= 0) { s.engaged = true; setDrag(true) }
-    if (s.engaged) setDy(Math.max(0, dyv - 8))
+    if (!st.engaged && dyv > 8 && el && el.scrollTop <= 0) { st.engaged = true; setDrag(true) }
+    if (st.engaged) setDy(Math.max(0, dyv - 8))
   }
   const sEnd = () => {
-    const s = sw.current
+    const st = sw.current
     sw.current = null
-    if (!s || !s.engaged) return
+    if (!st || !st.engaged) return
     setDrag(false)
-    if (dy > 110) { onClose(); return }
+    if (dy > 110) {
+      if (expandedRef.current) { setExpanded(false); setDy(0); return }
+      onClose(); return
+    }
     setDy(0)
   }
-  useEffect(() => { const id = window.setTimeout(() => setEntered(true), 520); return () => clearTimeout(id) }, [])
+  // Kontent pastki chegarasiga yetganda varaq to'liq ekranga cho'ziladi
+  const onScroll = () => {
+    const el = scrollRef.current
+    if (!el || expandedRef.current) return
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 12) setExpanded(true)
+  }
+  // Kontent yarim balandlikka sig'ib qolsa: darhol to'liq ochiq holatga o'tadi
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      const el = scrollRef.current
+      if (el && !expandedRef.current && el.scrollHeight <= el.clientHeight + 4) setExpanded(true)
+    }, 90)
+    return () => window.clearTimeout(id)
+  }, [p?.id])
+  useEffect(() => { const id = window.setTimeout(() => setEntered(true), 520); return () => window.clearTimeout(id) }, [])
   useEffect(() => {
     const prevOverflow = document.body.style.overflow
     const prevScrollY = window.scrollY
@@ -1709,8 +1719,8 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
       try { prevFocus?.focus?.() } catch {}
     }
   }, [onClose])
-  // sudrab yopish: faqat sarlavha zonasida; bosilgan nuqtadan 14px oshgan fon
-  // bosilishi yopish hisoblanmaydi (tasodifiy yopishning oldini oladi)
+  // sudrab boshqarish: faqat sarlavha zonasi. Yuqoriga — to'liq ochish,
+  // pastga — yarim holatdan yopish, to'liq holatdan yarimga qaytish.
   const down = useRef<{ x: number; y: number } | null>(null)
   const onDown = (e: React.TouchEvent) => { down.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; setDrag(true) }
   const onMove = (e: React.TouchEvent) => {
@@ -1723,10 +1733,24 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     const d0 = down.current; down.current = null
     const d = e.changedTouches[0].clientY - d0.y
     setDrag(false)
-    if (d > 130) { onClose(); return }
+    if (d < -40 && !expandedRef.current) { setExpanded(true); setDy(0); return }
+    if (d > 130) {
+      if (expandedRef.current) { setExpanded(false); setDy(0); return }
+      onClose(); return
+    }
     setDy(0)
   }
   const bgDown = useRef<{ x: number; y: number } | null>(null)
+  // Qo'shilganlar ro'yxati: asosiy + qo'shilgan sous/tavsiyalar (qo'shni takrorlamasdan)
+  const extras: Product[] = []
+  {
+    const seen = new Set<string>()
+    for (const x of [...m.sauces, ...m.reco]) {
+      if (seen.has(x.id)) continue
+      seen.add(x.id)
+      if (m.qtyOf(x.id) > 0) extras.push(x)
+    }
+  }
   return createPortal(
     <div className="fixed inset-0 z-50">
       <div
@@ -1739,33 +1763,31 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
         style={{ opacity: Math.max(0, 1 - dy / 420), transition: drag ? 'none' : 'opacity .3s' }}
         className="absolute inset-0 bg-black/55" />
       <div ref={panelRef} role="dialog" aria-modal="true" aria-label={pName(p, m.lang)}
-        className={`${!entered && !drag ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 top-0 bg-[var(--sheet)] rounded-t-[22px] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none`}
-        style={{ transform: `translateY(${dy}px)`, transition: drag ? 'none' : 'transform .32s cubic-bezier(.32,.72,0,1)' }}>
-        {/* sarlavha: sudrab yopish zonasi */}
+        className={`${!entered && !drag ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-[var(--sheet)] rounded-t-[22px] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none`}
+        style={{
+          height: expanded ? '100dvh' : '56dvh',
+          transform: `translateY(${dy}px)`,
+          transition: drag ? 'none' : 'transform .32s cubic-bezier(.32,.72,0,1), height .34s cubic-bezier(.32,.72,0,1)',
+        }}>
+        {/* sarlavha: sudrab boshqarish zonasi; grabber har doim ko'rinadi */}
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
           style={{ touchAction: 'none', paddingTop: 'var(--sat)' }}
           className="shrink-0 cursor-grab active:cursor-grabbing">
-          {/* Telegramda grabber va X yo'q: yopish BackButton va pastga surish
-              orqali. Brauzerda avvalgi ko'rinish qoladi. */}
-          {inTg ? (
-            <div className="h-7" />
-          ) : (
-            <>
-              <div className="pt-2.5 pb-1">
-                <div className="w-10 h-1.5 rounded-full bg-[var(--line2)] mx-auto" />
-              </div>
-              <div className="flex items-center justify-end px-5 pt-1 pb-1.5">
-                <button onClick={onClose} aria-label={m.t.closeBtn}
-                  className="press w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform shrink-0">
-                  <IcX s={16} />
-                </button>
-              </div>
-            </>
+          <div className="pt-2.5 pb-1">
+            <div className="w-10 h-1.5 rounded-full bg-[var(--line2)] mx-auto" />
+          </div>
+          {/* Telegramda X yo'q: yopish BackButton va pastga surish orqali */}
+          {!inTg && (
+            <div className="flex items-center justify-end px-5 pt-1 pb-1.5">
+              <button onClick={onClose} aria-label={m.t.closeBtn}
+                className="press w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform shrink-0">
+                <IcX s={16} />
+              </button>
+            </div>
           )}
         </div>
-        {/* yagona skroll hudud: kvadrat rasm, nom, oziqlik, tavsif, souslar, tavsiyalar.
-            Narx bu yerda TAKRORLANMAYDI — yakuniy narx pastdagi buyurtma panelida. */}
-        <div ref={scrollRef} onTouchStart={sDown} onTouchMove={sMove} onTouchEnd={sEnd} onTouchCancel={sEnd} className="overflow-y-auto no-scrollbar px-5 pt-2.5 pb-5 flex-1 min-h-0 overscroll-contain">
+        {/* yagona skroll hudud: kvadrat rasm, nom, oziqlik, tavsif, souslar, tavsiyalar. */}
+        <div ref={scrollRef} onScroll={onScroll} onTouchStart={sDown} onTouchMove={sMove} onTouchEnd={sEnd} onTouchCancel={sEnd} className="overflow-y-auto no-scrollbar px-5 pt-2.5 pb-5 flex-1 min-h-0 overscroll-contain">
           <div className="relative aspect-square rounded-[18px] overflow-hidden bg-navy-soft shrink-0">
             <ImgOrPlate src={pImg(p)} alt={pName(p, m.lang)} />
             {m.sale && (
@@ -1784,33 +1806,36 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
           {p.cat !== 'sous' && <div className="mt-4"><SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal onShow={setMini} /></div>}
           <div className="mt-4"><RecoRow items={m.reco} compact onShow={setMini} /></div>
         </div>
-        {/* biriktirilgan buyurtma paneli: 1-qator miqdor + YAKUNIY NARX (hech qachon
-            qatorboshiga bo'linmaydi), 2-qator to'liq kenglikdagi asosiy tugma.
-            Tor ekranlarda tasodifiy matn bukilishi o'rniga ataylab ikki qatorli tartib. */}
+        {/* biriktirilgan buyurtma paneli: yengil fonli ro'yxat (asosiy + qo'shilgan
+            qo'shimchalar, plus-only) va ikki tugma — Savatga / Menyuga qaytish. */}
         <div style={{ paddingBottom: 'calc(14px + var(--sab))' }} className="px-5 pt-3 border-t border-[var(--line)] bg-[var(--sheet)]">
-          {/* Son ro'yxati: asosiy mahsulot va qo'shilgan har bir qo'shimcha
-              o'z nomi va o'chirgichi bilan. Qo'shish tugmasi yo'q — plus/minus
-              savatni to'g'ridan-to'g'ri boshqaradi, raqam hamma joyda yangilanadi. */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <div className="text-[14.5px] font-extrabold leading-tight truncate">{pName(p, m.lang)}</div>
-              <div className="text-[11.5px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(p.price * m.qtyOf(p.id))} <span className="text-[10px] font-bold">UZS</span></div>
-            </div>
-            <QtyStepper size="sm" q={m.qtyOf(p.id)} min={0}
-              onInc={() => { m.add(p.id); haptic('medium') }}
-              onDec={() => { if (m.qtyOf(p.id) > 0) { m.setQty(p.id, m.qtyOf(p.id) - 1); haptic() } }} />
-          </div>
-          {m.sauces.filter(s => m.qtyOf(s.id) > 0).map(s => (
-            <div key={s.id} className="mt-2.5 flex items-center justify-between gap-3">
+          <div className="rounded-[18px] bg-[var(--soft)] p-3">
+            <div className="flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-[13.5px] font-extrabold leading-tight truncate">{pName(s, m.lang)}</div>
-                <div className="text-[11px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(s.price * m.qtyOf(s.id))} <span className="text-[10px] font-bold">UZS</span></div>
+                <div className="text-[14.5px] font-extrabold leading-tight truncate">{pName(p, m.lang)}</div>
+                <div className="text-[11.5px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(p.price * m.qtyOf(p.id))} <span className="text-[10px] font-bold">UZS</span></div>
               </div>
-              <QtyStepper size="sm" q={m.qtyOf(s.id)} min={0}
-                onInc={() => { m.setQty(s.id, m.qtyOf(s.id) + 1); haptic() }}
-                onDec={() => { m.setQty(s.id, m.qtyOf(s.id) - 1); haptic() }} />
+              <QtyStepper size="sm" q={m.qtyOf(p.id)} min={0}
+                onInc={() => { m.add(p.id); haptic('medium') }}
+                onDec={() => { if (m.qtyOf(p.id) > 0) { m.setQty(p.id, m.qtyOf(p.id) - 1); haptic() } }} />
             </div>
-          ))}
+            {extras.map(s => (
+              <div key={s.id} className="mt-2.5 flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-[13.5px] font-extrabold leading-tight truncate">{pName(s, m.lang)}</div>
+                  <div className="text-[11px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{m.qtyOf(s.id) > 1 ? `×${m.qtyOf(s.id)} ` : ''}{fmt(s.price * m.qtyOf(s.id))} <span className="text-[10px] font-bold">UZS</span></div>
+                </div>
+                <button onClick={() => { m.setQty(s.id, m.qtyOf(s.id) + 1); haptic() }}
+                  className="press w-9 h-9 rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform shrink-0"><IcPlus s={14} /></button>
+              </div>
+            ))}
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button onClick={() => { onClose(); nav('/cart') }}
+              className="press py-3 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">{m.t.goCart}</button>
+            <button onClick={onClose}
+              className="press py-3 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink2)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">{m.t.backMenu}</button>
+          </div>
         </div>
       </div>
       {mini && <MiniProduct p={mini} onClose={() => setMini(null)} />}

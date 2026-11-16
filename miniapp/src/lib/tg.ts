@@ -24,21 +24,32 @@ export function initTelegram() {
     const applyInsets = () => {
       const st = document.documentElement.style
       const ios = TGA?.platform === 'ios' || /iPhone|iPad|iPod/i.test(navigator.userAgent || '')
-      const mob = ios || TGA?.platform === 'android' || /Android/i.test(navigator.userAgent || '')
+      const andr = TGA?.platform === 'android' || /Android/i.test(navigator.userAgent || '')
+      const mob = ios || andr
       const cs = (TGA as any).contentSafeAreaInset || {}
+      const sa = (TGA as any).safeAreaInset || {}
       const top = Number(cs.top) || 0
       const bottom = Number(cs.bottom) || 0
       // contentSafeAreaInset Telegram xromi balandligini o'zi hisoblab beradi —
       // u mavjud bo'lsa qo'shimcha strip IKKI MARSA hisoblanmasin. Fullscreen yoki csa
       // bermaydigan klientda Telegramning minimize/close tugmalari vebview USTIDA
-      // chiziladi — ularning zonasi (safe cone) doim band qilinadi: 56px.
+      // chiziladi. Androidda ko'p mijozlar top=0 deb hisobot qilsa-da tugmalar
+      // kontent USTIDA chiziladi — Androidda KAMIDA 72px zaxira qilinadi
+      // (hisobot qilingan qiymat katta bo'lsa, o'sha olinadi).
       st.setProperty('--tg-extra', (mob && (TGA?.isFullscreen || !(top > 0))) ? '56px' : '0px')
-      if (top > 0 && mob) st.setProperty('--tg-csa-top', `${top}px`)
-      else st.removeProperty('--tg-csa-top')
-      if (bottom > 0 && mob) st.setProperty('--tg-csa-bottom', `${bottom}px`)
-      else st.removeProperty('--tg-csa-bottom')
+      if (mob) {
+        const eff = Math.max(top, Number(sa.top) || 0, andr ? 72 : 0)
+        if (eff > 0) st.setProperty('--tg-csa-top', `${eff}px`)
+        else st.removeProperty('--tg-csa-top')
+        const effB = Math.max(bottom, Number(sa.bottom) || 0)
+        if (effB > 0) st.setProperty('--tg-csa-bottom', `${effB}px`)
+        else st.removeProperty('--tg-csa-bottom')
+      } else {
+        st.removeProperty('--tg-csa-top')
+        st.removeProperty('--tg-csa-bottom')
+      }
     }
-    try { TGA.onEvent?.('viewportChanged', applyInsets) } catch {}
+        try { TGA.onEvent?.('viewportChanged', applyInsets) } catch {}
     try { TGA.onEvent?.('safeAreaChanged', applyInsets) } catch {}
     try { TGA.onEvent?.('contentSafeAreaChanged', applyInsets) } catch {}
     try { TGA.onEvent?.('fullscreenChanged', applyInsets) } catch {}
