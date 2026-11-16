@@ -217,3 +217,55 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
   .tk-add-active .tk-add-label { animation: none !important; }
   .press:active { transform: none; }
 }
+
+/* ---------- 2026-11-17 header/boshqaruv qayta ishlash ----------
+   1) Brend qatori kollapsi: skroll bo'lganda silliq yig'iladi (max-height+opacity,
+      transform YO'Q — fixed modallarning containing-blocki buzilmasin).
+   2) Glass qidiruv tugmasi va suzuvchi savat: rang ichkariga ag'darilgan
+      (--btn kontur + --btn ikonka, shaffof oyna). Blur faqat bitta kichik
+      boshqaruvda — o'qish/qidirish sirtlari qattiq qoladi.
+   3) Skroll pastga / klaviatura: suzuvchilar va navbar sirg'alib yashirinadi
+      (transform+opacity, layout siljinmaydi). --------------------------------- */
+:root { --glass: rgba(255, 255, 255, .65); --glass-line: rgba(16, 24, 33, .08); }
+[data-theme='dark'] { --glass: rgba(255, 255, 255, .07); --glass-line: rgba(255, 255, 255, .12); }
+
+.tk-brand-row { overflow: hidden; max-height: 120px; opacity: 1;
+  transition: max-height .34s cubic-bezier(.32, .72, 0, 1), opacity .26s ease; }
+.tk-brand-row.is-collapsed { max-height: 0; opacity: 0; pointer-events: none; }
+
+.tk-search-btn { background: var(--glass); border: 1px solid var(--glass-line); color: var(--ink2);
+  -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: 0 6px 18px -10px rgba(16, 24, 33, .25);
+  transition: color .2s ease, transform .25s cubic-bezier(.32, .72, 0, 1); }
+.tk-search-btn:hover { color: var(--ink); }
+.tk-search-btn:active { transform: scale(.94); }
+
+.tk-float-cart { background: var(--glass); border: 1.5px solid var(--btn); color: var(--btn);
+  -webkit-backdrop-filter: blur(14px) saturate(150%); backdrop-filter: blur(14px) saturate(150%);
+  box-shadow: 0 12px 26px -12px rgba(16, 24, 33, .35); }
+
+@keyframes tkRowIn { from { opacity: 0; transform: translateY(-6px) } to { opacity: 1; transform: none } }
+@keyframes tkRowOut { from { opacity: 1 } to { opacity: 0; transform: translateY(-6px) } }
+.tk-search-enter { animation: tkRowIn .22s cubic-bezier(.32, .72, 0, 1) both; }
+.tk-search-exit { animation: tkRowOut .18s ease-in both; pointer-events: none; }
+
+/* Suzuvchi qatorlar: mavjud left-o'tishiga qo'shimcha (keyingi qoidalar ustunlik qiladi) */
+.floating-row-left { transition: left .3s cubic-bezier(.23, 1, .32, 1),
+  transform .34s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; }
+.floating-row-right { transition: transform .34s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; }
+html[data-floats='1'] .floating-row-right { transform: translateY(calc(100% + 44px)); opacity: 0; pointer-events: none; }
+
+.tk-tabbar { transition: transform .34s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; }
+
+/* Klaviatura ochilganda (faqat mobil): navbar + suzuvchilar sirg'alib yashirinadi.
+   Input fokusidan html[data-kb] o'rnatiladi (CatalogNav). */
+@media (max-width: 767px) {
+  html[data-kb='1'] .tk-tabbar { transform: translateX(-50%) translateY(150%); opacity: 0; pointer-events: none; }
+  html[data-kb='1'] .floating-row-right, html[data-kb='1'] .floating-row-left { transform: translateY(150%); opacity: 0; pointer-events: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tk-brand-row { transition: none; }
+  .tk-search-enter, .tk-search-exit { animation: none; }
+  .floating-row-left, .floating-row-right, .tk-tabbar { transition: none; }
+}

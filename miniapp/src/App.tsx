@@ -23,7 +23,7 @@ import { useStore } from './lib/store'
 function BootSplash() {
   return (
     <div className="fixed inset-0 z-[90] bg-[#0A2194] grid place-items-center">
-      <img src="/logo.png" alt="Tekit Sushi" className="w-16 h-16 rounded-2xl anim-pop shadow-xl" />
+      <img src="/logo-light.png" alt="Tekit Sushi" className="w-16 h-16 anim-pop" />
     </div>
   )
 }
@@ -35,6 +35,28 @@ export default function App() {
   const booting = !isAdmin && !userChecked
 
   const wide = !isAdmin && !loc.pathname.startsWith('/p/')
+
+  /* Skroll yo'nalishi: pastga qaralganda suzuvchi savat va sovg'a halqasi
+     sirg'alib yashiriladi, yuqoriga yoki tepada qayta ko'rinadi
+     (html[data-floats]; CSS o'tishlari index.cssda). */
+  React.useEffect(() => {
+    const el = document.documentElement
+    let lastY = window.scrollY
+    let raf = 0
+    const fn = () => {
+      cancelAnimationFrame(raf)
+      raf = requestAnimationFrame(() => {
+        const y = window.scrollY
+        const dy = y - lastY
+        if (dy > 1 && y > 72) el.dataset.floats = '1'
+        else if (dy < -1 || y <= 72) delete el.dataset.floats
+        lastY = y
+      })
+    }
+    window.addEventListener('scroll', fn, { passive: true })
+    return () => { window.removeEventListener('scroll', fn); cancelAnimationFrame(raf); delete el.dataset.floats }
+  }, [loc.pathname])
+
   return (
     <>
       <div className="flex">
