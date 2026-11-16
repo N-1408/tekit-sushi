@@ -483,7 +483,8 @@ export function Header({ collapsed = false }: { collapsed?: boolean }) {
       {/* Kollaps faqat header elementida: modallar transformdan TASHQARIDA turadi,
           aks holda fixed modallarning containing-blocki buzilardi. */}
       <header className={`tk-fade relative z-[31] bg-[var(--bg)] text-[var(--ink)] tk-brand-row ${collapsed ? 'is-collapsed' : ''}`}>
-        <div className="max-w-[1240px] mx-auto flex items-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2">
+        <div className="tk-brand-clip">
+        <div className="max-w-[1240px] mx-auto flex items-center justify-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2">
           <button onClick={() => nav('/')} aria-label="Tekit Sushi"
             aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
             className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${hideBrand ? 'opacity-0 pointer-events-none' : ''}`}>
@@ -491,6 +492,7 @@ export function Header({ collapsed = false }: { collapsed?: boolean }) {
             <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
           </button>
         </div>
+      </div>
       </header>
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} switchTo={() => { setDelOpen(false); setPickOpen(true) }} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} switchTo={() => { setPickOpen(false); setDelOpen(true) }} />
@@ -701,7 +703,7 @@ export function MenuToggle() {
   return (
     <button id="tk-menu-toggle" data-menu-toggle onClick={() => { haptic(); setNavOpen(!navOpen) }}
       aria-label={t.menuT} aria-expanded={navOpen} aria-controls="tk-sidenav"
-      className="press focus-ring w-10 h-10 rounded-xl grid place-items-center shrink-0 text-[var(--ink2)] transition-colors hover:bg-[var(--soft)] hover:text-[var(--ink)] active:scale-95">
+      className="press focus-ring tk-glass-chip w-10 h-10 rounded-xl grid place-items-center shrink-0 text-[var(--ink2)] transition-colors hover:text-[var(--ink)] active:scale-95">
       <IcBurger s={20} />
     </button>
   )
@@ -773,7 +775,7 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
   }, [active, searching, chips.length])
 
   return (
-    <div className="bg-[var(--bg)]">
+    <div>
       <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
         {searching ? (
           <div className={`flex items-center gap-1.5 ${closing ? 'tk-search-exit' : 'tk-search-enter'}`}>
