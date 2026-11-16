@@ -60,7 +60,7 @@ function Stepper({ o, t }: { o: MyOrder; t: any }) {
 }
 
 export default function Orders() {
-  const { t, lang, myOrders, refreshOrders, ff } = useStore()
+  const { t, lang, myOrders, refreshOrders, ff, ordersLoaded } = useStore()
   const nav = useNavigate()
 
   React.useEffect(() => {
@@ -117,7 +117,11 @@ export default function Orders() {
   return (
     <div className="pb-28">
       <TopBar title={t.tabOrders} back={false} />
-      {myOrders.length === 0 ? (
+      {!ordersLoaded ? (
+        <div className="px-4 mt-4 space-y-2.5" aria-hidden="true">
+          {[0, 1, 2].map(i => <div key={i} className="skel h-[120px]" />)}
+        </div>
+      ) : myOrders.length === 0 ? (
         <div className="px-4">
           <Empty emoji="📦" title={t.noOrders} sub={t.noOrdersSub}
             action={<BigButton onClick={() => nav('/')}>{t.toMenu}</BigButton>} />

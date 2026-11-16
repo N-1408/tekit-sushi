@@ -192,7 +192,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <AdminGate tabs>
       <AdminSidebar />
-      <div className="lg:pl-[248px]">{children}</div>
+      <div className="tk-admin lg:pl-[248px]">{children}</div>
     </AdminGate>
   )
 }

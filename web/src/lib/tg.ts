@@ -2,72 +2,15 @@ import React from 'react'
 export const TGA: any = (window as any).Telegram?.WebApp
 
 
-/* ---------- mavzu (dark/light) ---------- */
-export type ThemeMode = 'dark' | 'light'
-export const THEME_BG: Record<ThemeMode, string> = { dark: '#0F1720', light: '#F6F7FB' }
-
-export function resolveTheme(): ThemeMode {
-  try {
-    const m = localStorage.getItem('tk-theme')
-    if (m === 'light' || m === 'dark') return m
-  } catch {}
-  try {
-    const cs = TGA?.colorScheme
-    if (cs === 'light' || cs === 'dark') return cs
-  } catch {}
-  try {
-    if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark'
-    if (window.matchMedia?.('(prefers-color-scheme: light)').matches) return 'light'
-  } catch {}
-  return 'dark'
-}
-
-/* --- kichik tema moduli: tema holati store kontekstdan chiqarildi.
-   Sabab: theme kontekst qiymatida turganda har almashtirish BUTUN
-   daraxtni (~1000 tugun) qayta render qilardi — qotishning asosiy sababi.
-   Endi faqat ThemeToggle obuna bo'ladi. --- */
-type ThemeSub = (t: ThemeMode) => void
-const themeSubs = new Set<ThemeSub>()
-let curTheme: ThemeMode = 'dark'
-
-export function currentTheme(): ThemeMode {
-  return curTheme
-}
-
-export function subscribeTheme(cb: ThemeSub): () => void {
-  themeSubs.add(cb)
-  return () => { themeSubs.delete(cb) }
-}
-
-export function applyTheme(t: ThemeMode) {
-  curTheme = t
-  try { document.documentElement.dataset.theme = t } catch {}
-  try {
-    TGA?.setHeaderColor?.(THEME_BG[t])
-    TGA?.setBackgroundColor?.(THEME_BG[t])
-    // Telegram-native pastki bar: mavjud bo'lsa (yangi klientlar) tema bilan birga yangilanadi.
-    // HTML navigatsiyasi bilan aralashtirilmaydi — bu faqat native xrom rangi.
-    TGA?.setBottomBarColor?.(THEME_BG[t])
-  } catch {}
-  const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', THEME_BG[t])
-  themeSubs.forEach(cb => { try { cb(t) } catch {} })
-}
-
-/* --- tema almashtirish: ochilish effekti Magic UI AnimatedThemeToggler
-   komponentida (View Transitions, doira tugmadan ochiladi).
-   Bu yerda faqat saqlash + qo'llash; hech qanday VT kod yo'q. --- */
-export function changeTheme(next: ThemeMode) {
-  try { localStorage.setItem('tk-theme', next) } catch {}
-  applyTheme(next)
-}
-
-
-
-export function onSystemThemeChange(cb: () => void) {
-  try { TGA?.onEvent?.('themeChanged', cb) } catch {}
-  try { window.matchMedia?.('(prefers-color-scheme: dark)').addEventListener?.('change', cb) } catch {}
-}
+/* ---------- mavzu: maxsus Telegram tema moduli (lib/theme.ts) ----------
+ * Telegram.WebApp.colorScheme + themeParams + themeChanged bir joydan
+ * o'qiladi; mustaqil saytda brauzer sozlamasi (prefers-color-scheme). */
+import { applyTheme, resolveTheme, initThemeWatch } from './theme'
+export {
+  applyTheme, resolveTheme, changeTheme, currentTheme, subscribeTheme,
+  onSystemThemeChange, initThemeWatch, THEME_BG,
+  type ThemeMode,
+} from './theme'
 
 export function initTelegram() {
   if (!TGA) return
@@ -75,10 +18,7 @@ export function initTelegram() {
     TGA.ready()
     TGA.expand()
     applyTheme(resolveTheme())
-    try { TGA.onEvent?.('themeChanged', () => {
-      try { if (localStorage.getItem('tk-theme')) return } catch {}
-      applyTheme(resolveTheme())
-    }) } catch {}
+    initThemeWatch()
     TGA.disableVerticalSwipes?.()
     TGA.requestFullscreen?.()
     const applyInsets = () => {

@@ -5,14 +5,18 @@ import { TopBar, Empty } from '../components/ui'
 import { statusLabel, CHIP_STYLE } from './Orders'
 
 export default function History() {
-  const { t, myOrders, refreshOrders } = useStore()
+  const { t, myOrders, refreshOrders, ordersLoaded } = useStore()
   React.useEffect(() => { refreshOrders() }, [])
   const arc = myOrders.filter((o: MyOrder) => ['done', 'cancelled'].includes(o.status))
 
   return (
     <div className="pb-28">
       <TopBar title={t.historyTitle} />
-      {arc.length === 0 ? (
+      {!ordersLoaded ? (
+        <div className="px-4 mt-4 space-y-2.5" aria-hidden="true">
+          {[0, 1, 2].map(i => <div key={i} className="skel h-[64px]" />)}
+        </div>
+      ) : arc.length === 0 ? (
         <div className="px-4">
           <Empty emoji="🗄" title={t.noArchive} sub={t.noArchiveSub} />
         </div>

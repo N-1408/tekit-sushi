@@ -27,7 +27,45 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 button, a, [role="button"] { touch-action: manipulation; -webkit-user-select: none; user-select: none; }
-input, textarea, select { font-size: 16px !important; }
+/* ---------- formalar: matn rangi TEMADAN o'qiladi ----------
+   UA stylesheet 'fieldtext' rangi color-scheme:dark ostida OQ bo'ladi;
+   matn rangi yozilmagan inputlarda (bg-white bilan) matn ko'rinmas qolardi.
+   Endi barcha input/textarea/select matni tema o'zgaruvchisidan keladi. */
+input, textarea, select {
+  font-size: 16px !important;
+  color: var(--ink);
+  caret-color: #29A8E0;
+}
+input::placeholder, textarea::placeholder { color: var(--mut2); opacity: 1; }
+input:focus, textarea:focus, select:focus { outline: none; }
+/* iOS autofill: brauzer o'z fon/rangini qo'ymasligi uchun */
+input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
+  -webkit-text-fill-color: var(--ink);
+  -webkit-box-shadow: 0 0 0 1000px var(--panel) inset;
+  transition: background-color 9999s ease-out;
+}
+/* Onboarding: ataylab yorug' varaq (navy header + oq panel) — matn har doim to'q */
+.tk-ob input, .tk-ob textarea { color: #101821; }
+.tk-ob input:-webkit-autofill, .tk-ob textarea:-webkit-autofill {
+  -webkit-text-fill-color: #101821;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+}
+/* Admin panel: oq kartalar ustida yorug' sirt — matn har doim to'q */
+.tk-admin input, .tk-admin textarea, .tk-admin select { color: #101821; }
+.tk-admin input:-webkit-autofill, .tk-admin textarea:-webkit-autofill, .tk-admin select:-webkit-autofill {
+  -webkit-text-fill-color: #101821;
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset;
+}
+
+/* ---------- skelet yuklanish (ma'lumot serverdan kelguncha) ---------- */
+@keyframes skel { to { background-position: -200% 0 } }
+.skel {
+  background: linear-gradient(90deg, var(--soft) 25%, var(--line) 37%, var(--soft) 63%);
+  background-size: 200% 100%;
+  animation: skel 1.4s ease infinite;
+  border-radius: 14px;
+}
+@media (prefers-reduced-motion: reduce) { .skel { animation: none } }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 .app-h { height: 100dvh; }

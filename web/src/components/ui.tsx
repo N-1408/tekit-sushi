@@ -525,6 +525,12 @@ export function Header({ stuck = false }: { stuck?: boolean }) {
         <InitialChoiceModal
           open
           onClose={() => { try { localStorage.setItem('tk-onboarded', '1') } catch {} setAskState(false) }}
+          onPick={(m) => {
+            try { localStorage.setItem('tk-onboarded', '1') } catch {}
+            setAskState(false)
+            // tanlov qilingach mos qadam ochiladi: manzil yoki filial tanlovi
+            if (m === 'delivery') setDelOpen(true); else setPickOpen(true)
+          }}
         />
       )}
     </>

@@ -4,6 +4,29 @@ import { Header, CatalogNav, CityBanner, HeroSlider, ProductCard } from '../comp
 
 const SEC = (id: string) => `cat-${id}`
 
+/* Menyu serverdan kelguncha skelet: joyi va tartibi real bo'limlarga mos */
+function HomeSkeleton() {
+  return (
+    <div aria-hidden="true">
+      <div className="px-4 lg:px-6 mt-4"><div className="skel h-[150px] lg:h-[210px]" /></div>
+      {[0, 1].map(r => (
+        <div key={r} className="px-4 lg:px-6 mt-7">
+          <div className="skel h-7 w-40 mb-4" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="space-y-2">
+                <div className="skel aspect-[4/3]" />
+                <div className="skel h-4 w-3/4" />
+                <div className="skel h-9" />
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function Section({ id, title, items }: { id?: string; title: string; items: Product[] }) {
   if (!items.length) return null
   const list = items
@@ -139,13 +162,15 @@ function useWideScreen() {
 }
 
 export default function Home() {
-  const { t, lang, products } = useStore()
+  const { t, lang, products, menuLoading } = useStore()
   const [q, setQ] = React.useState('')
   const hits = products.filter(p => p.hit)
   const sales = products.filter(p => (p as any).sale_active && ((p as any).old_price ?? 0) > p.price)
   const query = q.trim().toLowerCase()
   const found = query ? products.filter(p => pName(p, lang).toLowerCase().includes(query)) : null
   const searching = found != null
+  // menyu serverdan kelguncha skelet ko'rsatiladi
+  const loading = menuLoading && products.length === 0
 
   // chiplar: faqat haqiqatan bo'limi bor kategoriyalar
   const chips = React.useMemo(() => CATS
@@ -206,6 +231,8 @@ export default function Home() {
               </div>
             )}
           </section>
+        ) : loading ? (
+          <HomeSkeleton />
         ) : (
           <>
             <HeroSlider />

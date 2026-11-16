@@ -12,7 +12,7 @@ import { menuHandler } from './routes/menu.js';
 import { branchesHandler, quoteHandler } from './routes/branches.js';
 import { orderHandler } from './routes/order.js';
 import { ordersHandler } from './routes/orders.js';
-import { meHandler } from './routes/me.js';
+import { meHandler, mePostHandler } from './routes/me.js';
 import { promoHandler } from './routes/promo.js';
 import { adminGet, adminPost } from './routes/admin.js';
 import { telegramHandler, telegramInfo } from './routes/telegram.js';
@@ -40,6 +40,7 @@ app.all('/api/branches/quote', quoteHandler);
 app.post('/api/order', orderHandler);
 app.get('/api/orders', ordersHandler);
 app.get('/api/me', meHandler);
+app.post('/api/me', mePostHandler);
 app.get('/api/promo', promoHandler);
 app.get('/api/geocode', geocodeHandler);
 

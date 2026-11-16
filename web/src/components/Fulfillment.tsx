@@ -516,13 +516,16 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
 }
 
 /* ============ BOSHLANG'ICH TANLOV MODALI ============ */
-export function InitialChoiceModal({ open }: { open: boolean; onClose?: () => void }) {
+export function InitialChoiceModal({ open, onClose, onPick }: { open: boolean; onClose: () => void; onPick?: (m: 'delivery' | 'pickup') => void }) {
   const { t, setMode } = useStore()
+  /* Tanlov: rejim o'rnatiladi, modal yopiladi va mos modal (manzil/filial)
+     ochiladi — avval modal o'zida qolib ketib, ilova bloklanib turardi. */
+  const choose = (m: 'delivery' | 'pickup') => { haptic('medium'); setMode(m); onPick?.(m) }
   return (
-    <Modal open={open} onClose={() => {}} title={t.fcTitle} width={440}>
+    <Modal open={open} onClose={onClose} title={t.fcTitle} width={440}>
       <div className="space-y-2.5">
         <button
-          onClick={() => { haptic('medium'); setMode('delivery') }}
+          onClick={() => choose('delivery')}
           data-autofocus
           className="press focus-ring w-full flex items-center gap-4 px-4 py-5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[#29A8E0]/50 text-left transition-colors active:scale-[.99]"
         >
@@ -533,7 +536,7 @@ export function InitialChoiceModal({ open }: { open: boolean; onClose?: () => vo
           </span>
         </button>
         <button
-          onClick={() => { haptic('medium'); setMode('pickup') }}
+          onClick={() => choose('pickup')}
           className="press focus-ring w-full flex items-center gap-4 px-4 py-5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[#29A8E0]/50 text-left transition-colors active:scale-[.99]"
         >
           <span className="w-12 h-12 rounded-2xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcStore s={22} /></span>
