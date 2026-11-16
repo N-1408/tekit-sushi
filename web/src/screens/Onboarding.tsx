@@ -20,6 +20,12 @@ export default function Onboarding() {
   const [busy, setBusy] = React.useState(false)
   const [locState, setLocState] = React.useState<'idle' | 'ok' | 'fail'>(user?.addr ? 'ok' : 'idle')
 
+  React.useEffect(() => {
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
   const detect = React.useCallback(async () => {
     setBusy(true)
     const loc = await requestLocation()
@@ -50,7 +56,7 @@ export default function Onboarding() {
       <div className="min-h-full flex flex-col">
         <div className="px-5 pt-[calc(env(safe-area-inset-top)+var(--tg-csa-top,0px)+var(--tg-extra,0px)+22px)] pb-7 text-white lg:max-w-[620px] lg:mx-auto lg:pt-10">
           <div className="flex items-center justify-between">
-            <div className="tekit-pattern w-12 h-12 rounded-2xl grid place-items-center shadow-lg"><img src="/logo-light.png" alt="" className="w-8 h-8" /></div>
+            <div className="w-12 h-12 rounded-2xl bg-white grid place-items-center shadow-lg"><img src="/logo.png" alt="" className="w-8 h-8" /></div>
             <div className="flex gap-1.5">
               {[0, 1].map(i => (
                 <span key={i} className={`w-2 h-2 rounded-full transition-all ${i <= step ? 'bg-white' : 'bg-white/25'}`} />
