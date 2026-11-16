@@ -1,9 +1,9 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStore, pName, pImg } from '../lib/store'
+import { useStore, pName, pImg, isSpicy } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty, Empty, BigButton, IcX, IcStore } from '../components/ui'
+import { TopBar, Qty, Empty, BigButton, IcX, IcStore, SpicyBadge } from '../components/ui'
 import { pickupSummary } from '../components/Fulfillment'
 
 export default function Cart() {
@@ -40,7 +40,10 @@ export default function Cart() {
                 <img src={pImg(l)} alt="" className="w-[68px] h-[68px] rounded-xl object-cover bg-navy-soft cursor-pointer"
                   onClick={() => { haptic(); openP(l) }} />
                 <div className="flex-1 min-w-0">
-                  <div className="text-[14.5px] font-bold line-clamp-2">{pName(l, lang)}</div>
+                  <div className="flex items-start gap-1.5">
+                    <div className="text-[14.5px] font-bold line-clamp-2 flex-1">{pName(l, lang)}</div>
+                    {isSpicy(l) && <SpicyBadge size={18} className="mt-0.5" />}
+                  </div>
                   <div className="text-[13px] font-semibold text-[var(--mut2)] mt-0.5">{l.weight}</div>
                   <div className="text-[14px] font-extrabold mt-1">{fmt(l.price * l.q)} <span className="text-[10px] text-[var(--mut2)]">UZS</span></div>
                 </div>

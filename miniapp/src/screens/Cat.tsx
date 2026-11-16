@@ -1,6 +1,6 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { useStore, pName, CATS } from '../lib/store'
+import { useStore, pName, CATS, inCat } from '../lib/store'
 import { TopBar, SearchChips, ProductCard, Empty, MenuToggle } from '../components/ui'
 
 export default function Cat() {
@@ -8,7 +8,7 @@ export default function Cat() {
   const { products, lang } = useStore()
   const [q, setQ] = React.useState('')
   const c: any = CATS.find(x => x.id === cat)
-  let items = products.filter(p => p.cat === cat)
+  let items = products.filter(p => inCat(p, cat))
   if (q.trim()) items = items.filter(p => pName(p, lang).toLowerCase().includes(q.trim().toLowerCase()))
   return (
     <div className="pb-28 lg:pb-12">
