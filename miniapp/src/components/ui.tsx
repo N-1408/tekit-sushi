@@ -518,7 +518,6 @@ export function Header({ stuck = false }: { stuck?: boolean }) {
           </div>
         </div>
       </header>
-      <Drawer open={navOpen && !isWide} onClose={() => setNavOpen(false)} />
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} switchTo={() => { setDelOpen(false); setPickOpen(true) }} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} switchTo={() => { setPickOpen(false); setDelOpen(true) }} />
       {askOpen && (
@@ -700,6 +699,9 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
 export function MenuToggle() {
   const { t } = useStore()
   const { navOpen, setNavOpen } = useNav()
+  // Mobil: sidebar olib tashlandi — pastki suzuvchi navbar bor; burger faqat md+.
+  const isWide = useIsWide()
+  if (!isWide) return null
   return (
     <button id="tk-menu-toggle" data-menu-toggle onClick={() => { haptic(); setNavOpen(!navOpen) }}
       aria-label={t.menuT} aria-expanded={navOpen} aria-controls="tk-sidenav"
@@ -906,13 +908,34 @@ export function HeroSlider() {
   )
 }
 
-/* ---------- pastki tab-bar (faqat mobil) ---------- */
-const ICONS = (on: boolean): Record<string, React.ReactNode> => ({
-  home: <IcHome s={22} />,
-  cart: <IcBag s={22} />,
-  orders: <IcClock s={22} />,
-  profile: <IcUser s={22} />,
-})
+/* ---------- pastki navbar: suzuvchi oval, shaffof oyna (glass), slayd indikator.
+   Ikonkalar noldan chizilgan — stroke, 24 grid, yagona uslub; ranglari temadan
+   o'qiladi (light: ko'k pill/oq ikonka, dark: oq pill/to'q ikonka). ---------- */
+export const IcNavHome = ({ s = 23 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M4.2 11.3 12 4.7l7.8 6.6" />
+    <path d="M5.8 10.4V19a1.6 1.6 0 0 0 1.6 1.6h9.2a1.6 1.6 0 0 0 1.6-1.6v-8.6" />
+    <path d="M9.9 20.4v-4c0-1.2 1-2.2 2.1-2.2s2.1 1 2.1 2.2v4" />
+  </svg>
+)
+export const IcNavCart = ({ s = 23 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M6.2 8.2h11.6l-.9 11c-.1 1-1 1.9-2 1.9H9.1c-1 0-1.9-.8-2-1.9l-.9-11Z" />
+    <path d="M9.2 10.5V6.8c0-1.6 1.3-2.9 2.8-2.9s2.8 1.3 2.8 2.9v3.7" />
+  </svg>
+)
+export const IcNavOrders = ({ s = 23 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="12" r="8.2" />
+    <path d="M12 7.4V12l3 1.9" />
+  </svg>
+)
+export const IcNavProfile = ({ s = 23 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <circle cx="12" cy="8.1" r="3.4" />
+    <path d="M5.3 20.2c.9-3.3 3.6-5.2 6.7-5.2s5.8 1.9 6.7 5.2" />
+  </svg>
+)
 
 export function TabBar() {
   const { t, cartCount } = useStore()
@@ -921,27 +944,30 @@ export function TabBar() {
   const loc = window.location.pathname
   if (loc.startsWith('/p/')) return null
   const tabs = [
-    { id: 'home', to: '/', label: t.tabHome, icon: 'home' },
-    { id: 'cart', to: '/cart', label: t.tabCart, icon: 'cart' },
-    { id: 'orders', to: '/orders', label: t.tabOrders, icon: 'orders' },
-    { id: 'profile', to: '/profile', label: t.tabProfile, icon: 'profile' },
+    { id: 'home', to: '/', label: t.tabHome, Ico: IcNavHome },
+    { id: 'cart', to: '/cart', label: t.tabCart, Ico: IcNavCart },
+    { id: 'orders', to: '/orders', label: t.tabOrders, Ico: IcNavOrders },
+    { id: 'profile', to: '/profile', label: t.tabProfile, Ico: IcNavProfile },
   ]
+  const onIdx = tabs.findIndex(tb => loc === tb.to)
   return (
-    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-[var(--bg)] border-t border-[var(--line)] lg:hidden"
-      style={{ paddingBottom: 'calc(8px + var(--sab))' }}>
-      <div className="flex">
-        {tabs.map(tb => {
-          const on = loc === tb.to
+    <nav className="tk-tabbar lg:hidden" aria-label={t.menuT}>
+      <div className="tk-tab-pill">
+        <span className="tk-tab-ind" aria-hidden="true"
+          style={{ transform: `translateX(${Math.max(onIdx, 0) * 100}%)`, opacity: onIdx < 0 ? 0 : 1 }} />
+        {tabs.map(({ id, to, label, Ico }) => {
+          const on = loc === to
           return (
-            <button key={tb.id} onClick={() => { if (!on) { haptic(); nav(tb.to) } }}
-              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[11.5px] font-bold transition-colors ${on ? 'text-[var(--ink)]' : 'text-[var(--mut2)]'}`}>
-              <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${on ? 'bg-[var(--chip-on)] px-4 py-1' : 'px-1 py-1'}`}>
-                <svg width="23" height="23" viewBox="0 0 16 16" fill="currentColor">{ICONS(on)[tb.icon]}</svg>
-                {tb.id === 'cart' && cartCount > 0 && (
-                  <span key={'tb' + beat} className={`absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-[#E8462B] text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-[var(--bg)] ${beat ? 'cart-beat' : ''}`}>{cartCount}</span>
+            <button key={id} onClick={() => { if (!on) { haptic(); nav(to) } }}
+              aria-current={on ? 'page' : undefined}
+              className={`tk-tab-btn ${on ? 'is-on' : ''}`}>
+              <span className="tk-tab-ico relative">
+                <Ico />
+                {id === 'cart' && cartCount > 0 && (
+                  <span key={'tb' + beat} className={`absolute -top-1.5 -right-2 min-w-[16px] h-[16px] rounded-full bg-[#E8462B] text-white text-[9.5px] font-extrabold grid place-items-center leading-none px-1 ${beat ? 'cart-beat' : ''}`}>{cartCount}</span>
                 )}
               </span>
-              {tb.label}
+              <span className="tk-tab-lbl">{label}</span>
             </button>
           )
         })}
