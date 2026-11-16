@@ -1,5 +1,5 @@
 import React from 'react'
-import { useStore, pName, CATS, type Product } from '../lib/store'
+import { useStore, pName, CATS, inCat, type Product } from '../lib/store'
 import { Header, CatalogNav, CityBanner, HeroSlider, ProductCard } from '../components/ui'
 
 const SEC = (id: string) => `cat-${id}`
@@ -174,7 +174,7 @@ export default function Home() {
 
   // chiplar: faqat haqiqatan bo'limi bor kategoriyalar
   const chips = React.useMemo(() => CATS
-    .filter(c => products.some(p => p.cat === c.id))
+    .filter(c => products.some(p => inCat(p, c.id)))
     .map(c => ({ id: c.id, label: (c as any)[lang] || t.catNames[c.id] })), [products, lang, t])
 
   const wide = useWideScreen()
@@ -246,7 +246,7 @@ export default function Home() {
             <Section title={t.aSaleHome} items={sales} />
             <Section title={t.hit} items={hits} />
             {CATS.map(c => {
-              const list = products.filter(p => p.cat === c.id)
+              const list = products.filter(p => inCat(p, c.id))
               return <Section key={c.id} id={SEC(c.id)} title={(c as any)[lang] || t.catNames[c.id]} items={list} />
             })}
             <div id="catalog-end" aria-hidden="true" className="h-px" />

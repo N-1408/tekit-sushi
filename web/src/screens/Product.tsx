@@ -1,9 +1,9 @@
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { useStore, pName, pImg, pDesc } from '../lib/store'
+import { useStore, pName, pImg, pDesc, isSpicy } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty, IcScale, IcSauce, NutritionPanel } from '../components/ui'
+import { TopBar, Qty, IcScale, IcSauce, NutritionPanel, SpicyBadge } from '../components/ui'
 
 export default function Product() {
   const { id } = useParams()
@@ -27,6 +27,7 @@ export default function Product() {
       <div className="px-4 mt-4 lg:px-0 lg:mt-0">
         <div className="flex items-start justify-between gap-3">
           <h1 className="text-[21px] font-extrabold leading-tight flex-1">{pName(p, lang)}</h1>
+          {isSpicy(p) && <SpicyBadge size={20} className="shrink-0 mt-1" />}
           <div className="text-[20px] font-extrabold tracking-tight whitespace-nowrap">{fmt(p.price)}<span className="text-[12px] text-[var(--mut2)]"> UZS</span></div>
         </div>
         {p.weight ? (

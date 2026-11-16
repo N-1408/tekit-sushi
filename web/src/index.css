@@ -235,6 +235,20 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
   -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
   box-shadow: 0 6px 18px -10px rgba(16, 24, 33, .25); }
 
+/* Achchiq belgisi: alanga miltilashi + ember nur — faqat belgining o'zida,
+   sahifa qolgan qismi jim turadi (global harakat yo'q). */
+.tk-flame { transform-box: view-box; transform-origin: 12px 9.4px; animation: tkFlicker 1.15s ease-in-out infinite; }
+@keyframes tkFlicker {
+  0%, 100% { transform: scale(1); }
+  30% { transform: scale(.86, 1.12); }
+  55% { transform: scale(1.08, .9); }
+  80% { transform: scale(.94, 1.06); }
+}
+.tk-spicy-ember::after { content: ""; position: absolute; inset: -4px; border-radius: 999px;
+  background: radial-gradient(circle, rgba(255, 138, 42, .34) 0%, rgba(255, 138, 42, 0) 70%);
+  animation: tkEmber 1.4s ease-in-out infinite; pointer-events: none; }
+@keyframes tkEmber { 0%, 100% { opacity: .5 } 50% { opacity: 1 } }
+
 /* Suzuvchi brend pill: yuqoriga skrollda kontent USTIDA ko'rinadi, oq fon YO'Q */
 .tk-brand-pill { padding: 5px 12px 5px 6px; border-radius: 999px; background: var(--glass);
   border: 1px solid var(--glass-line); color: var(--ink);
@@ -280,6 +294,6 @@ html[data-floats='1'] .floating-row-right { transform: translateY(calc(100% + 44
 
 @media (prefers-reduced-motion: reduce) {
   .tk-brand-row { transition: none; }
-  .tk-search-enter, .tk-search-exit, .tk-strip-in, .tk-strip-out { animation: none; }
+  .tk-search-enter, .tk-search-exit, .tk-strip-in, .tk-strip-out, .tk-flame, .tk-spicy-ember::after { animation: none; }
   .floating-row-left, .floating-row-right, .tk-tabbar { transition: none; }
 }

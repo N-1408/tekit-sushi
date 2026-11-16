@@ -15,8 +15,24 @@ export type Product = {
 }
 export const PRODUCTS: Product[] = menu as Product[]
 
+/* Achchiq bo'limi: menyuda alohida 'spicy' belgisi yo'q — mahsulot nomlari
+   bo'yicha aniqlanadi (chili, spaysi, kimchi, o'tkir). Uchala til nomlari
+   birgalikda tekshiriladi, shuning uchun til almashtirsa ham ishlaydi. */
+const SPICY_RE = /chili|spaysi|spicy|achchiq|kimchi|кимчи|спайси|остр/i
+export function isSpicy(p: Product): boolean {
+  return SPICY_RE.test(`${p.t_uz || ''} ${p.t_ru || ''} ${p.t_en || ''}`)
+}
+
+/* Kategoriya bo'yicha filtrlash: 'spicy' — virtual kategoriya (barcha
+   achchiq mahsulotlar, o'z cat maydonidan qat'i nazar), qolganlari o'z
+   cat maydoni bo'yicha. */
+export function inCat(p: Product, cat: string): boolean {
+  return cat === 'spicy' ? isSpicy(p) : p.cat === cat
+}
+
 export const CATS = [
   { id: 'hit', uz: 'Xitlar', ru: 'Хиты', en: 'Best sellers', emoji: '🔥' },
+  { id: 'spicy', uz: 'Achchiq', ru: 'Острое', en: 'Spicy' },
   { id: 'set', uz: 'Setlar', ru: 'Сеты', en: 'Sets', emoji: '🍱' },
   { id: 'roll', uz: 'Rollar', ru: 'Роллы', en: 'Rolls', emoji: '🍣' },
   { id: 'sushi', uz: 'Sushi', ru: 'Суши', en: 'Sushi', emoji: '🍥' },

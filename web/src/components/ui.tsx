@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useStore, useNav, pName, pImg, CATS, type Product } from '../lib/store'
+import { useStore, useNav, pName, pImg, CATS, isSpicy, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode, TGA } from '../lib/tg'
@@ -993,6 +993,32 @@ export function TabBar() {
    modalda qoladi. Narx qatorda: amaldagi narx eng yorqin, eski narx kichik
    chizilgan, chegirma foizi faqat haqiqiy qiymatlar bo'yicha. Savatda bor
    mahsulot ingichka brend ramkasi bilan ajraladi. ---------- */
+/* ---------- achchiq belgisi: qalampir, tepasida jonli alanga.
+   Emoji va Lucide emas — loyihaning o'z chizmasi. Harakat faqat
+   alangada: mayda miltillash + ember nur (reduced-motion'da jim). ---------- */
+export function IcChili({ s = 16, className }: { s?: number; className?: string }) {
+  return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <g className="tk-flame">
+        <path d="M12 3.2c1.6 1.9 2.4 3.2 2.4 4.5 0 1.6-1.1 2.8-2.4 2.8S9.6 9.3 9.6 7.7c0-1.3.8-2.6 2.4-4.5z" fill="#FFB020" />
+        <path d="M12 6.4c.7.9 1 1.5 1 2.1 0 .9-.6 1.4-1 1.4s-1-.5-1-1.4c0-.6.3-1.2 1-2.1z" fill="#FF7A1A" />
+      </g>
+      <path d="M18.4 8c1.2 1.9 1 4.6-.8 7-2.2 3-6 4.9-9.7 4.5-2-.2-3.6-1.1-4.3-2.3 2.2.1 4.4-.6 6.2-2.2 2.4-2.1 3.2-4.7 4-6.1.8-1.6 3.4-2.4 4.6-.9z" fill="#E8462B" />
+      <path d="M17.8 7.6c.2-1.4 1.3-2.5 2.8-2.7" stroke="#4E9B47" strokeWidth="1.5" strokeLinecap="round" />
+    </svg>
+  )
+}
+
+export function SpicyBadge({ size = 24, className }: { size?: number; className?: string }) {
+  return (
+    <span aria-label="Achchiq" title="Achchiq"
+      className={`relative inline-flex items-center justify-center shrink-0 ${className || ''}`}
+      style={{ width: size, height: size }}>
+      <IcChili s={size} />
+    </span>
+  )
+}
+
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const { cart, add, setQty, lang, t, openP, products } = useStore()
   const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
@@ -1042,6 +1068,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
       <div className={`relative aspect-square rounded-[12px] overflow-hidden bg-[var(--sheet)] shrink-0 ${inCart ? 'ring-1 ring-inset ring-[var(--chip-on)]/45' : ''}`}>
         <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         {wtxt && <span className="absolute bottom-2 left-2 bg-black/45 text-white text-[11px] font-bold px-2 py-1 rounded-[8px] backdrop-blur-[2px]">{wtxt}</span>}
+        {isSpicy(p) && <SpicyBadge size={26} className="absolute top-2 right-2 tk-spicy-ember bg-black/40 backdrop-blur-[2px] shadow-sm" />}
       </div>
       <div className="mt-auto pt-2 flex flex-col">
         <div className="text-[15px] font-bold leading-snug text-[var(--ink)] line-clamp-2">{pName(p, lang)}</div>
@@ -1552,7 +1579,10 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
                 )}
                 {m.wtxt && <span className="absolute bottom-3 left-3 bg-black/45 text-white text-[12px] font-bold px-2.5 py-1.5 rounded-[9px]">{m.wtxt}</span>}
               </div>
-              <div className="mt-4 text-[22px] font-extrabold leading-tight">{pName(p, m.lang)}</div>
+              <div className="mt-4 flex items-center gap-2">
+                <div className="text-[22px] font-extrabold leading-tight">{pName(p, m.lang)}</div>
+                {isSpicy(p) && <SpicyBadge size={20} />}
+              </div>
               {pDesc(p, m.lang) && <p className="mt-2.5 text-[14.5px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
               <NutritionPanel className="mt-4" items={m.nutrition} per100={m.t.per100} />
             </div>
@@ -1745,7 +1775,10 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
             )}
             {m.wtxt && <span className="absolute bottom-2.5 left-3 bg-black/45 text-white text-[11px] font-bold px-2.5 py-1.5 rounded-lg">{m.wtxt}</span>}
           </div>
-          <div className="mt-3.5 text-[21px] font-extrabold leading-tight">{pName(p, m.lang)}</div>
+          <div className="mt-3.5 flex items-center gap-2">
+            <div className="text-[21px] font-extrabold leading-tight">{pName(p, m.lang)}</div>
+            {isSpicy(p) && <SpicyBadge size={20} />}
+          </div>
           <NutritionPanel className="mt-2.5" items={m.nutrition} per100={m.t.per100} />
           {pDesc(p, m.lang) && <p className="mt-3 text-[14px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
           {p.cat !== 'sous' && <div className="mt-4"><SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal onShow={setMini} /></div>}
