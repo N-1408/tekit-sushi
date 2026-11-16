@@ -128,3 +128,9 @@ export async function quoteDelivery(payload: { address?: string; subtotal?: numb
 export function clientIp(req: FastifyRequest): string {
   return String((req.headers['x-forwarded-for'] as string) || req.socket?.remoteAddress || 'x').split(',')[0].trim();
 }
+
+// Webhook /api/webhook/payment dagi so'rovni tekshirish (ported from _payment.js)
+export function checkPaymentWebhookSecret(secret: unknown): boolean {
+  const expected = process.env.PAYMENT_WEBHOOK_SECRET;
+  return !!expected && secret === expected;
+}
