@@ -109,7 +109,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 
 /* suzuvchi boshqaruvlar: yagona o'lchov tokeni va bitta qator */
 /* Promo aksenti: yorqin sirt + uning ustidagi to'q matn, chuqur sirt + oq matn (ikkala tema) */
-:root { --float-size: 56px; --float-bottom: calc(92px + var(--sab)); --float-side: 16px; --nav-w: 0px;
+:root { --float-size: 56px; --float-bottom: calc(88px + var(--sab)); --float-side: 16px; --nav-w: 0px;
   --promo: #F97316; --promo-ink: #431407; --promo-deep: #C2410C; --promo-soft: rgba(249, 115, 22, .14); }
 [data-theme='dark'] { --promo: #FF8A3C; --promo-ink: #2A1204; --promo-deep: #D14E00; --promo-soft: rgba(255, 138, 60, .18); }
 /* Suzuvchi boshqaruvlar: chapda "yuqoriga chiqish", o'ngda yetkazib berish + savat.
@@ -133,6 +133,32 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 .tk-hdr-sticky { top: var(--sat); }
 .tk-safe-cover { position: fixed; left: 0; right: 0; top: 0; height: var(--sat); background: var(--bg); z-index: 25; pointer-events: none; }
 @media (min-width: 1024px) { .tk-safe-cover { display: none; } }
+
+/* ---------- suzuvchi oval pastki navbar: shaffof oyna (glass), slayd indikator.
+   Temaga to'liq mos: --nav-glass, --chip-on, --mut2 hammasi mavzu o'zgaruvchilari. ---------- */
+:root { --nav-glass: rgba(255, 255, 255, .82); --nav-line: rgba(16, 24, 33, .10);
+  --nav-shadow: 0 14px 34px -10px rgba(16, 24, 33, .28), 0 2px 10px rgba(16, 24, 33, .10); }
+[data-theme='dark'] { --nav-glass: rgba(20, 27, 38, .72); --nav-line: rgba(255, 255, 255, .09);
+  --nav-shadow: 0 14px 34px -10px rgba(0, 0, 0, .6), 0 2px 10px rgba(0, 0, 0, .35); }
+.tk-tabbar { position: fixed; left: 50%; bottom: calc(10px + var(--sab)); transform: translateX(-50%);
+  width: min(400px, calc(100% - 28px)); z-index: 40; }
+.tk-tab-pill { position: relative; display: flex; align-items: stretch; height: 64px; padding: 6px;
+  border-radius: 999px; overflow: hidden; background: var(--nav-glass); border: 1px solid var(--nav-line);
+  box-shadow: var(--nav-shadow);
+  -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); }
+.tk-tab-ind { position: absolute; top: 7px; bottom: 7px; left: 7px; width: calc((100% - 14px) / 4);
+  border-radius: 999px; background: var(--chip-on); will-change: transform; opacity: 1; }
+.tk-tab-btn { position: relative; z-index: 1; flex: 1 1 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 3px; border-radius: 999px; color: var(--mut2);
+  transition: color .2s ease; }
+.tk-tab-btn.is-on { color: var(--chip-on-ink); }
+.tk-tab-ico { display: grid; place-items: center; }
+.tk-tab-lbl { font-size: 10.5px; font-weight: 700; line-height: 1; }
+@media (prefers-reduced-motion: no-preference) {
+  .tk-tab-ind { transition: transform 420ms cubic-bezier(.32, .72, 0, 1); }
+  .tk-tab-btn.is-on .tk-tab-ico { animation: tk-tab-pop 420ms cubic-bezier(.32, .72, 0, 1); }
+}
+@keyframes tk-tab-pop { 0% { transform: scale(.82) } 55% { transform: scale(1.12) } 100% { transform: scale(1) } }
 
 /* savatga qo'shish tasdigi: ikonka urishi va tugma belgisi */
 @keyframes cartBeat { 0% { transform: scale(1) } 35% { transform: scale(1.16) } 100% { transform: scale(1) } }

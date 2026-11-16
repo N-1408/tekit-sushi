@@ -29,9 +29,10 @@ export function initTelegram() {
       const top = Number(cs.top) || 0
       const bottom = Number(cs.bottom) || 0
       // contentSafeAreaInset Telegram xromi balandligini o'zi hisoblab beradi —
-      // u mavjud bo'lsa qo'shimcha 44px IKKI MARSA hisoblanadi va logo juda past
-      // tushardi. Qo'shimcha faqat fullscreen yoki csa bermaydigan eski klientda.
-      st.setProperty('--tg-extra', (mob && (TGA?.isFullscreen || !(top > 0))) ? '44px' : '0px')
+      // u mavjud bo'lsa qo'shimcha strip IKKI MARSA hisoblanmasin. Fullscreen yoki csa
+      // bermaydigan klientda Telegramning minimize/close tugmalari vebview USTIDA
+      // chiziladi — ularning zonasi (safe cone) doim band qilinadi: 56px.
+      st.setProperty('--tg-extra', (mob && (TGA?.isFullscreen || !(top > 0))) ? '56px' : '0px')
       if (top > 0 && mob) st.setProperty('--tg-csa-top', `${top}px`)
       else st.removeProperty('--tg-csa-top')
       if (bottom > 0 && mob) st.setProperty('--tg-csa-bottom', `${bottom}px`)
