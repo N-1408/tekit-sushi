@@ -4,7 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { useStore, useNav, pName, pImg, CATS, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
-import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode } from '../lib/tg'
+import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode, TGA } from '../lib/tg'
 import { beginAddToCartAnim } from '../lib/addAnim'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import MapPicker from './MapPicker'
@@ -464,7 +464,7 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
    Barcha ikonkalar (yetkazish/olib-ketish, til, tema, profil) Profile
    ekraniga ko'chirildi. Skroll bo'lganda brend qatori silliq yig'iladi
    (slide, yo'qolmaydi); kategoriyalar qatori o'z joyida pinlangan qoladi. ---------- */
-export function Header({ collapsed = false }: { collapsed?: boolean }) {
+export function Header({ collapsed = false, floating = false }: { collapsed?: boolean; floating?: boolean }) {
   const { t, user, ob } = useStore()
   const { navOpen, setNavOpen } = useNav()
   const nav = useNavigate()
@@ -482,12 +482,12 @@ export function Header({ collapsed = false }: { collapsed?: boolean }) {
     <>
       {/* Kollaps faqat header elementida: modallar transformdan TASHQARIDA turadi,
           aks holda fixed modallarning containing-blocki buzilardi. */}
-      <header className={`tk-fade relative z-[31] bg-[var(--bg)] text-[var(--ink)] tk-brand-row ${collapsed ? 'is-collapsed' : ''}`}>
+      <header className={`tk-fade relative z-[31] text-[var(--ink)] tk-brand-row ${collapsed ? 'is-collapsed' : ''} ${isWide ? 'bg-[var(--bg)]' : ''}`}>
         <div className="tk-brand-clip">
         <div className="max-w-[1240px] mx-auto flex items-center justify-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2">
           <button onClick={() => nav('/')} aria-label="Tekit Sushi"
             aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
-            className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${hideBrand ? 'opacity-0 pointer-events-none' : ''}`}>
+            className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${floating && !isWide ? 'tk-brand-pill' : ''} ${hideBrand ? 'opacity-0 pointer-events-none' : ''}`}>
             <BrandLogo size={36} />
             <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
           </button>
@@ -994,7 +994,7 @@ export function TabBar() {
    chizilgan, chegirma foizi faqat haqiqiy qiymatlar bo'yicha. Savatda bor
    mahsulot ingichka brend ramkasi bilan ajraladi. ---------- */
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const { cart, add, setQty, lang, t, openP } = useStore()
+  const { cart, add, setQty, lang, t, openP, products } = useStore()
   const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
   const inCart = q > 0
   const sale = p.sale_active && (p.old_price ?? 0) > p.price
@@ -1009,11 +1009,27 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const [anim, setAnim] = useState<number | null>(null)
   const okTimer = useRef<number | null>(null)
   useEffect(() => () => { if (okTimer.current) window.clearTimeout(okTimer.current) }, [])
+  // Savatga qo'shilgach: kichik bir qatorli sous chizig'i (yonga scroll, animatsiyali,
+  // ~5 soniyadan keyin o'zi yo'qoladi). Popap emas — kartochka ichidagi yozuv.
+  const sauces = p.cat !== 'sous' ? products.filter(x => x.cat === 'sous' && x.id !== p.id && x.active !== false) : []
+  const [strip, setStrip] = useState(false)
+  const [stripOut, setStripOut] = useState(false)
+  const stripTimer = useRef<number | null>(null)
+  useEffect(() => () => { if (stripTimer.current) window.clearTimeout(stripTimer.current) }, [])
+  const showStrip = () => {
+    if (!sauces.length) return
+    setStripOut(false); setStrip(true)
+    if (stripTimer.current) window.clearTimeout(stripTimer.current)
+    stripTimer.current = window.setTimeout(() => {
+      setStripOut(true)
+      stripTimer.current = window.setTimeout(() => setStrip(false), 200)
+    }, 5000)
+  }
   // Interaktivlik davomida mahsulot savatdan olib tashlangan bo'lsa (boshqa kartochka,
   // savat sahifasi va h.k.) eskirgan "qo'shildi" tasdig'i qolmasin: darhol bazaviy holat.
   useEffect(() => { if (!inCart && ok) { setOk(false); setAnim(null) } }, [inCart, ok])
   const onAdd = (el?: HTMLElement | null) => {
-    add(p.id); haptic('medium'); setOk(true)
+    add(p.id); haptic('medium'); setOk(true); showStrip()
     const res = beginAddToCartAnim(el)
     if (res) setAnim(res.k)
     if (okTimer.current) window.clearTimeout(okTimer.current)
@@ -1021,7 +1037,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   }
   return (
     <article onClick={() => { haptic(); openP(p) }}
-      className="anim-up cursor-pointer flex flex-col h-full"
+      className="anim-up cursor-pointer relative flex flex-col h-full"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
       <div className={`relative aspect-square rounded-[12px] overflow-hidden bg-[var(--sheet)] shrink-0 ${inCart ? 'ring-1 ring-inset ring-[var(--chip-on)]/45' : ''}`}>
         <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
@@ -1053,6 +1069,32 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           </button>
         )}
       </div>
+      {strip && (
+        <div onClick={e => e.stopPropagation()}
+          className={`absolute left-1.5 right-1.5 bottom-[58px] z-20 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] shadow-[0_14px_34px_-14px_rgba(10,15,50,.45)] px-2 py-2 ${stripOut ? 'tk-strip-out' : 'tk-strip-in'}`}>
+          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
+            {sauces.map(s => {
+              const sq = cart.find(l => l.id === s.id)?.q ?? 0
+              return (
+                <div key={s.id} className="shrink-0 flex items-center gap-1.5 rounded-full bg-[var(--soft)] pl-1 pr-1 py-1">
+                  <img src={pImg(s)} alt={pName(s, lang)} loading="lazy" className="w-7 h-7 rounded-full object-cover bg-navy-soft" />
+                  <div className="pr-0.5">
+                    <div className="text-[10.5px] font-extrabold leading-none whitespace-nowrap">{pName(s, lang)}</div>
+                    <div className="text-[9.5px] font-bold text-[var(--mut2)] mt-0.5 leading-none whitespace-nowrap">{fmt(s.price)}</div>
+                  </div>
+                  {sq > 0 && (
+                    <button onClick={e => { e.stopPropagation(); setQty(s.id, sq - 1); haptic() }}
+                      className="press w-6 h-6 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center active:scale-90 transition-transform shrink-0"><IcMinus s={11} /></button>
+                  )}
+                  {sq > 0 && <span className="text-[11px] font-extrabold tabular-nums w-3 text-center shrink-0">{sq}</span>}
+                  <button onClick={e => { e.stopPropagation(); if (sq > 0) setQty(s.id, sq + 1); else add(s.id); haptic(sq > 0 ? undefined : 'medium') }}
+                    className="press w-6 h-6 rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform shrink-0"><IcPlus s={11} /></button>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </article>
   )
 }
@@ -1316,8 +1358,8 @@ export function NutritionPanel({ items, per100, className }: {
 }
 
 /* sous qo'shish: ixcham boshliq, aniq narx va belgilangan holat */
-function SaucePicker({ sauces, qtyOf, setQty, horizontal }: {
-  sauces: Product[]; qtyOf: (sid: string) => number; setQty: (id: string, q: number) => void; horizontal?: boolean
+function SaucePicker({ sauces, qtyOf, setQty, horizontal, onShow }: {
+  sauces: Product[]; qtyOf: (sid: string) => number; setQty: (id: string, q: number) => void; horizontal?: boolean; onShow?: (p: Product) => void
 }) {
   const { lang, t } = useStore()
   if (!sauces.length) return null
@@ -1333,11 +1375,13 @@ function SaucePicker({ sauces, qtyOf, setQty, horizontal }: {
           return (
             <div key={sa.id}
               className={'shrink-0 flex items-center gap-2 rounded-full bg-[var(--panel)] border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-[var(--line2)]') + (horizontal ? ' snap-start' : '')}>
-              <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
-              <div className="pr-0.5">
-                <div className="text-[12.5px] font-extrabold leading-none whitespace-nowrap">{pName(sa, lang)}</div>
-                <div className="text-[10.5px] font-bold text-[var(--mut2)] mt-1 leading-none whitespace-nowrap">{fmt(sa.price)} UZS</div>
-              </div>
+              <button onClick={() => { haptic(); onShow?.(sa) }} className="press flex items-center gap-2 text-left cursor-pointer active:opacity-80 transition-opacity">
+                <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
+                <div className="pr-0.5">
+                  <div className="text-[12.5px] font-extrabold leading-none whitespace-nowrap">{pName(sa, lang)}</div>
+                  <div className="text-[10.5px] font-bold text-[var(--mut2)] mt-1 leading-none whitespace-nowrap">{fmt(sa.price)} UZS</div>
+                </div>
+              </button>
               {sq > 0 && (
                 <div className="flex items-center gap-1 ml-0.5">
                   <button onClick={() => { setQty(sa.id, sq - 1); haptic() }}
@@ -1360,18 +1404,25 @@ function SaucePicker({ sauces, qtyOf, setQty, horizontal }: {
 }
 
 /* tavsiyalar: bir xil kategoriyadagi real mahsulotlar; bosilganda shu modal almashadi (ustma-ust emas) */
-function RecoRow({ items, compact }: { items: Product[]; compact?: boolean }) {
-  const { lang, t, openP } = useStore()
+function RecoRow({ items, compact, onShow }: { items: Product[]; compact?: boolean; onShow?: (p: Product) => void }) {
+  const { lang, t, openP, add } = useStore()
   if (!items.length) return null
+  /* Bosilganda asosiy mahsulot ALMASHTIRILMAYDI: kichik tafsilot popapi.
+     Plus belgisi esa darhol savatga qo'shadi. */
   const card = (r: Product, wide?: string) => (
-    <button key={r.id} onClick={() => { haptic(); openP(r) }}
-      className={`shrink-0 snap-start text-left cursor-pointer ${wide || ''}`}>
-      <div className="aspect-square rounded-[12px] overflow-hidden bg-navy-soft">
-        <img src={pImg(r)} alt={pName(r, lang)} loading="lazy" className="w-full h-full object-cover" />
-      </div>
-      <div className="mt-1.5 text-[13px] font-bold leading-tight truncate">{pName(r, lang)}</div>
-      <div className="mt-0.5 text-[12.5px] font-extrabold text-[var(--ink)] whitespace-nowrap">{fmt(r.price)} <span className="text-[10.5px] font-bold text-[var(--mut2)]">UZS</span></div>
-    </button>
+    <div key={r.id} className={`shrink-0 snap-start relative ${wide || ''}`}>
+      <button onClick={() => { haptic(); (onShow || openP)(r) }} className="block w-full text-left cursor-pointer">
+        <div className="aspect-square rounded-[12px] overflow-hidden bg-navy-soft">
+          <img src={pImg(r)} alt={pName(r, lang)} loading="lazy" className="w-full h-full object-cover" />
+        </div>
+        <div className="mt-1.5 text-[13px] font-bold leading-tight truncate">{pName(r, lang)}</div>
+        <div className="mt-0.5 text-[12.5px] font-extrabold text-[var(--ink)] whitespace-nowrap">{fmt(r.price)} <span className="text-[10.5px] font-bold text-[var(--mut2)]">UZS</span></div>
+      </button>
+      <button aria-label="add" onClick={e => { e.stopPropagation(); add(r.id); haptic('medium') }}
+        className="press absolute top-2 right-2 w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">
+        <IcPlus s={15} />
+      </button>
+    </div>
   )
   return (
     <div>
@@ -1380,6 +1431,47 @@ function RecoRow({ items, compact }: { items: Product[]; compact?: boolean }) {
         ? <div className="mt-2.5 flex gap-2.5 overflow-x-auto pb-1 -mx-1 px-1 snap-x">{items.map(r => card(r, 'w-[148px]'))}</div>
         : <div className="mt-2.5 grid grid-cols-3 gap-3">{items.slice(0, 3).map(r => card(r))}</div>}
     </div>
+  )
+}
+
+/* ---------- kichik tafsilot popapi: sous/qo'shimcha/tavsiya bosilganda
+   tafsilotlari ko'rsatiladi. Asosiy modal ALMASHTIRILMAYDI. Telegram
+   BackButton avval shu popapni yopadi (miniCloseRef orqali). ---------- */
+let miniCloseRef: (() => void) | null = null
+function MiniProduct({ p, onClose }: { p: Product; onClose: () => void }) {
+  const { lang, t, add } = useStore()
+  const [q, setQ] = useState(1)
+  useEffect(() => {
+    miniCloseRef = onClose
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { e.stopPropagation(); onClose() } }
+    document.addEventListener('keydown', onKey, true)
+    return () => { miniCloseRef = null; document.removeEventListener('keydown', onKey, true) }
+  }, [onClose])
+  return createPortal(
+    <div className="fixed inset-0 z-[60]" onClick={onClose}>
+      <div className="absolute inset-0 bg-black/45" />
+      <div className="absolute inset-0 grid place-items-center p-4 pointer-events-none">
+        <div onClick={e => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={pName(p, lang)}
+          className="anim-modal pointer-events-auto w-[min(320px,88vw)] bg-[var(--sheet)] rounded-[22px] overflow-hidden shadow-[0_30px_80px_rgba(4,10,40,.5)]">
+          <div className="relative aspect-[16/10] bg-navy-soft shrink-0">
+            <ImgOrPlate src={pImg(p)} alt={pName(p, lang)} />
+          </div>
+          <div className="p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="text-[17px] font-extrabold leading-tight">{pName(p, lang)}</div>
+              <div className="text-[16px] font-extrabold whitespace-nowrap tracking-tight">{fmt(p.price)}<span className="text-[10.5px] text-[var(--mut2)] font-bold"> UZS</span></div>
+            </div>
+            {pDesc(p, lang) && <p className="mt-2 text-[13px] leading-relaxed text-[var(--mut2)] font-medium line-clamp-3 whitespace-pre-line">{cleanDesc(pDesc(p, lang))}</p>}
+            <div className="mt-3.5 flex items-center gap-2.5">
+              <QtyStepper q={q} min={1} onInc={() => { setQ(v => v + 1); haptic() }} onDec={() => { if (q > 1) { setQ(v => v - 1); haptic() } }} />
+              <button onClick={() => { add(p.id, q); haptic('medium'); onClose() }}
+                className="press flex-1 py-3 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">{t.addCart}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
   )
 }
 
@@ -1400,6 +1492,7 @@ export function ProductSheet() {
 function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
   const m = useProductModal(p)
   const [enter, setEnter] = useState(false)
+  const [mini, setMini] = useState<Product | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => { const id = window.setTimeout(() => setEnter(true), 10); return () => clearTimeout(id) }, [])
   useEffect(() => {
@@ -1466,8 +1559,8 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
             {/* o'ng: qo'shimchalar (souslar) + tavsiyalar; buyurtma paneli pastda biriktirilgan */}
             <div className="flex-1 min-w-0 flex flex-col min-h-0">
               <div className="overflow-y-auto no-scrollbar px-7 pt-7 pb-5 flex-1 min-h-0">
-                {p.cat !== 'sous' && <SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} />}
-                <div className="mt-5"><RecoRow items={m.reco} /></div>
+                {p.cat !== 'sous' && <SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} onShow={setMini} />}
+                <div className="mt-5"><RecoRow items={m.reco} onShow={setMini} /></div>
               </div>
               <div className="px-7 py-4 border-t border-[var(--line)] bg-[var(--sheet)]">
                 {m.sale && (
@@ -1491,6 +1584,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
           </div>
         </div>
       </div>
+      {mini && <MiniProduct p={mini} onClose={() => setMini(null)} />}
     </div>,
     document.body
   )
@@ -1521,6 +1615,43 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   const [dy, setDy] = useState(0)
   const [drag, setDrag] = useState(false)
   const panelRef = useRef<HTMLDivElement | null>(null)
+  const [mini, setMini] = useState<Product | null>(null)
+  /* Telegram qo'llanmasi: popapni X bilan emas, BackButton bilan yopish.
+     Brauzerda avvalgi ko'rinish (X) saqlanadi. */
+  const inTg = !!TGA?.BackButton?.show
+  const loc = useLocation()
+  useEffect(() => {
+    const bb = TGA?.BackButton
+    if (!bb?.show) return
+    const go = () => { if (miniCloseRef) { miniCloseRef(); return } onClose() }
+    try { bb.onClick(go); bb.show() } catch {}
+    return () => {
+      try { bb.offClick?.(go); bb.hide() } catch {}
+      // sahifaning o'z "orqaga" tugmasi faol bo'lgan sahifada qayta ko'rinadi
+      if (!TAB_PATHS.includes(loc.pathname)) { try { bb.show() } catch {} }
+    }
+  }, [onClose, loc.pathname])
+  // Kontent eng tepada turib yana pastga surilsa: varaq sirg'alib yopiladi
+  // (Telegram bottom-sheet uslubi). Faqat scrollTop <= 0 da faollashadi.
+  const scrollRef = useRef<HTMLDivElement | null>(null)
+  const sw = useRef<{ y0: number; engaged: boolean } | null>(null)
+  const sDown = (e: React.TouchEvent) => { sw.current = { y0: e.touches[0].clientY, engaged: false } }
+  const sMove = (e: React.TouchEvent) => {
+    const s = sw.current
+    if (!s) return
+    const dyv = e.touches[0].clientY - s.y0
+    const el = scrollRef.current
+    if (!s.engaged && dyv > 8 && el && el.scrollTop <= 0) { s.engaged = true; setDrag(true) }
+    if (s.engaged) setDy(Math.max(0, dyv - 8))
+  }
+  const sEnd = () => {
+    const s = sw.current
+    sw.current = null
+    if (!s || !s.engaged) return
+    setDrag(false)
+    if (dy > 110) { onClose(); return }
+    setDy(0)
+  }
   useEffect(() => { const id = window.setTimeout(() => setEntered(true), 520); return () => clearTimeout(id) }, [])
   useEffect(() => {
     const prevOverflow = document.body.style.overflow
@@ -1584,19 +1715,27 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
           style={{ touchAction: 'none', paddingTop: 'var(--sat)' }}
           className="shrink-0 cursor-grab active:cursor-grabbing">
-          <div className="pt-2.5 pb-1">
-            <div className="w-10 h-1.5 rounded-full bg-[var(--line2)] mx-auto" />
-          </div>
-          <div className="flex items-center justify-end px-5 pt-1 pb-1.5">
-            <button onClick={onClose} aria-label={m.t.closeBtn}
-              className="press w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform shrink-0">
-              <IcX s={16} />
-            </button>
-          </div>
+          {/* Telegramda grabber va X yo'q: yopish BackButton va pastga surish
+              orqali. Brauzerda avvalgi ko'rinish qoladi. */}
+          {inTg ? (
+            <div className="h-7" />
+          ) : (
+            <>
+              <div className="pt-2.5 pb-1">
+                <div className="w-10 h-1.5 rounded-full bg-[var(--line2)] mx-auto" />
+              </div>
+              <div className="flex items-center justify-end px-5 pt-1 pb-1.5">
+                <button onClick={onClose} aria-label={m.t.closeBtn}
+                  className="press w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform shrink-0">
+                  <IcX s={16} />
+                </button>
+              </div>
+            </>
+          )}
         </div>
         {/* yagona skroll hudud: kvadrat rasm, nom, oziqlik, tavsif, souslar, tavsiyalar.
             Narx bu yerda TAKRORLANMAYDI — yakuniy narx pastdagi buyurtma panelida. */}
-        <div className="overflow-y-auto no-scrollbar px-5 pt-2.5 pb-5 flex-1 min-h-0 overscroll-contain">
+        <div ref={scrollRef} onTouchStart={sDown} onTouchMove={sMove} onTouchEnd={sEnd} onTouchCancel={sEnd} className="overflow-y-auto no-scrollbar px-5 pt-2.5 pb-5 flex-1 min-h-0 overscroll-contain">
           <div className="relative aspect-square rounded-[18px] overflow-hidden bg-navy-soft shrink-0">
             <ImgOrPlate src={pImg(p)} alt={pName(p, m.lang)} />
             {m.sale && (
@@ -1609,31 +1748,39 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
           <div className="mt-3.5 text-[21px] font-extrabold leading-tight">{pName(p, m.lang)}</div>
           <NutritionPanel className="mt-2.5" items={m.nutrition} per100={m.t.per100} />
           {pDesc(p, m.lang) && <p className="mt-3 text-[14px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
-          {p.cat !== 'sous' && <div className="mt-4"><SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal /></div>}
-          <div className="mt-4"><RecoRow items={m.reco} compact /></div>
+          {p.cat !== 'sous' && <div className="mt-4"><SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal onShow={setMini} /></div>}
+          <div className="mt-4"><RecoRow items={m.reco} compact onShow={setMini} /></div>
         </div>
         {/* biriktirilgan buyurtma paneli: 1-qator miqdor + YAKUNIY NARX (hech qachon
             qatorboshiga bo'linmaydi), 2-qator to'liq kenglikdagi asosiy tugma.
             Tor ekranlarda tasodifiy matn bukilishi o'rniga ataylab ikki qatorli tartib. */}
         <div style={{ paddingBottom: 'calc(14px + var(--sab))' }} className="px-5 pt-3 border-t border-[var(--line)] bg-[var(--sheet)]">
+          {/* Son ro'yxati: asosiy mahsulot va qo'shilgan har bir qo'shimcha
+              o'z nomi va o'chirgichi bilan. Qo'shish tugmasi yo'q — plus/minus
+              savatni to'g'ridan-to'g'ri boshqaradi, raqam hamma joyda yangilanadi. */}
           <div className="flex items-center justify-between gap-3">
-            <QtyStepper q={m.q} min={1}
-              onInc={() => { m.setQ(v => v + 1); haptic() }}
-              onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }} />
-            <div className="text-right min-w-0">
-              {m.sale && <div className="text-[11.5px] font-bold text-[var(--mut2)] line-through leading-tight whitespace-nowrap">{fmt(p.old_price)} UZS</div>}
-              <div className="text-[17px] font-extrabold tracking-tight whitespace-nowrap tabular-nums leading-tight">
-                {fmt(p.price * m.q)}<span className="text-[11px] text-[var(--mut2)] font-bold"> UZS</span>
-              </div>
+            <div className="min-w-0">
+              <div className="text-[14.5px] font-extrabold leading-tight truncate">{pName(p, m.lang)}</div>
+              <div className="text-[11.5px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(p.price * m.qtyOf(p.id))} <span className="text-[10px] font-bold">UZS</span></div>
             </div>
+            <QtyStepper size="sm" q={m.qtyOf(p.id)} min={0}
+              onInc={() => { m.add(p.id); haptic('medium') }}
+              onDec={() => { if (m.qtyOf(p.id) > 0) { m.setQty(p.id, m.qtyOf(p.id) - 1); haptic() } }} />
           </div>
-          <button onClick={e => m.addToCart(e.currentTarget)} disabled={m.busy}
-            className={`press mt-2.5 w-full relative overflow-hidden py-3.5 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15px] font-extrabold flex items-center justify-center active:scale-[.98] transition-transform disabled:opacity-60 ${m.anim != null ? 'tk-add-active' : ''}`}>
-            {m.anim != null && <CartJourney k={m.anim} />}
-            <span className="tk-add-label">{m.t.addCart}</span>
-          </button>
+          {m.sauces.filter(s => m.qtyOf(s.id) > 0).map(s => (
+            <div key={s.id} className="mt-2.5 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-[13.5px] font-extrabold leading-tight truncate">{pName(s, m.lang)}</div>
+                <div className="text-[11px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(s.price * m.qtyOf(s.id))} <span className="text-[10px] font-bold">UZS</span></div>
+              </div>
+              <QtyStepper size="sm" q={m.qtyOf(s.id)} min={0}
+                onInc={() => { m.setQty(s.id, m.qtyOf(s.id) + 1); haptic() }}
+                onDec={() => { m.setQty(s.id, m.qtyOf(s.id) - 1); haptic() }} />
+            </div>
+          ))}
         </div>
       </div>
+      {mini && <MiniProduct p={mini} onClose={() => setMini(null)} />}
     </div>,
     document.body
   )
