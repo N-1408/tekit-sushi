@@ -131,8 +131,6 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 .tk-sticky-catalog { top: 0; }
 /* Mobil sarlavhaning o'zi sticky: safe-zone chegarasida (sat) pinlanadi */
 .tk-hdr-sticky { top: var(--sat); }
-.tk-safe-cover { position: fixed; left: 0; right: 0; top: 0; height: var(--sat); background: var(--bg); z-index: 25; pointer-events: none; }
-@media (min-width: 1024px) { .tk-safe-cover { display: none; } }
 
 /* ---------- suzuvchi oval pastki navbar: shaffof oyna (glass), slayd indikator.
    Temaga to'liq mos: --nav-glass, --chip-on, --mut2 hammasi mavzu o'zgaruvchilari. ---------- */
@@ -237,6 +235,18 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
   -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
   box-shadow: 0 6px 18px -10px rgba(16, 24, 33, .25); }
 
+/* Suzuvchi brend pill: yuqoriga skrollda kontent USTIDA ko'rinadi, oq fon YO'Q */
+.tk-brand-pill { padding: 5px 12px 5px 6px; border-radius: 999px; background: var(--glass);
+  border: 1px solid var(--glass-line); color: var(--ink);
+  -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
+  box-shadow: 0 8px 22px -12px rgba(16, 24, 33, .38); }
+
+/* Kartochkadagi sous chizig'i: kirish-chiqish bir xil egrilikda */
+@keyframes tkStripIn { from { opacity: 0; transform: translateY(10px) scale(.97) } to { opacity: 1; transform: none } }
+@keyframes tkStripOut { from { opacity: 1 } to { opacity: 0; transform: translateY(6px) scale(.98) } }
+.tk-strip-in { animation: tkStripIn .24s cubic-bezier(.32, .72, 0, 1) both; }
+.tk-strip-out { animation: tkStripOut .18s ease-in both; pointer-events: none; }
+
 .tk-search-btn { background: var(--glass); border: 1px solid var(--glass-line); color: var(--ink2);
   -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
   box-shadow: 0 6px 18px -10px rgba(16, 24, 33, .25);
@@ -270,6 +280,6 @@ html[data-floats='1'] .floating-row-right { transform: translateY(calc(100% + 44
 
 @media (prefers-reduced-motion: reduce) {
   .tk-brand-row { transition: none; }
-  .tk-search-enter, .tk-search-exit { animation: none; }
+  .tk-search-enter, .tk-search-exit, .tk-strip-in, .tk-strip-out { animation: none; }
   .floating-row-left, .floating-row-right, .tk-tabbar { transition: none; }
 }

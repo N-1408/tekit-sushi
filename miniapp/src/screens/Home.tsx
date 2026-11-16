@@ -178,13 +178,23 @@ export default function Home() {
     .map(c => ({ id: c.id, label: (c as any)[lang] || t.catNames[c.id] })), [products, lang, t])
 
   const wide = useWideScreen()
-  // Skroll bo'lganda brend qatori yig'iladi (slide); kategoriyalar qatori qoladi
-  const [stuck, setStuck] = React.useState(false)
+  // Yo'nalishga sezgir brend qatori: pastga skroll — yig'iladi, yuqoriga —
+  // darhol qaytadi (faqat tepada emas, istalgan joyda). Kategoriyalar qatori qoladi.
+  const [showBrand, setShowBrand] = React.useState(true)
+  const [scrolled, setScrolled] = React.useState(false)
   React.useEffect(() => {
     let raf = 0
+    let lastY = window.scrollY
     const fn = () => {
       cancelAnimationFrame(raf)
-      raf = requestAnimationFrame(() => setStuck(window.scrollY > 24))
+      raf = requestAnimationFrame(() => {
+        const y = window.scrollY
+        setScrolled(y > 24)
+        if (y <= 24) setShowBrand(true)
+        else if (y > lastY + 6) setShowBrand(false)
+        else if (y < lastY - 6) setShowBrand(true)
+        lastY = y
+      })
     }
     window.addEventListener('scroll', fn, { passive: true })
     fn()
@@ -194,9 +204,6 @@ export default function Home() {
 
   return (
     <div className="pb-28 lg:pb-12">
-      {/* Skroll qilinganda kontent notch/Telegram boshqaruvlari ostida ko'rinmasin:
-          xavfsiz hudud fon bilan qoplanadi (sticky blok o'zi sat+6 ostida pinlanadi). */}
-      <div className="tk-safe-cover" aria-hidden="true" />
       {/* Bitta sticky blok: mobil — brend qatori (skroll bo'lganda silliq
           yig'iladi, faqat logo qatori ko'chib ketadi) + burger/qidiruv/kategoriyalar
           birgalikda safe-zone chegarasida (sat) pinlanadi. Blok oqim o'rnidan
@@ -214,7 +221,7 @@ export default function Home() {
           </>
         ) : (
           <div ref={navRef} className="sticky z-30 tk-hdr-sticky">
-            <Header collapsed={stuck} />
+            <Header collapsed={!showBrand} floating={scrolled && showBrand} />
             {catalogNav}
           </div>
         )
