@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
 import type { Lang } from '../lib/i18n'
-import { TopBar, IcPin, Sheet, IcClock, IcTruck, IcInfo, IcMail, IcLock, IcChevR } from '../components/ui'
+import { TopBar, IcPin, Sheet, IcClock, IcTruck, IcInfo, IcMail, IcLock, IcChevR, ModeSwitcher, ThemeToggle, LangPicker, BrandLogo } from '../components/ui'
 
 const ROW_ICON: Record<string, React.ReactNode> = {
   branches: <IcPin s={21} />,
@@ -80,7 +80,7 @@ export default function Profile() {
       <TopBar title={t.tabProfile} back={false} />
       <div className="px-4 mt-4 lg:max-w-[760px] lg:mx-auto">
         <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-lg">
-          <img src="/logo.png" className="w-14 h-14 rounded-2xl bg-white/20" alt="" />
+          <img src="/logo-light.png" className="w-14 h-14" alt="" />
           <div className="text-white flex-1">
             <div className="text-[16px] font-extrabold">{user?.name || t.brand}</div>
             <div className="text-[12px] text-white/75 font-medium">{user ? (user.phone || user.addr || t.brand) : t.guest}</div>
@@ -88,6 +88,18 @@ export default function Profile() {
           <button onClick={openOb} className="press bg-white/15 border border-white/25 text-white text-[12px] font-bold px-3.5 py-2 rounded-xl">
             {user ? t.obEdit : t.obReg}
           </button>
+        </div>
+        {/* Headerdan bu yerga ko'chirildi: rejim, til va tema boshqaruvi */}
+        <div className="mt-2.5">
+          <ModeSwitcher />
+        </div>
+        <div className="mt-2.5 bg-[var(--panel)] border border-navy-line rounded-[18px] px-4 py-3.5 flex items-center justify-between gap-3">
+          <span className="text-[14.5px] font-bold">{t.themeLabel}</span>
+          <ThemeToggle />
+        </div>
+        <div className="mt-2.5 bg-[var(--panel)] border border-navy-line rounded-[18px] px-4 py-3.5 flex items-center justify-between gap-3">
+          <span className="text-[14.5px] font-bold">{t.language}</span>
+          <LangPicker dark />
         </div>
         {user?.addr ? (
           <div className="mt-2.5 bg-[var(--panel)] border border-navy-line rounded-[18px] px-4 py-1">

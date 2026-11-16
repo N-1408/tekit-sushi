@@ -178,7 +178,7 @@ export default function Home() {
     .map(c => ({ id: c.id, label: (c as any)[lang] || t.catNames[c.id] })), [products, lang, t])
 
   const wide = useWideScreen()
-  // Skroll bo'lganda sarlavha yon tugmalari yashirinadi, faqat markaziy logo qoladi
+  // Skroll bo'lganda brend qatori yig'iladi (slide); kategoriyalar qatori qoladi
   const [stuck, setStuck] = React.useState(false)
   React.useEffect(() => {
     let raf = 0
@@ -197,8 +197,8 @@ export default function Home() {
       {/* Skroll qilinganda kontent notch/Telegram boshqaruvlari ostida ko'rinmasin:
           xavfsiz hudud fon bilan qoplanadi (sticky blok o'zi sat+6 ostida pinlanadi). */}
       <div className="tk-safe-cover" aria-hidden="true" />
-      {/* Bitta sticky blok: mobil — brend qatori (skroll bo'lganda yon tugmalar
-          yashirinadi, faqat markaziy logo qoladi) + burger/qidiruv/kategoriyalar
+      {/* Bitta sticky blok: mobil — brend qatori (skroll bo'lganda silliq
+          yig'iladi, faqat logo qatori ko'chib ketadi) + burger/qidiruv/kategoriyalar
           birgalikda safe-zone chegarasida (sat) pinlanadi. Blok oqim o'rnidan
           yuqorida render bo'lgani uchun pastdagi kontent sat bilan kompensatsiya. */}
       {(() => {
@@ -214,7 +214,7 @@ export default function Home() {
           </>
         ) : (
           <div ref={navRef} className="sticky z-30 bg-[var(--bg)] tk-hdr-sticky">
-            <Header stuck={stuck} />
+            <Header collapsed={stuck} />
             {catalogNav}
           </div>
         )

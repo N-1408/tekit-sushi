@@ -243,7 +243,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       setMyOrders(prev => {
         const ids = new Set(mapped.map(x => x.oid))
         const localOnly = prev.filter(x => !ids.has(x.oid))
-        return [...mapped, ...localOnly].slice(0, 30)
+        const next = [...mapped, ...localOnly].slice(0, 30)
+        // O'zgarish bo'lmasa holat yangilanmaydi — keraksiz render bo'lmaydi
+        return JSON.stringify(prev) === JSON.stringify(next) ? prev : next
       })
       setOrdersLoaded(true)
     }).catch(() => setOrdersLoaded(true))
@@ -304,6 +306,54 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     refreshOrders()
     return () => { dead = true }
   }, [])
+
+  /* Jim sinxronizatsiya: sahifa ko'rinayotganda har 30 soniyada backend
+     tekshiriladi. Javob joriy holatdan FARQ qilsagina UI yangilanadi —
+     tab almashinuvi yoki kutish paytida qayta render va qayta yuklash
+     bo'lmaydi (foydalanuvchi talabi: faqat belgilangan vaqtda tekshirish). */
+  useEffect(() => {
+    let dead = false
+    let lastMenu = ''
+    let lastBranches = ''
+    const tick = () => {
+      if (document.visibilityState !== 'visible' || dead) return
+      fetch('/api/menu').then(r => r.ok ? r.json() : null).then((j: any) => {
+        if (dead || !j) return
+        const items = (j.ok && Array.isArray(j.items) && j.items.length) ? j.items : null
+        const sig = items ? JSON.stringify(items) + '|' + JSON.stringify(j.delivery || null) : ''
+        if (!sig || sig === lastMenu) return
+        lastMenu = sig
+        setProducts(prev => (JSON.stringify(prev) === JSON.stringify(items) ? prev : items))
+        if (j.delivery) setDeliveryCfg(prev => {
+          const next = { fee: Number(j.delivery.fee) || 15000, threshold: Number(j.delivery.threshold) || 200000 }
+          return (prev.fee === next.fee && prev.threshold === next.threshold) ? prev : next
+        })
+      }).catch(() => {})
+      fetch('/api/branches').then(r => r.ok ? r.json() : null).then((j: any) => {
+        if (dead || !j?.ok || !Array.isArray(j.branches) || !j.branches.length) return
+        setFF(prev => {
+          const next = {
+            branches: j.branches.map((b: any) => ({
+              id: String(b.id), name: { uz: b.name?.uz || '', ru: b.name?.ru || '', en: b.name?.en || undefined },
+              hours_24_7: !!b.hours_24_7, address: b.address ?? null, lat: b.lat ?? null, lon: b.lon ?? null,
+            })),
+            pickup_cfg: j.pickup_cfg || null,
+            delivery: {
+              fee: Number(j.delivery?.fee) || 15000,
+              threshold: Number(j.delivery?.threshold) || 200000,
+              eta_minutes: j.delivery?.eta_minutes ?? null,
+            },
+          }
+          return JSON.stringify(prev) === JSON.stringify(next) ? prev : next
+        })
+      }).catch(() => {})
+      if (tgUser()) refreshOrders()
+    }
+    const id = window.setInterval(tick, 30000)
+    const onVis = () => { if (document.visibilityState === 'visible') tick() }
+    document.addEventListener('visibilitychange', onVis)
+    return () => { dead = true; window.clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
+  }, [refreshOrders])
 
   const value = useMemo<Store>(() => {
     const lines: CartLine[] = Object.entries(cartMap)
