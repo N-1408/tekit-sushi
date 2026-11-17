@@ -450,10 +450,10 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
                     </button>
                   ))}
                   <span className="w-px h-5 bg-[var(--line)] mx-1.5" />
-                  <button onClick={() => { haptic(); if (isWide) { setCartPanelOpen(false); setOrdersPanelOpen(true) } else nav('/orders') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                  <button onClick={() => { haptic(); if (isWide) { setCartPanelOpen(false); setProfilePanelOpen(false); setOrdersPanelOpen(true) } else nav('/orders') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
                     <IcBag s={16} />{t.tabOrders}
                   </button>
-                  <button onClick={() => { haptic(); nav('/profile') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                  <button onClick={() => { haptic(); if (isWide) { setCartPanelOpen(false); setOrdersPanelOpen(false); setProfilePanelOpen(true) } else nav('/profile') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
                     <IcUser s={16} />{t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
                   </button>
                   <a href="tel:+998951550549" className="hidden xl:flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
@@ -1750,6 +1750,22 @@ export function useOrdersPanelOpen() {
   )
 }
 
+/* ---------- Desktop profil paneli holati (lg+): headerdagi "Profil" tugmasi ochadi;
+   overlay/Escape/BackButton bosilganda yopiladi. ---------- */
+let profilePanelOpen = false
+const profilePanelSubs = new Set<() => void>()
+export function setProfilePanelOpen(v: boolean) {
+  if (v === profilePanelOpen) return
+  profilePanelOpen = v
+  profilePanelSubs.forEach(f => f())
+}
+export function useProfilePanelOpen() {
+  return React.useSyncExternalStore(
+    (cb) => { profilePanelSubs.add(cb); return () => { profilePanelSubs.delete(cb) } },
+    () => profilePanelOpen,
+  )
+}
+
 export function FloatingCart() {
   const { cartCount, t } = useStore()
   const nav = useNavigate()
@@ -1758,7 +1774,7 @@ export function FloatingCart() {
   const isWide = useIsWide()
   if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
   return (
-    <button onClick={() => { haptic(); if (isWide) { setOrdersPanelOpen(false); setCartPanelOpen(true) } else nav('/cart') }} aria-label="cart"
+    <button onClick={() => { haptic(); if (isWide) { setOrdersPanelOpen(false); setProfilePanelOpen(false); setCartPanelOpen(true) } else nav('/cart') }} aria-label="cart"
       className="floating-quick relative w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] tk-float-cart grid place-items-center cursor-pointer">
       <span role="status" className="sr-only">{t.cartLive.replace('{n}', String(cartCount))}</span>
       <span key={beat} className={`grid place-items-center ${beat ? 'cart-beat' : ''}`}><IcBag s={26} /></span>

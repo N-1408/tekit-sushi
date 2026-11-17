@@ -15,8 +15,9 @@ import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
-import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, useIsWide, useCartPanelOpen, setCartPanelOpen, useOrdersPanelOpen, setOrdersPanelOpen, IcX } from './components/ui'
+import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, useIsWide, useCartPanelOpen, setCartPanelOpen, useOrdersPanelOpen, setOrdersPanelOpen, useProfilePanelOpen, setProfilePanelOpen, IcX } from './components/ui'
 import Onboarding from './screens/Onboarding'
+import Profile from './screens/Profile'
 import { useStore } from './lib/store'
 import { TGA } from './lib/tg'
 import { useScrollHide } from './lib/scrollHide'
@@ -116,6 +117,49 @@ function OrdersDrawer() {
   )
 }
 
+/* Desktop profil yon paneli (lg+): headerdagi "Profil" tugmasi ochadi.
+   Yopish: X, overlay, Escape yoki Telegramning native BackButton tugmasi. */
+function ProfileDrawer() {
+  const open = useProfilePanelOpen()
+  const isWide = useIsWide()
+  const loc = useLocation()
+  const { t } = useStore()
+  React.useEffect(() => { setProfilePanelOpen(false) }, [loc.pathname])
+  /* Tana skrolli qulflanadi + Escape bilan yopiladi */
+  React.useEffect(() => {
+    if (!open || !isWide) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setProfilePanelOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
+  }, [open, isWide])
+  /* Native BackButton: panelni yopadi */
+  React.useEffect(() => {
+    if (!open || !isWide) return
+    const bb = TGA?.BackButton as any
+    if (!bb?.show) return
+    const close = () => setProfilePanelOpen(false)
+    try { bb.onClick(close); bb.show() } catch {}
+    return () => { try { bb.offClick?.(close); bb.hide() } catch {} }
+  }, [open, isWide])
+  if (!isWide) return null
+  return (
+    <div className={`fixed inset-0 z-[80] ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open || undefined}>
+      <div className={`absolute inset-0 bg-black/45 motion-safe:transition-opacity motion-safe:duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={() => setProfilePanelOpen(false)} />
+      <aside role="dialog" aria-label={t.tabProfile}
+        className={`absolute right-0 top-0 bottom-0 w-[480px] max-w-[94vw] bg-[var(--bg)] border-l border-[var(--line)] shadow-[-24px_0_60px_-30px_rgba(0,0,0,.6)] flex flex-col motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)] shrink-0">
+          <div className="text-[16px] font-extrabold">{t.tabProfile}</div>
+          <button onClick={() => setProfilePanelOpen(false)} aria-label="close-profile"
+            className="press w-9 h-9 rounded-xl grid place-items-center text-[var(--mut2)] hover:bg-[var(--soft)] active:scale-95 transition-colors"><IcX s={15} /></button>
+        </div>
+        <div className="flex-1 min-h-0 overflow-y-auto">{open && <Profile variant="panel" />}</div>
+      </aside>
+    </div>
+  )
+}
+
 export default function App() {
   const { toast, user, ob, userChecked } = useStore()
   const loc = useLocation()
@@ -175,6 +219,7 @@ export default function App() {
       {!isAdmin && <ProductSheet />}
       {!isAdmin && <CartDrawer />}
       {!isAdmin && <OrdersDrawer />}
+      {!isAdmin && <ProfileDrawer />}
       {toast && <div className="anim-toast fixed bottom-28 left-1/2 -translate-x-1/2 lg:left-1/2 z-[60] bg-navy text-white text-[13px] font-bold px-5 py-3 rounded-2xl shadow-xl whitespace-nowrap">{toast}</div>}
     </>
   )

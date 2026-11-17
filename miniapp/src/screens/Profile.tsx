@@ -1,7 +1,6 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore } from '../lib/store'
-import type { Lang } from '../lib/i18n'
 import { TopBar, IcPin, Sheet, IcClock, IcTruck, IcInfo, IcMail, IcLock, IcChevR, ModeSwitcher, ThemeToggle, LangPicker, BrandLogo } from '../components/ui'
 
 const ROW_ICON: Record<string, React.ReactNode> = {
@@ -11,8 +10,8 @@ const ROW_ICON: Record<string, React.ReactNode> = {
   about: <IcInfo s={21} />,
 }
 
-export default function Profile() {
-  const { t, lang, setLang, myOrders, favs, role, user, openOb } = useStore()
+export default function Profile({ variant = 'page' }: { variant?: 'page' | 'panel' }) {
+  const { t, myOrders, favs, role, user, openOb } = useStore()
   const nav = useNavigate()
   const [sheet, setSheet] = React.useState<null | 'branches' | 'contacts' | 'delivery' | 'about'>(null)
 
@@ -60,7 +59,7 @@ export default function Profile() {
       case 'delivery':
         return (
           <div className="bg-[var(--panel)] border border-navy-line rounded-[18px] px-4 py-1 divide-y divide-navy-line">
-            {infoRow(t.dpDelivery, <span className="text-emerald-600">{t.dpFree}</span>)}
+            {infoRow(t.dpDelivery, <span className="text-[var(--ok)]">{t.dpFree}</span>)}
             {infoRow(t.dpTime, t.dpTimeVal)}
             {infoRow(t.dpPay, t.dpPayVal)}
             {infoRow(t.dpSoon, '', true)}
@@ -75,10 +74,11 @@ export default function Profile() {
 
   const titles: Record<string, string> = { branches: t.pBranches, contacts: t.pContacts, delivery: t.pDeliveryPay, about: t.pAbout }
 
+  const panel = variant === 'panel'
   return (
-    <div className="pb-28">
-      <TopBar title={t.tabProfile} back={false} />
-      <div className="px-4 mt-4 lg:max-w-[760px] lg:mx-auto">
+    <div className={panel ? 'pb-4' : 'pb-28'}>
+      {!panel && <TopBar title={t.tabProfile} back={false} />}
+      <div className={panel ? 'px-4 mt-2 pb-2' : 'px-4 mt-4 lg:max-w-[760px] lg:mx-auto'}>
         <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-lg">
           <img src="/logo-light.png" className="w-14 h-14" alt="" />
           <div className="text-white flex-1">
@@ -103,7 +103,7 @@ export default function Profile() {
         </div>
         {user?.addr ? (
           <div className="mt-2.5 bg-[var(--panel)] border border-navy-line rounded-[18px] px-4 py-1">
-            {infoRow(t.address, <span className="max-w-[210px]">{user.addr}</span>)}
+            {infoRow(t.pAddress, <span className="max-w-[210px]">{user.addr}</span>)}
           </div>
         ) : null}
 
@@ -142,17 +142,7 @@ export default function Profile() {
           </button>
         )}
 
-        <div className="mt-4 bg-[var(--panel)] border border-navy-line rounded-[18px] p-1">
-          {(['uz', 'ru', 'en'] as Lang[]).map(l => (
-            <button key={l} onClick={() => setLang(l)}
-              className={`w-full text-left px-4 py-3 rounded-[14px] text-[14px] font-bold flex justify-between items-center active:bg-navy-soft ${lang === l ? 'text-navy' : 'text-[var(--mut2)]'}`}>
-              {l === 'uz' ? '🇺🇿 Oʻzbekcha' : l === 'ru' ? '🇷🇺 Русский' : '🇬🇧 English'}
-              {lang === l && <span className="text-[#29A8E0] text-[15px]">✓</span>}
-            </button>
-          ))}
-        </div>
-
-        <div className="mt-3 bg-[var(--panel)] border border-navy-line rounded-[18px] p-4 space-y-2.5">
+                <div className="mt-3 bg-[var(--panel)] border border-navy-line rounded-[18px] p-4 space-y-2.5">
           {[
             { k: t.tabOrders, v: String(myOrders.length) },
             { k: t.favTitle, v: String(favs.length) },
