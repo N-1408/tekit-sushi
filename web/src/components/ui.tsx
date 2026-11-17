@@ -249,7 +249,7 @@ export function BrandLogo({ size = 36, className = '' }: { size?: number; classN
   const [dark, setDark] = useState(() => currentTheme() === 'dark')
   useEffect(() => subscribeTheme(th => setDark(th === 'dark')), [])
   return (
-    <span className={`relative inline-block shrink-0 anim-pop ${className}`} style={{ width: size, height: size }}>
+    <span className={`relative inline-block shrink-0 ${className}`} style={{ width: size, height: size }}>
       <img src="/logo.png" alt="" width={size} height={size}
         className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${dark ? 'opacity-0' : 'opacity-100'}`} />
       <img src="/logo-light.png" alt="" width={size} height={size}
@@ -487,19 +487,22 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
     <>
       {/* Kollaps faqat header elementida: modallar transformdan TASHQARIDA turadi,
           aks holda fixed modallarning containing-blocki buzilardi. */}
-      <header className={`tk-fade relative z-[31] text-[var(--ink)] ${isWide ? 'bg-[var(--bg)]' : ''}`}>
-        {/* Yig'ilish darhol va silliqsiz: yashirish ko'rinmaydi, qaytish ham.
-            Skroll gisterezisi (useScrollHide) tez-tez almashtirishning oldini oladi. */}
-        {!collapsed && (
-          <div className="max-w-[1240px] mx-auto flex items-center justify-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2">
-            <button onClick={() => nav('/')} aria-label="Tekit Sushi"
-              aria-hidden={hideBrand || undefined} tabIndex={hideBrand ? -1 : undefined}
-              className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${floating && !isWide ? 'tk-brand-pill' : ''} ${hideBrand ? 'opacity-0 pointer-events-none' : ''}`}>
-              <BrandLogo size={36} />
-              <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
-            </button>
+      <header className={`relative z-[31] text-[var(--ink)] ${isWide ? 'bg-[var(--bg)]' : ''}`}>
+        {/* Yig'ilish silliq va REMOUNTSIZ: qator doim mountda qoladi (logo pop
+            animatsiyasi qayta o'ynamasligi va kontent sakramasligi uchun),
+            faqat balandligi grid-rows bilan yig'iladi. */}
+        <div className={`tk-brand-wrap max-w-[1240px] mx-auto ${collapsed ? 'is-hidden' : ''}`}>
+          <div>
+            <div className="flex items-center justify-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2">
+              <button onClick={() => nav('/')} aria-label="Tekit Sushi"
+                aria-hidden={hideBrand || collapsed || undefined} tabIndex={hideBrand || collapsed ? -1 : undefined}
+                className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${floating && !isWide ? 'tk-brand-pill' : ''} ${hideBrand ? 'opacity-0 pointer-events-none' : ''}`}>
+                <BrandLogo size={36} />
+                <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+              </button>
+            </div>
           </div>
-        )}
+        </div>
       </header>
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} switchTo={() => { setDelOpen(false); setPickOpen(true) }} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} switchTo={() => { setPickOpen(false); setDelOpen(true) }} />
@@ -756,16 +759,25 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
       // (sticky qator) nisbatan bo'ladi va burger+qidiruv kengligini ham sanaydi —
       // bu ortiqcha skroll va chipning qidiruv ostiga sirg'alib kirishiga sabab
       // bo'lardi. Chipning strip ICHIDAGI holatini rect orqali hisoblaymiz.
-      const left = el.getBoundingClientRect().left - strip.getBoundingClientRect().left + strip.scrollLeft
-      // Strip oxirida ortiqcha bo'shliq yaratmasdan faol chipni to'liq ko'rinadigan qilib qoldiramiz
+      // Chip to'liq ko'rinsa qator UMUMAN siljimaydi — skroll davomida qator
+      // foydalanuvchi barmog'i bilan kurashmaydi (jitter yo'q).
+      const sr = strip.getBoundingClientRect()
+      const er = el.getBoundingClientRect()
+      if (er.left >= sr.left + 4 && er.right <= sr.right - 4) return
+      const left = er.left - sr.left + strip.scrollLeft
+      // Chipta ko'rinmayotgan tomondan MINIMAL siljish bilan ko'rinadigan qilamiz
       const max = strip.scrollWidth - strip.clientWidth
-      const target = Math.max(0, Math.min(left - 12, max))
+      const target = er.left < sr.left
+        ? Math.max(0, Math.min(left - 12, max))
+        : Math.max(0, Math.min(left + el.offsetWidth - strip.clientWidth + 12, max))
       if (Math.abs(strip.scrollLeft - target) > 6) {
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
         strip.scrollTo({ left: target, behavior: reduced ? 'auto' : 'smooth' })
       }
     }
-    align()
+    // Faol chip o'zgarsa bir zum kutamiz: tez skroll davomida har bo'lim
+    // o'zgarishida qator sudralib yurishi jitter beradi.
+    const t0 = window.setTimeout(align, 180)
     // Strip va chip o'lchamlari o'zgarsa (shrift yuklanishi, sidebar ochilishi,
     // oyna kengligi) qayta tekislanadi; shriftlar kech yuksalganda ham joy to'g'ri qoladi.
     // Sidebar kengligi har kadrda o'zgarganda ResizeObserver har kadrda o'qishni
@@ -778,11 +790,11 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
     ro.observe(strip)
     const chipUnobs = chips.map(c => { const el = chipRefs.current[c.id]; if (el) ro.observe(el) })
     document.fonts?.ready?.then(align).catch(() => {})
-    return () => { ro.disconnect(); window.clearTimeout(t); void chipUnobs }
+    return () => { ro.disconnect(); window.clearTimeout(t); window.clearTimeout(t0); void chipUnobs }
   }, [active, searching, chips.length])
 
   return (
-    <div>
+    <div className="bg-[var(--bg)]">
       <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
         {searching ? (
           <div className={`flex items-center gap-1.5 ${closing ? 'tk-search-exit' : 'tk-search-enter'}`}>
@@ -980,7 +992,7 @@ export function TabBar() {
           return (
             <button key={id} onClick={() => { if (!on) { haptic(); nav(to, { replace: true }) } }}
               aria-current={on ? 'page' : undefined}
-              className={`tk-tab-btn ${on ? 'is-on' : ''}`}>
+              className={`tk-tab-btn ${id === 'cart' ? 'no-pop ' : ''}${on ? 'is-on' : ''}`}>
               <span className="tk-tab-ico relative">
                 <Ico />
                 {id === 'cart' && cartCount > 0 && (
@@ -1348,35 +1360,53 @@ export function NutritionPanel({ items, per100, className }: {
   )
 }
 
-/* sous qo'shish: ixcham boshliq, aniq narx va belgilangan holat */
-function SaucePicker({ sauces, qtyOf, setQty, horizontal, onShow }: {
-  sauces: Product[]; qtyOf: (sid: string) => number; setQty: (id: string, q: number) => void; horizontal?: boolean; onShow?: (p: Product) => void
+/* sous qo'shish: ROSTYXAT — har bir sous alohida qator: rasm, nom, narx,
+   sonli tugma (− son +) va o'chirish. Ko'p bo'lsa ro'yxat ichida skroll. */
+function SaucePicker({ sauces, qtyOf, setQty, onShow }: {
+  sauces: Product[]; qtyOf: (sid: string) => number; setQty: (id: string, q: number) => void; onShow?: (p: Product) => void
 }) {
   const { lang, t } = useStore()
   if (!sauces.length) return null
-  const row = horizontal ? 'flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x' : 'flex flex-wrap gap-2'
   return (
     <div>
       <div className="flex items-center gap-1.5 text-[13.5px] font-extrabold text-[var(--ink)]">
         <span className="text-[#29A8E0]"><IcSauce s={15} /></span> {t.sAddSauces}
       </div>
-      <div className={`${row} mt-2.5`}>
+      <div className="mt-2.5 flex flex-col gap-1.5 max-h-[172px] overflow-y-auto no-scrollbar">
         {sauces.map(sa => {
           const sq = qtyOf(sa.id)
           return (
             <div key={sa.id}
-              className={'shrink-0 flex items-center gap-2 rounded-full bg-[var(--panel)] border pl-1.5 pr-2 py-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-[var(--line2)]') + (horizontal ? ' snap-start' : '')}>
-              <button onClick={() => { haptic(); onShow?.(sa) }} className="press flex items-center gap-2 text-left cursor-pointer active:opacity-80 transition-opacity">
-                <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-9 h-9 rounded-full object-cover bg-navy-soft" />
-                <div className="pr-0.5">
-                  <div className="text-[12.5px] font-extrabold leading-none whitespace-nowrap">{pName(sa, lang)}</div>
-                  <div className="text-[10.5px] font-bold text-[var(--mut2)] mt-1 leading-none whitespace-nowrap">{sq > 1 ? `\u00d7${sq} ` : ''}{fmt(sa.price)} UZS</div>
-                </div>
+              className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1.5 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-[var(--line2)]')}>
+              <button onClick={() => { haptic(); onShow?.(sa) }} className="press flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer active:opacity-80 transition-opacity">
+                <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-navy-soft shrink-0" />
+                <span className="min-w-0">
+                  <span className="block text-[13px] font-extrabold leading-tight truncate">{pName(sa, lang)}</span>
+                  <span className="block text-[11px] font-bold text-[var(--mut2)] mt-0.5 leading-none">{fmt(sa.price)} <span className="text-[9.5px]">UZS</span></span>
+                </span>
               </button>
-              <button onClick={() => { setQty(sa.id, sq + 1); haptic(sq > 0 ? undefined : 'light') }}
-                className="press w-7 h-7 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] hover:brightness-110 active:scale-90 transition-all cursor-pointer">
-                <IcPlus s={13} />
-              </button>
+              {sq > 0 ? (
+                <span className="flex items-center gap-1 shrink-0">
+                  <button onClick={() => { setQty(sa.id, sq - 1); haptic() }} aria-label="minus"
+                    className="press w-8 h-8 rounded-full bg-[var(--soft)] border border-[var(--line2)] text-[var(--ink)] grid place-items-center active:scale-90 transition-transform cursor-pointer">
+                    <IcMinus s={14} />
+                  </button>
+                  <span className="min-w-[18px] text-center text-[13.5px] font-extrabold tabular-nums">{sq}</span>
+                  <button onClick={() => { setQty(sa.id, sq + 1); haptic() }} aria-label="plus"
+                    className="press w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform cursor-pointer">
+                    <IcPlus s={14} />
+                  </button>
+                  <button onClick={() => { setQty(sa.id, 0); haptic() }} aria-label="remove"
+                    className="press w-8 h-8 rounded-full bg-[var(--soft)] border border-[var(--line2)] text-[var(--mut2)] grid place-items-center active:scale-90 transition-transform cursor-pointer">
+                    <IcX s={13} />
+                  </button>
+                </span>
+              ) : (
+                <button onClick={() => { setQty(sa.id, 1); haptic('light') }} aria-label="add"
+                  className="press w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform cursor-pointer shrink-0">
+                  <IcPlus s={14} />
+                </button>
+              )}
             </div>
           )
         })}
@@ -1758,7 +1788,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
      oxirga yetganda o'z tabiiy joyiga qo'taladi (tavsiyalar va buyurtma panelidan oldin). */
   <div className="sticky bottom-0 z-10 -mx-5 mt-4 px-5 pt-3 bg-[var(--sheet)] border-t border-[var(--line)]"
     style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
-    <SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal onShow={setMini} />
+    <SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} onShow={setMini} />
   </div>
 )}
           <div className="mt-4"><RecoRow items={m.reco} compact onShow={setMini} /></div>
@@ -1846,7 +1876,7 @@ export function FloatingCart() {
   if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
   return (
     <button onClick={() => { haptic(); nav('/cart') }} aria-label="cart"
-      className="floating-quick press relative w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] tk-float-cart grid place-items-center active:scale-95 transition-transform cursor-pointer">
+      className="floating-quick relative w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] tk-float-cart grid place-items-center cursor-pointer">
       <span role="status" className="sr-only">{t.cartLive.replace('{n}', String(cartCount))}</span>
       <span key={beat} className={`grid place-items-center ${beat ? 'cart-beat' : ''}`}><IcBag s={26} /></span>
       {cartCount > 0 && (

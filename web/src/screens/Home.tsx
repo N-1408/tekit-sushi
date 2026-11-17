@@ -33,10 +33,15 @@ function Section({ id, title, items }: { id?: string; title: string; items: Prod
   const list = items
   return (
     <section id={id} className="mt-7">
-      <div className="px-4 lg:px-6 mb-3">
-        <h2 className="text-[26px] lg:text-[34px] font-extrabold tracking-tight">{title}</h2>
+      {/* Kategoriya sarlavhasi yopishqoq: bo'lim skroll davomida o'z nomi bilan
+          qotib turadi — kategoriyalar bir-biridan aniq ajraladi. */}
+      <div className="sticky z-20 bg-[var(--bg)] border-b border-[var(--line)]"
+        style={{ top: 'calc(var(--sat) + var(--catnav-h, 56px))' }}>
+        <div className="px-4 lg:px-6 pt-2 pb-1.5">
+          <h2 className="text-[26px] lg:text-[34px] font-extrabold tracking-tight leading-none">{title}</h2>
+        </div>
       </div>
-      <div className="px-4 lg:px-6 grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7">
+      <div className="px-4 lg:px-6 pt-3 grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7">
         {list.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
       </div>
     </section>
@@ -165,6 +170,20 @@ export default function Home() {
   const { hidden: brandHidden, atTop: scrolledTop } = useScrollHide()
   const { navRef, active, onSelect } = useCatalogTracking(chips.map(c => c.id), searching)
 
+  // Kategoriya qatori balandligi: yopishqoq bo'lim sarlavhalari uning OSTIDA
+  // qotishi uchun (skroll holatida aniq chiziqda turadi).
+  const catRef = React.useRef<HTMLDivElement | null>(null)
+  React.useEffect(() => {
+    const el = catRef.current
+    if (!el) return
+    const set = () => { try { document.documentElement.style.setProperty('--catnav-h', el.offsetHeight + 'px') } catch { /* noop */ } }
+    set()
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(set) : null
+    ro?.observe(el)
+    document.fonts?.ready?.then(set).catch(() => {})
+    return () => { ro?.disconnect() }
+  }, [])
+
   return (
     <div className="pb-28 lg:pb-12">
       {/* Bitta sticky blok: mobil — brend qatori (skroll bo'lganda silliq
@@ -179,13 +198,13 @@ export default function Home() {
               <Header />
             </div>
             <div ref={navRef} className="sticky z-30 tk-sticky-catalog">
-              {catalogNav}
+              <div ref={catRef}>{catalogNav}</div>
             </div>
           </>
         ) : (
           <div ref={navRef} className="sticky z-30 tk-hdr-sticky">
             <Header collapsed={brandHidden} floating={scrolledTop && !brandHidden} />
-            {catalogNav}
+            <div ref={catRef}>{catalogNav}</div>
           </div>
         )
       })()}
