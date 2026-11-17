@@ -40,12 +40,14 @@ export function initTelegram() {
       const eff = Math.max(top, Number(sa.top) || 0)
       st.setProperty('--tg-csa-top', `${eff > 0 ? eff : 59}px`)
     } else if (andr) {
-      // Android: ko'p mijozlar top=0 deb hisobot qilsa-da Telegram tugmalari
-      // kontent USTIDA chiziladi — KAMIDA 72px zaxira (hisobot qilingan qiymat
-      // katta bo'lsa o'sha olinadi). Fullscreen yoki hisobot yo'q bo'lsa +56px strip.
-      st.setProperty('--tg-extra', (TGA?.isFullscreen || !(top > 0)) ? '56px' : '0px')
-      const eff = Math.max(top, Number(sa.top) || 0, 72)
-      st.setProperty('--tg-csa-top', `${eff}px`)
+      // ANDROID: sarlavha tepaga ko'tarildi — 72px zaxira bekor. Endi hisobot
+      // qilingan inset ishlatiladi (Telegram tugmalari fullscreen'da kontent
+      // ustiga chizilsa, contentSafeAreaInset o'sha masofani beradi). Hisobot
+      // 0 bo'lsa hech qanday zaxira qo'shilmaydi: sarlavha ekran tepasida turadi.
+      st.setProperty('--tg-extra', '0px')
+      const eff = Math.max(top, Number(sa.top) || 0)
+      if (eff > 0) st.setProperty('--tg-csa-top', `${eff}px`)
+      else st.removeProperty('--tg-csa-top')
     } else {
       // Desktop Telegram / oddiy brauzer: insetlar ishonchsiz, tozalansin
       // (CSS tomondan env(safe-area-inset-top) o'zi ishlaydi).
