@@ -215,7 +215,7 @@ function AdminSidebar() {
       <div className="px-5 pt-5 pb-6 flex items-center gap-3">
         <img src="/logo.png" className="w-10 h-10 rounded-xl bg-navy-soft" alt="" />
         <div>
-          <div className="text-[15px] font-extrabold text-navy leading-tight">Tekit</div>
+          <div className="text-[15px] font-extrabold text-[var(--btn)] leading-tight">Tekit</div>
           <div className="text-[10px] font-extrabold text-[var(--mut)] uppercase tracking-[0.18em] mt-0.5">Admin panel</div>
         </div>
       </div>
@@ -225,7 +225,7 @@ function AdminSidebar() {
           return (
             <button key={it.id} onClick={() => { if (!act) { haptic(); nav(it.to) } }}
               className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-[13.5px] font-extrabold transition-colors ${act ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]' : 'text-[var(--mut3)] hover:bg-navy-soft'}`}>
-              <span className={act ? 'text-white' : 'text-[var(--mut)]'}>{it.icon}</span>
+              <span className={act ? 'text-[var(--btn-ink)]' : 'text-[var(--mut)]'}>{it.icon}</span>
               <span className="flex-1 text-left">{it.label}</span>
               {it.id === 'orders' && !!pending && (
                 <span className="min-w-[19px] h-[19px] px-1 rounded-full bg-red-600 text-white text-[10.5px] font-extrabold grid place-items-center leading-none">{pending}</span>
@@ -261,8 +261,8 @@ function AdminTabBar() {
           const act = on(tb.to)
           return (
             <button key={tb.id} onClick={() => { if (!act) { haptic(); nav(tb.to) } }}
-              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${act ? 'text-navy' : 'text-[var(--ink3)]'}`}>
-              <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${act ? 'bg-[var(--chip-on)] px-4 py-1' : 'px-1 py-1'}`}>
+              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${act ? 'text-[var(--chip-on)]' : 'text-[var(--ink3)]'}`}>
+              <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${act ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)] px-4 py-1' : 'px-1 py-1'}`}>
                 {TAB_ICON[tb.id]}
                 {tb.id === 'orders' && !!pending && (
                   <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-red-600 text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-[var(--panel)]">{pending}</span>
