@@ -335,6 +335,40 @@ export function ThemeToggle() {
 export { TopBar, WhaleMark } from './topbar'
 export { BrandLogo } from './topbar/brand-logo'
 
+/* ---------- headerdagi til tanlash (lg+): o'ng chetda dropdown ---------- */
+function HeaderLang() {
+  const { lang, setLang } = useStore()
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    window.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDoc); window.removeEventListener('keydown', onKey) }
+  }, [open])
+  return (
+    <div ref={ref} className="relative">
+      <button onClick={() => setOpen(v => !v)} aria-haspopup="listbox" aria-expanded={open}
+        className="press focus-ring flex items-center gap-1.5 h-9 pl-2.5 pr-2.5 rounded-full text-[12.5px] font-extrabold bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)] transition-colors">
+        <FlagOf l={lang} s={14} />{lang.toUpperCase()}
+        <span className={`transition-transform duration-150 ${open ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
+      </button>
+      <div role="listbox" aria-label="language"
+        className={`absolute right-0 top-[calc(100%+8px)] w-40 rounded-2xl border border-[var(--line)] bg-[var(--panel)] shadow-[0_16px_40px_-16px_rgba(0,0,0,.35)] p-1.5 origin-top-right motion-safe:transition-[opacity,scale] motion-safe:duration-150 motion-safe:ease-out ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+        {(['uz', 'ru', 'en'] as const).map(l => (
+          <button key={l} onClick={() => { setLang(l); haptic('light'); setOpen(false) }} role="option" aria-selected={lang === l}
+            className={`press w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-[13px] font-extrabold transition-colors ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'text-[var(--ink2)] hover:bg-[var(--soft)]'}`}>
+            <FlagOf l={l} s={16} />{LANG_NAME[l]}
+            {lang === l && <span className="ml-auto"><IcCheck s={14} /></span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /* ---------- hamburger menyu ---------- */
 export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t, lang, setLang, user } = useStore()
@@ -443,26 +477,13 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
               </button>
               {isWide && (
                 <div className="flex items-center gap-1.5 shrink-0">
-                  {(['uz', 'ru', 'en'] as const).map(l => (
-                    <button key={l} onClick={() => { setLang(l); haptic('light') }}
-                      className={`press focus-ring flex items-center gap-1.5 h-9 px-2.5 rounded-full text-[12.5px] font-extrabold transition-colors ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--mut2)] hover:text-[var(--ink2)]'}`}>
-                      <FlagOf l={l} s={14} />{l.toUpperCase()}
-                    </button>
-                  ))}
-                  <span className="w-px h-5 bg-[var(--line)] mx-1.5" />
                   <button onClick={() => { haptic(); if (isWide) { setCartPanelOpen(false); setProfilePanelOpen(false); setOrdersPanelOpen(true) } else nav('/orders') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
                     <IcBag s={16} />{t.tabOrders}
                   </button>
                   <button onClick={() => { haptic(); if (isWide) { setCartPanelOpen(false); setOrdersPanelOpen(false); setProfilePanelOpen(true) } else nav('/profile') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
                     <IcUser s={16} />{t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
                   </button>
-                  <a href="tel:+998951550549" className="hidden xl:flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
-                    <IcCash s={16} />{t.ctPhoneVal}
-                  </a>
-                  <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="hidden xl:flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.25.25-.45.45-.9.45l.3-4.6L18.2 6.8c.35-.3-.1-.5-.55-.2L7.7 13.1l-4.4-1.4c-1-.3-1-1 .2-1.45L20.6 3.3c.8-.3 1.5.2 1.3 1.3Z" /></svg>
-                    {t.ctTgVal}
-                  </a>
+                  <HeaderLang />
                 </div>
               )}
             </div>
