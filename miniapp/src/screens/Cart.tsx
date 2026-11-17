@@ -1,16 +1,78 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStore, pName, pImg, isSpicy } from '../lib/store'
+import { useStore, pName, pImg, isSpicy, CATS, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty, Empty, BigButton, IcX, IcStore, SpicyBadge } from '../components/ui'
+import { TopBar, Qty, Empty, BigButton, IcX, IcStore, IcPlus, QtyStepper, SpicyBadge } from '../components/ui'
 import { pickupSummary } from '../components/Fulfillment'
+
+/* Savatdagi "qoshimcha qoshish" zonalari: Achchiq, Souslar va savatda yo'q
+   kategoriyalar — gorizontal chip qatorlari, ro'yxatdan keyin, buyurtma
+   tugmasidan oldin. */
+function ExtraChip({ x, lang, t }: { x: Product; lang: any; t: any }) {
+  const { cart, add, setQty } = useStore()
+  const q = cart.find((l: any) => l.id === x.id)?.q ?? 0
+  return (
+    <div className="shrink-0 w-[128px] bg-[var(--panel)] border border-navy-line rounded-[14px] p-2 flex flex-col">
+      <div className="relative aspect-square rounded-[10px] overflow-hidden bg-navy-soft">
+        <img src={pImg(x)} alt={pName(x, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+        {isSpicy(x) && <SpicyBadge size={18} className="absolute top-1.5 right-1.5" />}
+      </div>
+      <div className="text-[12px] font-bold leading-tight line-clamp-2 mt-1.5">{pName(x, lang)}</div>
+      <div className="text-[12px] font-extrabold mt-0.5 whitespace-nowrap">{fmt(x.price)} <span className="text-[9.5px] font-bold text-[var(--mut2)]">UZS</span></div>
+      {q > 0 ? (
+        <div className="mt-auto pt-1.5">
+          <QtyStepper size="sm" full q={q} min={0}
+            onDec={() => { setQty(x.id, q - 1); haptic() }}
+            onInc={() => { add(x.id); haptic('medium') }} />
+        </div>
+      ) : (
+        <button onClick={() => { add(x.id); haptic('medium') }}
+          className="press mt-1.5 h-[32px] rounded-[10px] bg-[var(--btn)] text-[var(--btn-ink)] text-[12px] font-extrabold flex items-center justify-center gap-1.5 active:scale-[.98] transition-transform">
+          <IcPlus s={12} />{t.cardAdd}
+        </button>
+      )}
+    </div>
+  )
+}
+
+function ExtraSection({ title, items, lang, t }: { title: string; items: Product[]; lang: any; t: any }) {
+  if (!items.length) return null
+  return (
+    <div>
+      <div className="text-[15px] font-extrabold">{title}</div>
+      <div className="mt-2 flex gap-2 overflow-x-auto no-scrollbar pb-1">
+        {items.map(x => <ExtraChip key={x.id} x={x} lang={lang} t={t} />)}
+      </div>
+    </div>
+  )
+}
 
 export default function Cart() {
   const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add, mode, pickup, ff, deliveryCfg } = useStore()
   const nav = useNavigate()
   const lines = cart.filter(l => l.q > 0)
   const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
+
+  /* Qoshimchalar: Achchiq (doim), Souslar (doim), qolgan kategoriyalar —
+     faqat savatda YO'Q kategoriyalar; savatdagi kategoriya takrorlanmaydi. */
+  const extras = React.useMemo(() => {
+    const cartCats = new Set(lines.map(l => l.cat))
+    const inCart = new Set(lines.map(l => l.id))
+    const act = products.filter(x => x.active !== false && !inCart.has(x.id) && x.cat !== 'hit')
+    const spicy = act.filter(x => isSpicy(x) && x.cat !== 'sous' && !cartCats.has(x.cat))
+    const sous = act.filter(x => x.cat === 'sous')
+    const cats = CATS
+      .filter(c => c.id !== 'sous' && c.id !== 'hit' && c.id !== 'spicy' && !cartCats.has(c.id))
+      .map(c => ({ id: c.id as string, title: ((c as any)[lang] || t.catNames[c.id]) as string, items: act.filter(x => x.cat === c.id && !isSpicy(x)) }))
+      .filter(s => s.items.length > 0)
+    return [
+      { id: 'spicy', title: t.catNames.spicy as string, items: spicy },
+      { id: 'sous', title: t.catNames.sous as string, items: sous },
+      ...cats,
+    ]
+  }, [lines, products, lang, t])
+  const hasExtras = extras.some(s => s.items.length > 0)
 
   return (
     <div className="pb-28">
@@ -55,6 +117,11 @@ export default function Cart() {
                 </div>
               </div>
             ))}
+            {hasExtras && (
+              <div className="mt-6 space-y-5">
+                {extras.map(s => <ExtraSection key={s.id} title={s.title} items={s.items} lang={lang} t={t} />)}
+              </div>
+            )}
           </div>
           <div className="lg:w-[380px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4">
           <div className="mx-4 mt-4 bg-[var(--panel)] border border-navy-line rounded-[18px] p-4 lg:mx-0 lg:mt-0">
