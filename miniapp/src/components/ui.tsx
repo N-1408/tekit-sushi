@@ -1080,7 +1080,7 @@ export function BigButton({ children, onClick, disabled, ghost, type }: {
   return (
     <button type={type} onClick={onClick} disabled={disabled}
       className={`press w-full py-4 rounded-2xl text-[16px] font-extrabold flex items-center justify-center gap-2 transition-all
-        ${ghost ? 'bg-white text-navy-ink border border-navy-line' : 'bg-navy text-white shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)]'} disabled:opacity-40`}>
+        ${ghost ? 'bg-[var(--bg2)] text-[var(--ink)] border border-navy-line' : 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)]'} disabled:opacity-40`}>
       {children}
     </button>
   )
