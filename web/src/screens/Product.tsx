@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { useStore, pName, pImg, pDesc, isSpicy } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty, IcScale, IcSauce, NutritionPanel, SpicyBadge, IcMinus, IcPlus, IcX } from '../components/ui'
+import { TopBar, Qty, IcScale, IcSauce, NutritionPanel, SpicyBadge, IcMinus, IcPlus } from '../components/ui'
 
 export default function Product() {
   const { id } = useParams()
@@ -55,12 +55,12 @@ export default function Product() {
                 <div className="text-[10.5px] font-semibold text-[var(--mut2)] leading-tight mt-0.5">{t.sSub}</div>
               </div>
             </div>
-            {/* Har bir sous alohida qator: sonli tugma (− son +) va o'chirish */}
-            <div className="mt-3 flex flex-col gap-1.5">
+            {/* Har bir sous alohida qator: sonli tugma (− son +); barcha souslar ko'rinadi */}
+            <div className="mt-3 flex flex-col gap-1">
               {sauces.map(s => {
                 const sq = qtyOf(s.id)
                 return (
-                  <div key={s.id} className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1.5 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
+                  <div key={s.id} className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
                     <img src={pImg(s)} alt={pName(s, lang)} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-navy-soft shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-extrabold leading-tight truncate">{pName(s, lang)}</div>
@@ -76,10 +76,6 @@ export default function Product() {
                         <button onClick={() => { setQty(s.id, sq + 1); haptic() }} aria-label="plus"
                           className="press w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">
                           <IcPlus s={14} />
-                        </button>
-                        <button onClick={() => { setQty(s.id, 0); haptic() }} aria-label="remove"
-                          className="press w-8 h-8 rounded-full bg-[var(--soft)] border border-navy-line text-[var(--mut2)] grid place-items-center active:scale-90 transition-transform">
-                          <IcX s={13} />
                         </button>
                       </span>
                     ) : (
