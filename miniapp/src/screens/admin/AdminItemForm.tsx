@@ -102,13 +102,13 @@ function Body() {
     setBusy(false)
   }
 
-  if (!loaded) return <div className="pb-28"><AdminTopBar title={t.aEditItem} /><div className="px-4 mt-4 h-64 rounded-[20px] bg-white border border-navy-line animate-pulse" /></div>
+  if (!loaded) return <div className="pb-28"><AdminTopBar title={t.aEditItem} /><div className="px-4 mt-4 h-64 rounded-[20px] bg-[var(--panel)] border border-navy-line animate-pulse" /></div>
 
   return (
     <div className="pb-32">
       <AdminTopBar title={isNew ? t.aAddItem : t.aEditItem} back />
       <div className="px-4 mt-4 space-y-3.5">
-        <div className="bg-white border border-navy-line rounded-[20px] p-4 space-y-3">
+        <div className="bg-[var(--panel)] border border-navy-line rounded-[20px] p-4 space-y-3">
           <div className="flex gap-3">
             <div className="w-[72px] h-[72px] rounded-2xl bg-navy-soft overflow-hidden shrink-0 grid place-items-center">
               {imgPreview || f.img ? <img src={imgPreview || pImg(f)} onError={() => setImgPreview('')} alt="" className="w-full h-full object-cover" /> : <span className="text-[22px]">🍣</span>}
@@ -116,7 +116,7 @@ function Body() {
             <div className="flex-1">
               <Field label={t.aImageF}>
                 <input value={f.img} onChange={e => { set('img', e.target.value); setImgPreview(/^https?:/i.test(e.target.value) ? e.target.value : '') }} placeholder="https://... yoki UUID" className={inputCls} />
-                <label className="mt-2 flex items-center justify-center h-9 rounded-xl border border-navy-line bg-navy-soft text-navy text-[13px] font-medium cursor-pointer active:opacity-70">
+                <label className="mt-2 flex items-center justify-center h-9 rounded-xl border border-navy-line bg-navy-soft text-[var(--btn)] text-[13px] font-medium cursor-pointer active:opacity-70">
                   <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickFile} />
                   {uploading ? t.aUploading : t.aUpImg}
                 </label>
@@ -177,7 +177,7 @@ function Body() {
           </div>
         </div>
 
-        <div className={`bg-white border rounded-[20px] p-4 space-y-3 ${f.sale_active ? 'border-red-200' : 'border-navy-line'}`}>
+        <div className={`bg-[var(--panel)] border rounded-[20px] p-4 space-y-3 ${f.sale_active ? 'border-[rgba(239,68,68,.35)]' : 'border-navy-line'}`}>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <span className="text-[15px]">🔥</span>
@@ -198,10 +198,10 @@ function Body() {
                   <input value={f.sale_price || ''} onChange={e => set('sale_price', Number(e.target.value.replace(/\D/g, '')) || 0)} inputMode="numeric" placeholder="—" className={inputCls} />
                 </Field>
               </div>
-              <div className="flex items-center gap-2 bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
+              <div className="flex items-center gap-2 bg-[rgba(239,68,68,.12)] border border-[rgba(239,68,68,.3)] rounded-xl px-3.5 py-2.5">
                 <span className="text-[12px] font-bold text-[var(--mut)] line-through">{fmt(f.price)}</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E23B52" strokeWidth="2.4" strokeLinecap="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
-                <span className="text-[15px] font-extrabold text-red-600">{fmt(effPreview)} UZS</span>
+                <span className="text-[15px] font-extrabold a-bad-text">{fmt(effPreview)} UZS</span>
                 {f.sale_percent > 0 && <span className="ml-auto text-[11px] font-extrabold bg-red-600 text-white rounded-lg px-2 py-0.5">−{f.sale_percent}%</span>}
               </div>
             </>
@@ -209,13 +209,13 @@ function Body() {
         </div>
 
         {!isNew && (
-          <button onClick={() => setDelOpen(true)} className="press w-full py-3 rounded-2xl bg-white border border-red-200 text-red-600 text-[13.5px] font-extrabold active:scale-[.98] transition-transform">
+          <button onClick={() => setDelOpen(true)} className="press w-full py-3 rounded-2xl bg-[var(--panel)] border border-[rgba(239,68,68,.35)] a-bad-text text-[13.5px] font-extrabold active:scale-[.98] transition-transform">
             🗑 {t.aDelete}
           </button>
         )}
       </div>
 
-      <div className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line px-4 pt-3" style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
+      <div className="fixed left-0 right-0 bottom-0 z-40 bg-[var(--panel)] border-t border-navy-line px-4 pt-3" style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
         <Btn onClick={save} disabled={busy || !f.t_uz || !f.price}>{busy ? '…' : t.aSave}</Btn>
       </div>
 
