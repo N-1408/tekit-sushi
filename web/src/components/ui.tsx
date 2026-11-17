@@ -1755,37 +1755,38 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
           {pDesc(p, m.lang) && <p className="mt-3 text-[14px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
           {p.cat !== 'sous' && <div className="mt-4"><SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal onShow={setMini} /></div>}
           <div className="mt-4"><RecoRow items={m.reco} compact onShow={setMini} /></div>
-        </div>
-        {/* biriktirilgan buyurtma paneli: yengil fonli royxat (asosiy + qoshilganlar,
-            plus/minus bilan) va ikki tugma — Savatga / Menyuga qaytish */}
-        <div style={{ paddingBottom: 'calc(14px + var(--sab))' }} className="px-5 pt-3 border-t border-[var(--line)] bg-[var(--sheet)]">
-          <div className="rounded-[18px] bg-[var(--soft)] p-3">
-            <div className="flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-[14.5px] font-extrabold leading-tight truncate">{pName(p, m.lang)}</div>
-                <div className="text-[11.5px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(p.price * m.qtyOf(p.id))} <span className="text-[10px] font-bold">UZS</span></div>
-              </div>
-              <QtyStepper size="sm" q={m.qtyOf(p.id)} min={0}
-                onInc={() => { m.add(p.id); haptic('medium') }}
-                onDec={() => { if (m.qtyOf(p.id) > 0) { m.setQty(p.id, m.qtyOf(p.id) - 1); haptic() } }} />
-            </div>
-            {extras.map(s => (
-              <div key={s.id} className="mt-2.5 flex items-center justify-between gap-3">
+          {/* buyurtma paneli SKROLL OQIMINING ENG OXIRIDA: ro'yxat (asosiy + qoshilganlar,
+              plus/minus bilan) va ikki tugma — Savatga / Menyuga qaytish. Biriktirilmaydi,
+              kontent bilan birga siljiydi. */}
+          <div style={{ paddingBottom: 'calc(6px + var(--sab))' }} className="mt-6 border-t border-[var(--line)] pt-4">
+            <div className="rounded-[18px] bg-[var(--soft)] p-3">
+              <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-[13.5px] font-extrabold leading-tight truncate">{pName(s, m.lang)}</div>
-                  <div className="text-[11px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(s.price * m.qtyOf(s.id))} <span className="text-[10px] font-bold">UZS</span></div>
+                  <div className="text-[14.5px] font-extrabold leading-tight truncate">{pName(p, m.lang)}</div>
+                  <div className="text-[11.5px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(p.price * m.qtyOf(p.id))} <span className="text-[10px] font-bold">UZS</span></div>
                 </div>
-                <QtyStepper size="sm" q={m.qtyOf(s.id)} min={0}
-                  onInc={() => { m.setQty(s.id, m.qtyOf(s.id) + 1); haptic() }}
-                  onDec={() => { if (m.qtyOf(s.id) > 0) { m.setQty(s.id, m.qtyOf(s.id) - 1); haptic() } }} />
+                <QtyStepper size="sm" q={m.qtyOf(p.id)} min={0}
+                  onInc={() => { m.add(p.id); haptic('medium') }}
+                  onDec={() => { if (m.qtyOf(p.id) > 0) { m.setQty(p.id, m.qtyOf(p.id) - 1); haptic() } }} />
               </div>
-            ))}
-          </div>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <button onClick={() => { onClose(); nav('/cart') }}
-              className="press py-3 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">{m.t.goCart}</button>
-            <button onClick={doClose}
-              className="press py-3 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink2)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">{m.t.backMenu}</button>
+              {extras.map(s => (
+                <div key={s.id} className="mt-2.5 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[13.5px] font-extrabold leading-tight truncate">{pName(s, m.lang)}</div>
+                    <div className="text-[11px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(s.price * m.qtyOf(s.id))} <span className="text-[10px] font-bold">UZS</span></div>
+                  </div>
+                  <QtyStepper size="sm" q={m.qtyOf(s.id)} min={0}
+                    onInc={() => { m.setQty(s.id, m.qtyOf(s.id) + 1); haptic() }}
+                    onDec={() => { if (m.qtyOf(s.id) > 0) { m.setQty(s.id, m.qtyOf(s.id) - 1); haptic() } }} />
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <button onClick={() => { onClose(); nav('/cart') }}
+                className="press py-3 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">{m.t.goCart}</button>
+              <button onClick={doClose}
+                className="press py-3 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink2)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">{m.t.backMenu}</button>
+            </div>
           </div>
         </div>
       </div>
