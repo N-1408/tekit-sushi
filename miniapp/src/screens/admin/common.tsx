@@ -95,12 +95,12 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
           <div className="tekit-pattern w-20 h-20 rounded-[22px] mx-auto grid place-items-center text-[36px] shadow-lg">🔐</div>
           <p className="mt-4 text-center text-[14px] font-semibold text-[var(--mut3)]">{t.adminPass}</p>
           <input value={input} onChange={e => setInput(e.target.value)} type="password"
-            className="mt-4 w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-navy" placeholder="••••••••" />
+            className="mt-4 w-full bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-[var(--btn)]" placeholder="••••••••" />
           <button onClick={async () => { const ok = await verify(input); if (ok) { setKey(input); haptic('success') } else { setErr('x'); haptic('error') } }}
-            className="press mt-3 w-full py-4 rounded-2xl bg-navy text-white text-[15.5px] font-extrabold shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform">
+            className="press mt-3 w-full py-4 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15.5px] font-extrabold shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform">
             {t.login}
           </button>
-          {err && <div className="mt-2 text-center text-[12.5px] font-bold text-red-500">{t.wrongPass}</div>}
+          {err && <div className="mt-2 text-center text-[12.5px] font-bold a-bad-text">{t.wrongPass}</div>}
         </div>
       </div>
     )
@@ -124,8 +124,8 @@ export function AdminTopBar({ title, right, back }: { title: string; right?: Rea
 export function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void }) {
   return (
     <button onClick={e => { e.stopPropagation(); onChange(!on); haptic() }}
-      className={`press relative w-[46px] h-[28px] rounded-full transition-colors duration-200 ${on ? 'bg-navy' : 'bg-[var(--line2)]'}`}>
-      <span className={`absolute top-[3px] w-[22px] h-[22px] rounded-full bg-white shadow transition-all duration-200 ${on ? 'left-[21px]' : 'left-[3px]'}`} />
+      className={`press relative w-[46px] h-[28px] rounded-full transition-colors duration-200 ${on ? 'bg-[var(--chip-on)]' : 'bg-[var(--line2)]'}`}>
+      <span className={`absolute top-[3px] w-[22px] h-[22px] rounded-full bg-[var(--chip-on-ink)] shadow transition-all duration-200 ${on ? 'left-[21px]' : 'left-[3px]'}`} />
     </button>
   )
 }
@@ -138,16 +138,16 @@ export function Field({ label, children }: { label: string; children: React.Reac
     </label>
   )
 }
-export const inputCls = "w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 placeholder:text-[var(--ink3)]"
+export const inputCls = "w-full bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-[var(--btn)] focus:ring-2 focus:ring-[rgba(41,168,224,.3)] placeholder:text-[var(--ink3)]"
 
 export function Btn({ children, onClick, kind = 'primary', disabled, small }: {
   children: React.ReactNode; onClick?: () => void; kind?: 'primary' | 'ghost' | 'danger' | 'soft'; disabled?: boolean; small?: boolean
 }) {
   const cls = {
-    primary: 'bg-navy text-white shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]',
+    primary: 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]',
     ghost: 'bg-[var(--panel)] text-navy-ink border border-navy-line',
     soft: 'bg-navy-soft text-navy-ink',
-    danger: 'bg-red-50 text-red-600 border border-red-200',
+    danger: 'bg-[rgba(239,68,68,.12)] a-bad-text border border-[rgba(239,68,68,.35)]',
   }[kind]
   return (
     <button onClick={onClick} disabled={disabled} className={`press ${small ? 'px-3 py-2 text-[12.5px] rounded-xl' : 'w-full py-3.5 text-[14.5px] rounded-2xl'} font-extrabold ${cls} disabled:opacity-40 active:scale-[.97] transition-all`}>
@@ -172,7 +172,7 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
 
 export function StatTile({ label, value, accent, sub }: { label: string; value: string; accent?: boolean; sub?: string }) {
   return (
-    <div className={`rounded-[20px] p-4 ${accent ? 'tekit-pattern text-white shadow-[0_12px_28px_-12px_rgba(10,33,148,.5)]' : 'bg-white border border-navy-line'}`}>
+    <div className={`rounded-[20px] p-4 ${accent ? 'tekit-pattern text-white shadow-[0_12px_28px_-12px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] border border-navy-line'}`}>
       <div className={`text-[11.5px] font-bold uppercase tracking-wide ${accent ? 'text-white/75' : 'text-[var(--mut)]'}`}>{label}</div>
       <div className="mt-1.5 text-[21px] font-extrabold tracking-tight leading-none">{value}</div>
       {sub && <div className={`mt-1 text-[11.5px] font-semibold ${accent ? 'text-white/75' : 'text-[var(--mut)]'}`}>{sub}</div>}
@@ -211,7 +211,7 @@ function AdminSidebar() {
   ]
   const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
   return (
-    <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-[248px] z-40 bg-white border-r border-navy-line flex-col">
+    <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-[248px] z-40 bg-[var(--panel)] border-r border-navy-line flex-col">
       <div className="px-5 pt-5 pb-6 flex items-center gap-3">
         <img src="/logo.png" className="w-10 h-10 rounded-xl bg-navy-soft" alt="" />
         <div>
@@ -224,7 +224,7 @@ function AdminSidebar() {
           const act = on(it.to)
           return (
             <button key={it.id} onClick={() => { if (!act) { haptic(); nav(it.to) } }}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-[13.5px] font-extrabold transition-colors ${act ? 'bg-navy text-white shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]' : 'text-[var(--mut3)] hover:bg-navy-soft'}`}>
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-[13.5px] font-extrabold transition-colors ${act ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]' : 'text-[var(--mut3)] hover:bg-navy-soft'}`}>
               <span className={act ? 'text-white' : 'text-[var(--mut)]'}>{it.icon}</span>
               <span className="flex-1 text-left">{it.label}</span>
               {it.id === 'orders' && !!pending && (
@@ -254,7 +254,7 @@ function AdminTabBar() {
   ]
   const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
   return (
-    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-white border-t border-navy-line lg:hidden"
+    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-[var(--panel)] border-t border-navy-line lg:hidden"
       style={{ paddingBottom: 'calc(8px + var(--sab))' }}>
       <div className="flex">
         {tabs.map(tb => {
@@ -262,10 +262,10 @@ function AdminTabBar() {
           return (
             <button key={tb.id} onClick={() => { if (!act) { haptic(); nav(tb.to) } }}
               className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${act ? 'text-navy' : 'text-[var(--ink3)]'}`}>
-              <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${act ? 'bg-navy-soft px-4 py-1' : 'px-1 py-1'}`}>
+              <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${act ? 'bg-[var(--chip-on)] px-4 py-1' : 'px-1 py-1'}`}>
                 {TAB_ICON[tb.id]}
                 {tb.id === 'orders' && !!pending && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-red-600 text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-white">{pending}</span>
+                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-red-600 text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-[var(--panel)]">{pending}</span>
                 )}
               </span>
               {tb.label}

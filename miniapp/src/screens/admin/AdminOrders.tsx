@@ -7,8 +7,8 @@ import { haptic } from '../../lib/tg'
 
 const STATUSES = ['new', 'confirmed', 'delivering', 'done', 'cancelled'] as const
 const ST_CLS: Record<string, string> = {
-  new: 'bg-amber-100 text-amber-700', confirmed: 'bg-blue-100 text-blue-700',
-  delivering: 'bg-indigo-100 text-indigo-700', done: 'bg-emerald-100 text-emerald-700', cancelled: 'bg-red-100 text-red-600',
+  new: 'a-warn', confirmed: 'a-info',
+  delivering: 'a-indigo', done: 'a-ok', cancelled: 'a-bad',
 }
 const NEXT: Record<string, string[]> = {
   new: ['confirmed', 'cancelled'],
@@ -164,29 +164,29 @@ function Body() {
     <div className="pb-28 lg:pb-10">
       <AdminTopBar title={t.aTabO} right={
         <button onClick={toggleMute} aria-label={muted ? t.aSoundOn : t.aSoundOff} title={muted ? t.aSoundOn : t.aSoundOff}
-          className={`press w-9 h-9 rounded-xl grid place-items-center border transition-colors ${muted ? 'bg-white border-navy-line text-[var(--ink3)]' : 'bg-navy text-white border-navy shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]'}`}>
+          className={`press w-9 h-9 rounded-xl grid place-items-center border transition-colors ${muted ? 'bg-[var(--panel)] border-navy-line text-[var(--ink3)]' : 'bg-[var(--btn)] text-[var(--btn-ink)] border-[var(--btn)] shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]'}`}>
           {muted ? bellOn : bellOff}
         </button>
       } />
 
       <div className="px-4 mt-3 lg:max-w-[1200px] lg:mx-auto lg:px-8">
         <input value={q} onChange={e => setQ(e.target.value)} placeholder={t.aSearchO}
-          className="w-full bg-white border border-navy-line rounded-2xl py-2.5 px-4 text-[13.5px] font-medium outline-none focus:border-navy placeholder:text-[var(--ink3)]" />
+          className="w-full bg-[var(--panel)] border border-navy-line rounded-2xl py-2.5 px-4 text-[13.5px] font-medium outline-none focus:border-[var(--btn)] placeholder:text-[var(--ink3)]" />
       </div>
       <div className="flex gap-2 px-4 mt-3 overflow-x-auto no-scrollbar lg:max-w-[1200px] lg:mx-auto lg:px-8 lg:flex-wrap">
         <button onClick={() => setFilter('all')}
-          className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === 'all' ? 'bg-navy text-white' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
+          className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === 'all' ? 'bg-[var(--btn)] text-[var(--btn-ink)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
           {t.all} {counts.all || 0}
         </button>
         {STATUSES.map(s => (
           <button key={s} onClick={() => setFilter(s)}
-            className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === s ? 'bg-navy text-white shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
+            className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === s ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
             {t['st_' + s]} {counts[s] || 0}
           </button>
         ))}
       </div>
 
-      {err === 'auth' ? <div className="px-4 mt-8 text-center text-[13.5px] font-bold text-red-500">{t.wrongPass}</div> :
+      {err === 'auth' ? <div className="px-4 mt-8 text-center text-[13.5px] font-bold a-bad-text">{t.wrongPass}</div> :
         shown.length === 0 ? (
           <div className="px-4 mt-10 text-center text-[14px] font-semibold text-[var(--mut)]">— {t.aNoOrdersA} —</div>
         ) : (
@@ -197,13 +197,13 @@ function Body() {
                 const open = openId === o.id
                 const nx = NEXT[o.status] || []
                 return (
-                  <article key={o.id} className={`anim-up bg-white border rounded-[20px] overflow-hidden transition-colors ${o.status === 'new' ? 'border-amber-300 shadow-[0_8px_20px_-10px_rgba(180,120,0,.25)]' : 'border-navy-line'}`}>
+                  <article key={o.id} className={`anim-up bg-[var(--panel)] border rounded-[20px] overflow-hidden transition-colors ${o.status === 'new' ? 'border-[rgba(245,158,11,.45)] shadow-[0_8px_20px_-10px_rgba(180,120,0,.25)]' : 'border-navy-line'}`}>
                     <button onClick={() => { setOpenId(open ? null : o.id); haptic() }} className="w-full text-left px-4 pt-3.5 pb-3">
                       <div className="flex items-center gap-2">
                         <span className="text-[13.5px] font-extrabold">#{o.id}</span>
                         <Chip s={o.status} />
                         {(a.data?.risk?.[String(o.phone)] || 0) >= 2 && (
-                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-red-100 text-red-600">⚠ {a.data.risk[String(o.phone)]} cancelled</span>
+                          <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-lg a-bad">⚠ {a.data.risk[String(o.phone)]} cancelled</span>
                         )}
                         <span className="flex-1" />
                         <span className="text-[11px] font-semibold text-[var(--mut)]">{fmtDT(o.created_at)}</span>
@@ -212,7 +212,7 @@ function Body() {
                       <div className="mt-1.5 flex items-center gap-2 text-[13px] font-bold">
                         <span className="truncate">{o.name}</span>
                         <span className="text-[var(--mut)] font-medium">·</span>
-                        <a href={`tel:${o.phone}`} onClick={e => e.stopPropagation()} className="text-navy underline decoration-navy/30 underline-offset-2 whitespace-nowrap">{o.phone}</a>
+                        <a href={`tel:${o.phone}`} onClick={e => e.stopPropagation()} className="text-[var(--btn)] underline decoration-[var(--btn)] underline-offset-2 whitespace-nowrap">{o.phone}</a>
                       </div>
                       <div className="mt-1 flex items-center gap-2">
                         <span className="text-[15px] font-extrabold tracking-tight">{fmt(o.total)} UZS</span>
@@ -236,7 +236,7 @@ function Body() {
 
             {/* Desktop / tablet: table */}
             <div className="hidden lg:block px-8 mt-4 max-w-[1200px] mx-auto">
-              <div className="bg-white border border-navy-line rounded-[22px] overflow-hidden shadow-[0_2px_14px_-8px_rgba(10,33,148,.15)]">
+              <div className="bg-[var(--panel)] border border-navy-line rounded-[22px] overflow-hidden shadow-[0_2px_14px_-8px_rgba(10,33,148,.15)]">
                 <div className="grid grid-cols-[110px_minmax(0,1.1fr)_minmax(0,1.3fr)_110px_120px_250px] gap-4 px-5 py-3 border-b border-navy-line bg-paper text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--mut)]">
                   <div>{t.aColNo}</div>
                   <div>{t.aColCust}</div>
@@ -253,14 +253,14 @@ function Body() {
                   return (
                     <React.Fragment key={o.id}>
                       <div onClick={() => { setOpenId(open ? null : o.id) }}
-                        className={`grid grid-cols-[110px_minmax(0,1.1fr)_minmax(0,1.3fr)_110px_120px_250px] gap-4 px-5 py-3.5 border-b border-[var(--line)] items-center cursor-pointer transition-colors hover:bg-[var(--bg)] ${o.status === 'new' ? 'bg-amber-50/70' : ''}`}>
+                        className={`grid grid-cols-[110px_minmax(0,1.1fr)_minmax(0,1.3fr)_110px_120px_250px] gap-4 px-5 py-3.5 border-b border-[var(--line)] items-center cursor-pointer transition-colors hover:bg-[var(--bg)] ${o.status === 'new' ? 'bg-[rgba(245,158,11,.08)]' : ''}`}>
                         <div>
                           <div className="text-[13.5px] font-extrabold">#{o.id}</div>
                           <div className="text-[10.5px] font-semibold text-[var(--mut)] mt-0.5">{fmtDT(o.created_at)}</div>
                         </div>
                         <div className="min-w-0">
                           <div className="text-[13px] font-bold truncate">{o.name}</div>
-                          <a href={`tel:${o.phone}`} onClick={e => e.stopPropagation()} className="text-[11.5px] font-semibold text-navy underline decoration-navy/30 underline-offset-2">{o.phone}</a>
+                          <a href={`tel:${o.phone}`} onClick={e => e.stopPropagation()} className="text-[11.5px] font-semibold text-[var(--btn)] underline decoration-[var(--btn)] underline-offset-2">{o.phone}</a>
                           <div className="text-[10.5px] font-semibold text-[var(--mut)] mt-0.5">
                             {o.delivery_type === 'pickup' ? t.pickup : t.deliveryMode} · {o.payment === 'transfer' || o.payment === 'card' ? t.cardTransfer : t.cash}{o.change_amount ? ` · ${t.changeLabel} ${fmt(o.change_amount)}` : ''}
                           </div>
@@ -269,7 +269,7 @@ function Body() {
                         <div className="text-right text-[14px] font-extrabold tracking-tight whitespace-nowrap">{fmt(o.total)}</div>
                         <div className="flex items-center gap-1.5">
                           <Chip s={o.status} />
-                          {(a.data?.risk?.[String(o.phone)] || 0) >= 2 && <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-lg bg-red-100 text-red-600">⚠</span>}
+                          {(a.data?.risk?.[String(o.phone)] || 0) >= 2 && <span className="text-[10px] font-extrabold px-1.5 py-0.5 rounded-lg a-bad">⚠</span>}
                         </div>
                         <div onClick={e => e.stopPropagation()} className="flex flex-wrap gap-2 justify-end">
                           {nx.map(s => nextBtn(o, s))}
@@ -292,7 +292,7 @@ function Body() {
       <Modal open={!!cancelO} onClose={() => setCancelO(null)} title={t.aCancelQ}>
         <div className="text-[13px] font-semibold text-[var(--mut3)]">#{cancelO?.id} · {cancelO?.name}</div>
         <textarea value={cancelNote} onChange={e => setCancelNote(e.target.value)} rows={2} placeholder={t.aCancelReason}
-          className="mt-2.5 w-full bg-white border border-navy-line rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium outline-none focus:border-navy" />
+          className="mt-2.5 w-full bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-2.5 text-[13.5px] font-medium outline-none focus:border-[var(--btn)]" />
         <div className="mt-3 flex gap-2">
           <Btn kind="ghost" onClick={() => setCancelO(null)}>{t.aCloseX}</Btn>
           <Btn kind="danger" disabled={busy} onClick={() => { const id = cancelO.id; setCancelO(null); setStatus(id, 'cancelled', cancelNote || undefined) }}>{t.aCancelA}</Btn>
@@ -301,9 +301,9 @@ function Body() {
 
       <Modal open={!!cashO} onClose={() => setCashO(null)} title={t.aCashQ}>
         <div className="text-[13px] font-semibold text-[var(--mut3)]">#{cashO?.id} · {cashO?.name} · {cashO?.phone}</div>
-        <div className="mt-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 text-[12px] font-semibold text-amber-800 leading-snug">{t.aCashRisk}</div>
+        <div className="mt-2 a-warn-box rounded-xl px-3 py-2.5 text-[12px] font-semibold leading-snug">{t.aCashRisk}</div>
         {(a.data?.risk?.[String(cashO?.phone)] || 0) >= 1 && (
-          <div className="mt-2 text-[12.5px] font-extrabold text-red-600">⚠ {a.data.risk[String(cashO?.phone || '')]} cancelled orders from this number</div>
+          <div className="mt-2 text-[12.5px] font-extrabold a-bad-text">⚠ {a.data.risk[String(cashO?.phone || '')]} cancelled orders from this number</div>
         )}
         {cashO?.change_amount ? <div className="mt-2 text-[13px] font-bold">{t.changeLabel} {fmt(cashO.change_amount)} UZS</div> : null}
         <div className="mt-3 flex gap-2">
