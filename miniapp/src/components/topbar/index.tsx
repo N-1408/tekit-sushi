@@ -11,7 +11,7 @@ import { BrandLogo } from './brand-logo'
    yopiq turadi: tab almashinuvi tarix yozuvini ALMASHTIRADI (replace), shu
    sababli Telegram orqaga tugmasi tab orasida sakramaydi. Ichki sahifalarda
    (mahsulot, checkout va h.k.) push bo'ladi va orqaga ko'rinadi. */
-const TAB_PATHS = ['/', '/cart', '/orders', '/profile', '/history']
+export const TAB_PATHS = ['/', '/cart', '/orders', '/profile', '/history']
 
 export function WhaleMark({ size = 40 }: { size?: number }) {
   return <BrandLogo size={size} />
