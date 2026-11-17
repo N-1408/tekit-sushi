@@ -69,7 +69,7 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
   const hasExtras = extras.some(s => s.items.length > 0)
 
   return (
-    <div className={panel ? 'pb-4' : 'pb-[194px] lg:pb-28'}>
+    <div className={panel ? 'pb-4' : 'pb-[calc(194px+var(--sab))] lg:pb-28'}>
       {!panel && <TopBar title={t.tabCart} back={false} right={<div />} />}
       {/* Biriktirilgan buyurtma paneli: pastki navbar ustida doim ko'rinadi.
           Jami chapda, tugma o'ngda; mobil uchun (desktopda yon panel bor). */}
