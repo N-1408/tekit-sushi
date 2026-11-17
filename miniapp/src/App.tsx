@@ -15,7 +15,7 @@ import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
-import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, SideNav } from './components/ui'
+import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, SideNav, useIsWide } from './components/ui'
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 import { useScrollHide } from './lib/scrollHide'
@@ -43,12 +43,15 @@ export default function App() {
     // Skroll gisterezisi: pastga — yashirish, yuqoriga — qayta ko'rsatish.
   // (html[data-floats]; CSS o'tishlari index.cssda.)
   const { hidden: floatsHidden } = useScrollHide()
+  const isWide = useIsWide()
   React.useEffect(() => {
     const el = document.documentElement
-    if (floatsHidden) el.dataset.floats = '1'
+    // Desktopda suzuvchi qator (sovg'a halqasi + savat) doim ko'rinadi:
+    // skroll-yashirish faqat mobilda ishlaydi.
+    if (floatsHidden && !isWide) el.dataset.floats = '1'
     else delete el.dataset.floats
     return () => { delete el.dataset.floats }
-  }, [floatsHidden, loc.pathname])
+  }, [floatsHidden, isWide, loc.pathname])
 
   return (
     <>
