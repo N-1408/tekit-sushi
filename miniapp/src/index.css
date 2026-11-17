@@ -112,6 +112,26 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 :root { --float-size: 56px; --float-bottom: calc(88px + var(--sab)); --float-side: 16px;
   --promo: #F97316; --promo-ink: #431407; --promo-deep: #C2410C; --promo-soft: rgba(249, 115, 22, .14); }
 [data-theme='dark'] { --promo: #FF8A3C; --promo-ink: #2A1204; --promo-deep: #D14E00; --promo-soft: rgba(255, 138, 60, .18); }
+
+/* Buyurtmalar: holat chiplari va bosqich aksenti temadan o'qiladi */
+:root {
+  --acc:#0A2194; --acc-ring:rgba(10,33,148,.25);
+  --chip-new-bg:#FEF3C7; --chip-new:#B45309;
+  --chip-cf-bg:#E0F2FE;  --chip-cf:#0369A1;
+  --chip-ck-bg:#E0E7FF;  --chip-ck:#4338CA;
+  --chip-dl-bg:#EDE9FE;  --chip-dl:#6D28D9;
+  --chip-done-bg:#D1FAE5; --chip-done:#047857;
+  --chip-cx-bg:#FFE4E6;  --chip-cx:#E11D48;
+}
+[data-theme='dark'] {
+  --acc:#29A8E0; --acc-ring:rgba(41,168,224,.3);
+  --chip-new-bg:rgba(120,53,15,.4);  --chip-new:#FCD34D;
+  --chip-cf-bg:rgba(12,74,110,.4);   --chip-cf:#7DD3FC;
+  --chip-ck-bg:rgba(49,46,129,.45);  --chip-ck:#A5B4FC;
+  --chip-dl-bg:rgba(76,29,149,.45);  --chip-dl:#C4B5FD;
+  --chip-done-bg:rgba(6,78,59,.45);  --chip-done:#6EE7B7;
+  --chip-cx-bg:rgba(136,19,55,.4);   --chip-cx:#FDA4AF;
+}
 /* Suzuvchi boshqaruvlar: chapda "yuqoriga chiqish", o'ngda yetkazib berish + savat.
    Uchalasi bir bazaviy chiziqda (--float-bottom) va bir o'lchamda (--float-size).
    Yechim: --nav-w olib tashlandi (sidebar yo'q), chap qator doim chekkada. */
