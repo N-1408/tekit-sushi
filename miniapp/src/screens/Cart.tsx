@@ -68,13 +68,13 @@ export default function Cart() {
   const hasExtras = extras.some(s => s.items.length > 0)
 
   return (
-    <div className="pb-[180px] lg:pb-28">
+    <div className="pb-[194px] lg:pb-28">
       <TopBar title={t.tabCart} back={false} right={<div />} />
       {/* Biriktirilgan buyurtma paneli: pastki navbar ustida doim ko'rinadi.
           Jami chapda, tugma o'ngda; mobil uchun (desktopda yon panel bor). */}
       {lines.length > 0 && (
         <div className="fixed inset-x-3.5 z-[39] lg:hidden flex items-center justify-between gap-3 rounded-[20px] bg-[var(--sheet)] border border-[var(--line2)] shadow-[0_16px_36px_-14px_rgba(0,0,0,.6)] p-2.5 pl-4"
-          style={{ bottom: 'calc(80px + var(--sab))' }}>
+          style={{ bottom: 'calc(94px + var(--sab))' }}>
           <div className="min-w-0">
             <div className="text-[10.5px] font-bold text-[var(--mut2)] leading-tight">{t.total}</div>
             <div className="text-[15.5px] font-extrabold tabular-nums whitespace-nowrap">
