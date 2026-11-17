@@ -47,7 +47,8 @@ function ExtraSection({ title, items, lang, t }: { title: string; items: Product
   )
 }
 
-export default function Cart() {
+export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' }) {
+  const panel = variant === 'panel'
   const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add, mode, pickup, ff, deliveryCfg } = useStore()
   const nav = useNavigate()
   /* Savatga kirganda doim tepadan boshlash */
@@ -68,11 +69,11 @@ export default function Cart() {
   const hasExtras = extras.some(s => s.items.length > 0)
 
   return (
-    <div className="pb-[194px] lg:pb-28">
-      <TopBar title={t.tabCart} back={false} right={<div />} />
+    <div className={panel ? 'pb-4' : 'pb-[194px] lg:pb-28'}>
+      {!panel && <TopBar title={t.tabCart} back={false} right={<div />} />}
       {/* Biriktirilgan buyurtma paneli: pastki navbar ustida doim ko'rinadi.
           Jami chapda, tugma o'ngda; mobil uchun (desktopda yon panel bor). */}
-      {lines.length > 0 && (
+      {!panel && lines.length > 0 && (
         <div className="fixed inset-x-3.5 z-[39] lg:hidden flex items-center justify-between gap-3 rounded-[20px] bg-[var(--sheet)] border border-[var(--line2)] shadow-[0_16px_36px_-14px_rgba(0,0,0,.6)] p-2.5 pl-4"
           style={{ bottom: 'calc(94px + var(--sab))' }}>
           <div className="min-w-0">
@@ -105,8 +106,8 @@ export default function Cart() {
         </div>
       ) : (
         <>
-          <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:gap-8 lg:items-start">
-          <div className="px-4 mt-4 space-y-2.5 lg:flex-1 lg:min-w-0 lg:px-0">
+          <div className={panel ? '' : 'lg:max-w-[1240px] lg:mx-auto lg:flex lg:gap-8 lg:items-start'}>
+          <div className={panel ? 'px-4 mt-4 space-y-2.5' : 'px-4 mt-4 space-y-2.5 lg:flex-1 lg:min-w-0 lg:px-0'}>
             {lines.map(l => (
               <div key={l.id} className="flex gap-3 bg-[var(--panel)] border border-navy-line rounded-[18px] p-2.5">
                 <img src={pImg(l)} alt="" className="w-[68px] h-[68px] rounded-xl object-cover bg-navy-soft cursor-pointer"
@@ -133,8 +134,8 @@ export default function Cart() {
               </div>
             )}
           </div>
-          <div className="lg:w-[380px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4">
-          <div className="mx-4 mt-4 bg-[var(--panel)] border border-navy-line rounded-[18px] p-4 lg:mx-0 lg:mt-0">
+          <div className={panel ? 'px-4 mt-4' : 'lg:w-[380px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4'}>
+          <div className={panel ? 'mt-4 bg-[var(--panel)] border border-navy-line rounded-[18px] p-4' : 'mx-4 mt-4 bg-[var(--panel)] border border-navy-line rounded-[18px] p-4 lg:mx-0 lg:mt-0'}>
             <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)]"><span>{t.subtotal}</span><span>{fmt(sum)} UZS</span></div>
             {mode === null ? null : mode === 'pickup' ? (
               <div className="flex items-center gap-2 text-[13.5px] font-semibold text-[var(--mut2)] mt-2">
@@ -147,8 +148,8 @@ export default function Cart() {
             <div className="h-px bg-navy-line my-3" />
             <div className="flex justify-between text-[16px] font-extrabold"><span>{t.total}</span><span>{fmt(sum + (mode === 'delivery' ? (deliveryCfg?.fee || 0) : 0))} UZS</span></div>
           </div>
-          <div className="px-4 mt-4 flex flex-col gap-2.5 lg:px-0">
-            <div className="hidden lg:block"><BigButton onClick={() => { haptic(); nav('/checkout') }}>{t.checkout} · {fmt(sum)}</BigButton></div>
+          <div className={panel ? 'px-4 mt-4 flex flex-col gap-2.5' : 'px-4 mt-4 flex flex-col gap-2.5 lg:px-0'}>
+            <div className={panel ? '' : 'hidden lg:block'}><BigButton onClick={() => { haptic(); nav('/checkout') }}>{t.checkout} · {fmt(sum)}</BigButton></div>
             <button onClick={clearCart} className="text-[13px] font-bold text-[var(--mut2)] py-2 active:text-red-500">{t.clearCart}</button>
           </div>
           </div>

@@ -33,13 +33,8 @@ function Section({ id, title, items }: { id?: string; title: string; items: Prod
   const list = items
   return (
     <section id={id} className="mt-7">
-      {/* Kategoriya sarlavhasi yopishqoq: bo'lim skroll davomida o'z nomi bilan
-          qotib turadi — kategoriyalar bir-biridan aniq ajraladi. */}
-      <div className="sticky z-20 bg-[var(--bg)] border-b border-[var(--line)]"
-        style={{ top: 'calc(var(--sat) + var(--catnav-h, 56px))' }}>
-        <div className="px-4 lg:px-6 pt-2 pb-1.5">
-          <h2 className="text-[26px] lg:text-[34px] font-extrabold tracking-tight leading-none">{title}</h2>
-        </div>
+      <div className="px-4 lg:px-6 pt-2 pb-1.5">
+        <h2 className="text-[26px] lg:text-[34px] font-extrabold tracking-tight leading-none">{title}</h2>
       </div>
       <div className="px-4 lg:px-6 pt-3 grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7">
         {list.map((p, i) => <ProductCard key={p.id} p={p} i={i} />)}
@@ -194,7 +189,7 @@ export default function Home() {
         const catalogNav = <CatalogNav q={q} setQ={setQ} chips={chips} active={searching ? null : active} onSelect={onSelect} />
         return wide ? (
           <>
-            <div className="relative z-20 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
+            <div className="relative z-20" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
               <Header />
             </div>
             <div ref={navRef} className="sticky z-30 tk-sticky-catalog">

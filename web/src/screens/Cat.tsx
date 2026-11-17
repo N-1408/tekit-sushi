@@ -1,7 +1,7 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
 import { useStore, pName, CATS, inCat } from '../lib/store'
-import { TopBar, SearchChips, ProductCard, Empty, MenuToggle } from '../components/ui'
+import { TopBar, SearchChips, ProductCard, Empty } from '../components/ui'
 
 export default function Cat() {
   const { cat = '' } = useParams()
@@ -12,7 +12,7 @@ export default function Cat() {
   if (q.trim()) items = items.filter(p => pName(p, lang).toLowerCase().includes(q.trim().toLowerCase()))
   return (
     <div className="pb-28 lg:pb-12">
-      <div className="sticky top-0 z-30 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
+      <div className="sticky top-0 z-30" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
         <TopBar flat title={(c as any)?.[lang] || c?.id || cat} />
         <SearchChips q={q} setQ={setQ} />
       </div>
