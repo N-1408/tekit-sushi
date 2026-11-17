@@ -9,6 +9,8 @@ import { beginAddToCartAnim } from '../lib/addAnim'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import MapPicker from './MapPicker'
 import { DeliveryModal, PickupModal, InitialChoiceModal } from './Fulfillment'
+import { BrandLogo } from './topbar/brand-logo'
+import { TAB_PATHS } from './topbar'
 
 const CDN = 'https://cdn.delever.uz/delever/'
 
@@ -532,7 +534,7 @@ export function CityBanner() {
       <div className="flex items-center gap-3 bg-[var(--panel)] border border-[var(--line2)] rounded-2xl px-4 py-3 shadow-[0_18px_44px_-14px_rgba(0,0,0,.6)]">
         <span className="text-[#29A8E0] shrink-0"><IcPin /></span>
         <div className="flex-1 text-[14px] font-bold text-[var(--ink)] leading-snug">{t.cityNote}</div>
-        <button onClick={close}
+        <button onClick={() => { try { localStorage.setItem('tk-city-ok', '1') } catch {}; setOk(true) }}
           className="press shrink-0 bg-[var(--chip-on)] text-[var(--chip-on-ink)] text-[13.5px] font-extrabold px-3.5 py-2 rounded-xl active:scale-95 transition-transform">
           {t.cityOk}
         </button>
