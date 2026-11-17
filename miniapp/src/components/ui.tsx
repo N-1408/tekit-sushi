@@ -921,13 +921,16 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
     okTimer.current = window.setTimeout(() => { setOk(false); setAnim(null) }, 810)
   }
   return (
-    <article onClick={() => { haptic(); openP(p) }}
+    <article data-pc={p.id} onClick={() => { haptic(); openP(p) }}
       className="anim-up cursor-pointer relative flex flex-col h-full"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
       <div className={`relative aspect-square rounded-[12px] overflow-hidden bg-[var(--sheet)] shrink-0 ${inCart ? 'ring-1 ring-inset ring-[var(--chip-on)]/45' : ''}`}>
         <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         {wtxt && <span className="absolute bottom-2 left-2 bg-black/45 text-white text-[11px] font-bold px-2 py-1 rounded-[8px] backdrop-blur-[2px]">{wtxt}</span>}
         {isSpicy(p) && <SpicyBadge size={26} className="absolute top-2 right-2 tk-spicy-ember bg-black/40 backdrop-blur-[2px] shadow-sm" />}
+        {inCart && !desk && (
+          <span className="absolute top-2 left-2 min-w-[22px] h-[22px] px-1.5 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] text-[12px] font-extrabold grid place-items-center leading-none shadow-[0_3px_8px_-3px_rgba(0,0,0,.35)]">{q}</span>
+        )}
       </div>
       <div className="mt-auto pt-2 flex flex-col">
         <div className="text-[15px] font-bold leading-snug text-[var(--ink)] line-clamp-2">{pName(p, lang)}</div>
@@ -1504,6 +1507,8 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   const [sel, setSel] = useState<Record<string, number>>(() => ({ [p.id]: 1 }))
   const selOf = (id: string) => sel[id] || 0
   const setSelQty = (id: string, q: number) => setSel(s => { const c = { ...s }; if (q <= 0) delete c[id]; else c[id] = q; return c })
+  /* Popap qaysi sahifada ochilgani: yopilganda skrollni faqat shu sahifada qaytaramiz */
+  const mountPathRef = useRef<string>('')
   /* Yopish: popap pastga silliq sirg'alib chiqadi (chiroyli exit), keyin o'chiriladi */
   const closingRef = useRef(false)
   const doClose = () => {
@@ -1567,6 +1572,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   }
   const bgDown = useRef<{ x: number; y: number } | null>(null)
   useEffect(() => {
+    mountPathRef.current = loc.pathname
     const prevOverflow = document.body.style.overflow
     const prevScrollY = window.scrollY
     const prevFocus = document.activeElement as HTMLElement | null
@@ -1588,7 +1594,8 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     return () => {
       document.removeEventListener('keydown', onKey, true)
       document.body.style.overflow = prevOverflow
-      if (Math.abs(window.scrollY - prevScrollY) > 2) window.scrollTo(0, prevScrollY)
+      // Popap ochilgan sahifada qaytsak, skroll eski joyiga qaytadi; boshqa sahifaga o'tilgan bo'lsa tegmaymiz
+      if (Math.abs(window.scrollY - prevScrollY) > 2 && (!mountPathRef.current || window.location.pathname === mountPathRef.current)) window.scrollTo(0, prevScrollY)
       try { prevFocus?.focus?.() } catch {}
     }
   }, [])
@@ -1611,7 +1618,17 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     if (selCount <= 0) return
     for (const [id, q] of Object.entries(sel)) if (q > 0) m.add(id, q)
     haptic('medium')
-    nav('/')
+    /* Chiqishda foydalanuvchi qolgan joyiga qaytadi: asosiy menyudan ochilgan
+       bo'lsa skroll o'z-o'zidan eski joyiga qaytadi; boshqa sahifadan bo'lsa
+       menyuga o'tib, shu mahsulot kartochkasi tortiladi. */
+    if (mountPathRef.current !== '/') {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      nav('/')
+      window.setTimeout(() => {
+        const el = document.querySelector<HTMLElement>(`[data-pc="${p.id}"]`)
+        if (el) el.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' })
+      }, 420)
+    }
     doClose()
   }
   return createPortal(
