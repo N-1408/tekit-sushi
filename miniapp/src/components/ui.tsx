@@ -1272,7 +1272,7 @@ export function NutritionPanel({ items, per100, className }: {
 }
 
 /* sous qo'shish: ROSTYXAT — har bir sous alohida qator: rasm, nom, narx,
-   sonli tugma (− son +) va o'chirish. Ko'p bo'lsa ro'yxat ichida skroll. */
+   sonli tugma (− son +). Barcha souslar to'liq ko'rinadi (ichki skroll yo'q). */
 function SaucePicker({ sauces, qtyOf, setQty, onShow }: {
   sauces: Product[]; qtyOf: (sid: string) => number; setQty: (id: string, q: number) => void; onShow?: (p: Product) => void
 }) {
@@ -1283,12 +1283,12 @@ function SaucePicker({ sauces, qtyOf, setQty, onShow }: {
       <div className="flex items-center gap-1.5 text-[13.5px] font-extrabold text-[var(--ink)]">
         <span className="text-[#29A8E0]"><IcSauce s={15} /></span> {t.sAddSauces}
       </div>
-      <div className="mt-2.5 flex flex-col gap-1.5 max-h-[172px] overflow-y-auto no-scrollbar">
+      <div className="mt-2.5 flex flex-col gap-1">
         {sauces.map(sa => {
           const sq = qtyOf(sa.id)
           return (
             <div key={sa.id}
-              className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1.5 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-[var(--line2)]')}>
+              className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-[var(--line2)]')}>
               <button onClick={() => { haptic(); onShow?.(sa) }} className="press flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer active:opacity-80 transition-opacity">
                 <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-navy-soft shrink-0" />
                 <span className="min-w-0">
@@ -1306,10 +1306,6 @@ function SaucePicker({ sauces, qtyOf, setQty, onShow }: {
                   <button onClick={() => { setQty(sa.id, sq + 1); haptic() }} aria-label="plus"
                     className="press w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform cursor-pointer">
                     <IcPlus s={14} />
-                  </button>
-                  <button onClick={() => { setQty(sa.id, 0); haptic() }} aria-label="remove"
-                    className="press w-8 h-8 rounded-full bg-[var(--soft)] border border-[var(--line2)] text-[var(--mut2)] grid place-items-center active:scale-90 transition-transform cursor-pointer">
-                    <IcX s={13} />
                   </button>
                 </span>
               ) : (
@@ -1695,10 +1691,9 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
           <NutritionPanel className="mt-2.5" items={m.nutrition} per100={m.t.per100} />
           {pDesc(p, m.lang) && <p className="mt-3 text-[14px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
           {p.cat !== 'sous' && (
-  /* Souslar: PINNED ro'yxat — skroll davomida popapning ostida doim ko'rinadi,
-     oxirga yetganda o'z tabiiy joyiga qo'taladi (tavsiyalar va buyurtma panelidan oldin). */
-  <div className="sticky bottom-0 z-10 -mx-5 mt-4 px-5 pt-3 bg-[var(--sheet)] border-t border-[var(--line)]"
-    style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
+  /* Souslar: oqim ichida oddiy bo'lim — alohida biriktirilgan panel emas,
+     rasm → tavsif → souslar → tavsiyalar → buyurtma paneli bitta sahifada. */
+  <div className="mt-4">
     <SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} onShow={setMini} />
   </div>
 )}
