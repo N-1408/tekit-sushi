@@ -1,14 +1,13 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStore, pName, pImg, isSpicy, CATS, type Product } from '../lib/store'
+import { useStore, pName, pImg, isSpicy, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
 import { TopBar, Qty, Empty, BigButton, IcX, IcStore, IcPlus, QtyStepper, SpicyBadge } from '../components/ui'
 import { pickupSummary } from '../components/Fulfillment'
 
-/* Savatdagi "qoshimcha qoshish" zonalari: Achchiq, Souslar va savatda yo'q
-   kategoriyalar — gorizontal chip qatorlari, ro'yxatdan keyin, buyurtma
-   tugmasidan oldin. */
+/* Savatdagi "qoshimcha qoshish" zonalari: faqat Souslar va Ichimliklar —
+   gorizontal chip qatorlari, ro'yxatdan keyin, buyurtma tugmasidan oldin. */
 function ExtraChip({ x, lang, t }: { x: Product; lang: any; t: any }) {
   const { cart, add, setQty } = useStore()
   const q = cart.find((l: any) => l.id === x.id)?.q ?? 0
@@ -51,27 +50,21 @@ function ExtraSection({ title, items, lang, t }: { title: string; items: Product
 export default function Cart() {
   const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add, mode, pickup, ff, deliveryCfg } = useStore()
   const nav = useNavigate()
+  /* Savatga kirganda doim tepadan boshlash */
+  React.useEffect(() => { const el = document.scrollingElement || document.documentElement; el.scrollTop = 0 }, [])
   const lines = cart.filter(l => l.q > 0)
   const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
 
-  /* Qoshimchalar: Achchiq (doim), Souslar (doim), qolgan kategoriyalar —
-     faqat savatda YO'Q kategoriyalar; savatdagi kategoriya takrorlanmaydi. */
+  /* Qoshimchalar: faqat Souslar va Ichimliklar (doim), savatdagi narsalar
+     takrorlanmaydi; boshqa kategoriyalar chiqmaydi. */
   const extras = React.useMemo(() => {
-    const cartCats = new Set(lines.map(l => l.cat))
     const inCart = new Set(lines.map(l => l.id))
-    const act = products.filter(x => x.active !== false && !inCart.has(x.id) && x.cat !== 'hit')
-    const spicy = act.filter(x => isSpicy(x) && x.cat !== 'sous' && !cartCats.has(x.cat))
-    const sous = act.filter(x => x.cat === 'sous')
-    const cats = CATS
-      .filter(c => c.id !== 'sous' && c.id !== 'hit' && c.id !== 'spicy' && !cartCats.has(c.id))
-      .map(c => ({ id: c.id as string, title: ((c as any)[lang] || t.catNames[c.id]) as string, items: act.filter(x => x.cat === c.id && !isSpicy(x)) }))
-      .filter(s => s.items.length > 0)
+    const act = products.filter(x => x.active !== false && !inCart.has(x.id))
     return [
-      { id: 'spicy', title: t.catNames.spicy as string, items: spicy },
-      { id: 'sous', title: t.catNames.sous as string, items: sous },
-      ...cats,
+      { id: 'sous', title: t.catNames.sous as string, items: act.filter(x => x.cat === 'sous') },
+      { id: 'ichimlik', title: t.catNames.ichimlik as string, items: act.filter(x => x.cat === 'ichimlik') },
     ]
-  }, [lines, products, lang, t])
+  }, [lines, products, t])
   const hasExtras = extras.some(s => s.items.length > 0)
 
   return (
