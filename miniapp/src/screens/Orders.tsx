@@ -11,12 +11,12 @@ export function statusLabel(s: string, t: any) {
   return (t as any)[`st_${s}`] || s
 }
 export const CHIP_STYLE: Record<string, string> = {
-  new: 'bg-amber-100 text-amber-700',
-  confirmed: 'bg-sky-100 text-sky-700',
-  cooking: 'bg-indigo-100 text-indigo-700',
-  delivering: 'bg-violet-100 text-violet-700',
-  done: 'bg-emerald-100 text-emerald-700',
-  cancelled: 'bg-rose-100 text-rose-600',
+  new: 'bg-[var(--chip-new-bg)] text-[var(--chip-new)]',
+  confirmed: 'bg-[var(--chip-cf-bg)] text-[var(--chip-cf)]',
+  cooking: 'bg-[var(--chip-ck-bg)] text-[var(--chip-ck)]',
+  delivering: 'bg-[var(--chip-dl-bg)] text-[var(--chip-dl)]',
+  done: 'bg-[var(--chip-done-bg)] text-[var(--chip-done)]',
+  cancelled: 'bg-[var(--chip-cx-bg)] text-[var(--chip-cx)]',
 }
 
 const STAGE: Record<string, number> = { new: 0, confirmed: 1, cooking: 1, delivering: 2, done: 3 }
@@ -39,17 +39,17 @@ function Stepper({ o, t }: { o: MyOrder; t: any }) {
       <div className="relative flex items-center">
         <div className="absolute left-[7%] right-[7%] top-[5px] h-[3px] rounded-full bg-navy-line" />
         <div
-          className="absolute left-[7%] top-[5px] h-[3px] rounded-full bg-navy transition-all duration-500"
+          className="absolute left-[7%] top-[5px] h-[3px] rounded-full bg-[var(--acc)] transition-all duration-500"
           style={{ width: `${(stage / (steps.length - 1)) * 86}%` }}
         />
         {steps.map((s, i) => (
           <div key={s} className="relative flex-1 flex flex-col items-center gap-1.5">
             <span
               className={`w-[13px] h-[13px] rounded-full border-[3px] transition-all duration-300 ${
-                i < stage ? 'bg-navy border-navy' : i === stage ? 'bg-navy border-navy/25 animate-pulse' : 'bg-[var(--panel)] border-navy-line'
+                i < stage ? 'bg-[var(--acc)] border-[var(--acc)]' : i === stage ? 'bg-[var(--acc)] border-[var(--acc-ring)] animate-pulse' : 'bg-[var(--panel)] border-navy-line'
               }`}
             />
-            <span className={`text-[8.5px] font-bold leading-none ${i <= stage ? 'text-navy' : 'text-[var(--mut2)]'}`}>
+            <span className={`text-[8.5px] font-bold leading-none ${i <= stage ? 'text-[var(--acc)]' : 'text-[var(--mut2)]'}`}>
               {statusLabel(s, t)}
             </span>
           </div>
@@ -83,7 +83,7 @@ export default function Orders({ variant = 'page' }: { variant?: 'page' | 'panel
           <span className="text-[11px] font-semibold text-[var(--mut2)]">{ago(o.at, t)}</span>
         </div>
         <div className="mt-1.5 flex items-center gap-2">
-          <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${CHIP_STYLE[o.status] || 'bg-navy-soft text-navy'}`}>
+          <span className={`text-[11px] font-extrabold px-2.5 py-1 rounded-full ${CHIP_STYLE[o.status] || 'bg-navy-soft text-[var(--acc)]'}`}>
             {o.status === 'done' ? '✓ ' : ''}
             {statusLabel(o.status, t)}
           </span>
