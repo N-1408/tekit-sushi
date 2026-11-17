@@ -167,6 +167,11 @@ export const IcCash = ({ s = 18 }: { s?: number }) => (
     <path fillRule="evenodd" clipRule="evenodd" d="M1.9 3.6h12.2c.61 0 1.1.49 1.1 1.1v6.6c0 .61-.49 1.1-1.1 1.1H1.9c-.61 0-1.1-.49-1.1-1.1V4.7c0-.61.49-1.1 1.1-1.1ZM8 6.2a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6Z" />
   </svg>
 )
+export const IcCard = ({ s = 18 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" clipRule="evenodd" d="M3.2 3.4h9.6c.99 0 1.8.81 1.8 1.8v5.6c0 .99-.81 1.8-1.8 1.8H3.2c-.99 0-1.8-.81-1.8-1.8V5.2c0-.99.81-1.8 1.8-1.8ZM1.4 6.2h13.2v1.9H1.4Z" />
+  </svg>
+)
 
 export const IcX = ({ s = 14 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -367,7 +372,7 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
       <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 py-2">
         {title ? (
           <>
-            <div className="text-[16px] font-extrabold flex-1 truncate">{title}</div>
+            <div className="text-[16px] font-extrabold flex-1 text-center truncate">{title}</div>
           </>
         ) : (
           <>
@@ -1021,7 +1026,7 @@ export function SpicyBadge({ size = 24, className }: { size?: number; className?
 }
 
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
-  const { cart, add, setQty, lang, t, openP, products } = useStore()
+  const { cart, add, setQty, lang, t, openP } = useStore()
   const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
   const inCart = q > 0
   const sale = p.sale_active && (p.old_price ?? 0) > p.price
@@ -1036,27 +1041,11 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const [anim, setAnim] = useState<number | null>(null)
   const okTimer = useRef<number | null>(null)
   useEffect(() => () => { if (okTimer.current) window.clearTimeout(okTimer.current) }, [])
-  // Savatga qo'shilgach: kichik bir qatorli sous chizig'i (yonga scroll, animatsiyali,
-  // ~5 soniyadan keyin o'zi yo'qoladi). Popap emas — kartochka ichidagi yozuv.
-  const sauces = p.cat !== 'sous' ? products.filter(x => x.cat === 'sous' && x.id !== p.id && x.active !== false) : []
-  const [strip, setStrip] = useState(false)
-  const [stripOut, setStripOut] = useState(false)
-  const stripTimer = useRef<number | null>(null)
-  useEffect(() => () => { if (stripTimer.current) window.clearTimeout(stripTimer.current) }, [])
-  const showStrip = () => {
-    if (!sauces.length) return
-    setStripOut(false); setStrip(true)
-    if (stripTimer.current) window.clearTimeout(stripTimer.current)
-    stripTimer.current = window.setTimeout(() => {
-      setStripOut(true)
-      stripTimer.current = window.setTimeout(() => setStrip(false), 200)
-    }, 5000)
-  }
   // Interaktivlik davomida mahsulot savatdan olib tashlangan bo'lsa (boshqa kartochka,
   // savat sahifasi va h.k.) eskirgan "qo'shildi" tasdig'i qolmasin: darhol bazaviy holat.
   useEffect(() => { if (!inCart && ok) { setOk(false); setAnim(null) } }, [inCart, ok])
   const onAdd = (el?: HTMLElement | null) => {
-    add(p.id); haptic('medium'); setOk(true); showStrip()
+    add(p.id); haptic('medium'); setOk(true)
     const res = beginAddToCartAnim(el)
     if (res) setAnim(res.k)
     if (okTimer.current) window.clearTimeout(okTimer.current)
@@ -1097,27 +1086,6 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
           </button>
         )}
       </div>
-      {strip && (
-        <div onClick={e => e.stopPropagation()}
-          className={`mt-1.5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] shadow-[0_10px_24px_-16px_rgba(10,15,50,.4)] px-2 py-2 ${stripOut ? 'tk-strip-out' : 'tk-strip-in'}`}>
-          <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-            {sauces.map(s => {
-              const sq = cart.find(l => l.id === s.id)?.q ?? 0
-              return (
-                <div key={s.id} className={`shrink-0 flex items-center gap-1.5 rounded-full pl-1 pr-1 py-1 ${sq > 0 ? 'bg-navy-soft' : 'bg-[var(--soft)]'}`}>
-                  <img src={pImg(s)} alt={pName(s, lang)} loading="lazy" className="w-7 h-7 rounded-full object-cover bg-navy-soft" />
-                  <div className="pr-0.5">
-                    <div className="text-[10.5px] font-extrabold leading-none whitespace-nowrap">{pName(s, lang)}</div>
-                    <div className="text-[9.5px] font-bold text-[var(--mut2)] mt-0.5 leading-none whitespace-nowrap">{sq > 1 ? `\u00d7${sq} ` : ''}{fmt(s.price)}</div>
-                  </div>
-                  <button onClick={e => { e.stopPropagation(); if (sq > 0) setQty(s.id, sq + 1); else add(s.id); haptic(sq > 0 ? undefined : 'medium') }}
-                    className="press w-6 h-6 rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform shrink-0"><IcPlus s={11} /></button>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
     </article>
   )
 }
@@ -1628,40 +1596,45 @@ function ImgOrPlate({ src, alt }: { src: string; alt: string }) {
    zonasida — matnni aylantirish tasodifan yopmaydi). ---------- */
 function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void }) {
   const m = useProductModal(p)
-  const [entered, setEntered] = useState(false)
+  const [enter, setEnter] = useState(false)
+  const [closing, setClosing] = useState(false)
   const [dy, setDy] = useState(0)
   const [drag, setDrag] = useState(false)
-  // YARIM OCHIQ rejim: varaq ekranning 56% ini egallaydi; kontent pastki
-  // chegarasiga yetganda TO'LIQ ekranga cho'ziladi, yuqoriga surilsa ham.
-  const [expanded, setExpanded] = useState(false)
-  const expandedRef = useRef(false)
-  useEffect(() => { expandedRef.current = expanded }, [expanded])
   const panelRef = useRef<HTMLDivElement | null>(null)
+  const scrollRef = useRef<HTMLDivElement | null>(null)
   const [mini, setMini] = useState<Product | null>(null)
+  /* Yopish: popap pastga silliq sirg'alib chiqadi (chiroyli exit), keyin o'chiriladi */
+  const closingRef = useRef(false)
+  const doClose = () => {
+    if (closingRef.current) return
+    closingRef.current = true
+    setDrag(false); setDy(0); setClosing(true)
+    window.setTimeout(onClose, 340)
+  }
   /* Telegram qo'llanmasi: popapni X bilan emas, BackButton bilan yopish.
      Brauzerda avvalgi ko'rinish (X) saqlanadi. */
   const inTg = !!TGA?.BackButton?.show
   const nav = useNavigate()
   const loc = useLocation()
+  const closeRef = useRef<() => void>(doClose)
+  closeRef.current = doClose
   useEffect(() => {
     const bb = TGA?.BackButton
     if (!bb?.show) return
-    const go = () => { if (miniCloseRef) { miniCloseRef(); return } onClose() }
+    const go = () => { if (miniCloseRef) { miniCloseRef(); return } closeRef.current() }
     try { bb.onClick(go); bb.show() } catch {}
     return () => {
       try { bb.offClick?.(go); bb.hide() } catch {}
-      // sahifaning o'z "orqaga" tugmasi faol bo'lgan sahifada qayta ko'rinadi
       if (!TAB_PATHS.includes(loc.pathname)) { try { bb.show() } catch {} }
     }
-  }, [onClose, loc.pathname])
-  // Kontent eng tepasida yana pastga surilsa: yarim ochiq varaq yopiladi,
-  // to'liq ochiq varaq esa yarim holatga qaytadi (scrollTop <= 0 da faol).
-  const scrollRef = useRef<HTMLDivElement | null>(null)
+  }, [loc.pathname])
+  useEffect(() => { const id = window.setTimeout(() => setEnter(true), 16); return () => window.clearTimeout(id) }, [])
+  /* Kontent eng tepasida yana pastga surilsa — popap yopiladi */
   const sw = useRef<{ y0: number; engaged: boolean } | null>(null)
   const sDown = (e: React.TouchEvent) => { sw.current = { y0: e.touches[0].clientY, engaged: false } }
   const sMove = (e: React.TouchEvent) => {
     const st = sw.current
-    if (!st) return
+    if (!st || closingRef.current) return
     const dyv = e.touches[0].clientY - st.y0
     const el = scrollRef.current
     if (!st.engaged && dyv > 8 && el && el.scrollTop <= 0) { st.engaged = true; setDrag(true) }
@@ -1672,27 +1645,26 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     sw.current = null
     if (!st || !st.engaged) return
     setDrag(false)
-    if (dy > 110) {
-      if (expandedRef.current) { setExpanded(false); setDy(0); return }
-      onClose(); return
-    }
+    if (dy > 110) { doClose(); return }
     setDy(0)
   }
-  // Kontent pastki chegarasiga yetganda varaq to'liq ekranga cho'ziladi
-  const onScroll = () => {
-    const el = scrollRef.current
-    if (!el || expandedRef.current) return
-    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 12) setExpanded(true)
+  /* Sarlavha zonasidan pastga sudrab yopish */
+  const down = useRef<{ y: number } | null>(null)
+  const onDown = (e: React.TouchEvent) => { down.current = { y: e.touches[0].clientY }; setDrag(true) }
+  const onMove = (e: React.TouchEvent) => {
+    if (!down.current || closingRef.current) return
+    const d = e.touches[0].clientY - down.current.y
+    if (d > 0) setDy(d)
   }
-  // Kontent yarim balandlikka sig'ib qolsa: darhol to'liq ochiq holatga o'tadi
-  useEffect(() => {
-    const id = window.setTimeout(() => {
-      const el = scrollRef.current
-      if (el && !expandedRef.current && el.scrollHeight <= el.clientHeight + 4) setExpanded(true)
-    }, 90)
-    return () => window.clearTimeout(id)
-  }, [p?.id])
-  useEffect(() => { const id = window.setTimeout(() => setEntered(true), 520); return () => window.clearTimeout(id) }, [])
+  const onEnd = (e: React.TouchEvent) => {
+    if (!down.current) return
+    const d0 = down.current; down.current = null
+    const d = e.changedTouches[0].clientY - d0.y
+    setDrag(false)
+    if (d > 110) { doClose(); return }
+    setDy(0)
+  }
+  const bgDown = useRef<{ x: number; y: number } | null>(null)
   useEffect(() => {
     const prevOverflow = document.body.style.overflow
     const prevScrollY = window.scrollY
@@ -1700,7 +1672,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     document.body.style.overflow = 'hidden'
     const onKey = (e: KeyboardEvent) => {
       if (!panelRef.current) return
-      if (e.key === 'Escape') { e.stopPropagation(); onClose(); return }
+      if (e.key === 'Escape') { e.stopPropagation(); closeRef.current(); return }
       if (e.key !== 'Tab') return
       const items = Array.from(panelRef.current.querySelectorAll<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
@@ -1718,29 +1690,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
       if (Math.abs(window.scrollY - prevScrollY) > 2) window.scrollTo(0, prevScrollY)
       try { prevFocus?.focus?.() } catch {}
     }
-  }, [onClose])
-  // sudrab boshqarish: faqat sarlavha zonasi. Yuqoriga — to'liq ochish,
-  // pastga — yarim holatdan yopish, to'liq holatdan yarimga qaytish.
-  const down = useRef<{ x: number; y: number } | null>(null)
-  const onDown = (e: React.TouchEvent) => { down.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; setDrag(true) }
-  const onMove = (e: React.TouchEvent) => {
-    if (!down.current) return
-    const d = e.touches[0].clientY - down.current.y
-    if (d > 0) setDy(d)
-  }
-  const onEnd = (e: React.TouchEvent) => {
-    if (!down.current) return
-    const d0 = down.current; down.current = null
-    const d = e.changedTouches[0].clientY - d0.y
-    setDrag(false)
-    if (d < -40 && !expandedRef.current) { setExpanded(true); setDy(0); return }
-    if (d > 130) {
-      if (expandedRef.current) { setExpanded(false); setDy(0); return }
-      onClose(); return
-    }
-    setDy(0)
-  }
-  const bgDown = useRef<{ x: number; y: number } | null>(null)
+  }, [])
   // Qo'shilganlar ro'yxati: asosiy + qo'shilgan sous/tavsiyalar (qo'shni takrorlamasdan)
   const extras: Product[] = []
   {
@@ -1758,36 +1708,36 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
         onClick={e => {
           const d = bgDown.current; bgDown.current = null
           if (d && Math.hypot(e.clientX - d.x, e.clientY - d.y) > 14) return
-          onClose()
+          doClose()
         }}
-        style={{ opacity: Math.max(0, 1 - dy / 420), transition: drag ? 'none' : 'opacity .3s' }}
-        className="absolute inset-0 bg-black/55" />
+        className={`absolute inset-0 bg-black/55 transition-opacity duration-300 ${enter && !closing ? 'opacity-100' : 'opacity-0'}`}
+        style={{ pointerEvents: enter && !closing ? undefined : 'none' }}
+      />
       <div ref={panelRef} role="dialog" aria-modal="true" aria-label={pName(p, m.lang)}
-        className={`${!entered && !drag ? 'anim-sheet ' : ''}absolute left-0 right-0 bottom-0 bg-[var(--sheet)] rounded-t-[22px] flex flex-col shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none`}
+        className="absolute inset-0 flex flex-col bg-[var(--sheet)] rounded-t-[22px] shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none"
         style={{
-          height: expanded ? '100dvh' : '56dvh',
-          transform: `translateY(${dy}px)`,
-          transition: drag ? 'none' : 'transform .32s cubic-bezier(.32,.72,0,1), height .34s cubic-bezier(.32,.72,0,1)',
+          transform: `translateY(${closing || !enter ? '100%' : `${dy}px`})`,
+          transition: drag ? 'none' : 'transform .42s cubic-bezier(.32,.72,0,1)',
         }}>
-        {/* sarlavha: sudrab boshqarish zonasi; grabber har doim ko'rinadi */}
+        {/* sarlavha: pastga sudrab yopish zonasi; grabber har doim korinadi */}
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
           style={{ touchAction: 'none', paddingTop: 'var(--sat)' }}
           className="shrink-0 cursor-grab active:cursor-grabbing">
           <div className="pt-2.5 pb-1">
             <div className="w-10 h-1.5 rounded-full bg-[var(--line2)] mx-auto" />
           </div>
-          {/* Telegramda X yo'q: yopish BackButton va pastga surish orqali */}
+          {/* Telegramda X yoq: yopish BackButton va pastga surish orqali */}
           {!inTg && (
             <div className="flex items-center justify-end px-5 pt-1 pb-1.5">
-              <button onClick={onClose} aria-label={m.t.closeBtn}
+              <button onClick={doClose} aria-label={m.t.closeBtn}
                 className="press w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform shrink-0">
                 <IcX s={16} />
               </button>
             </div>
           )}
         </div>
-        {/* yagona skroll hudud: kvadrat rasm, nom, oziqlik, tavsif, souslar, tavsiyalar. */}
-        <div ref={scrollRef} onScroll={onScroll} onTouchStart={sDown} onTouchMove={sMove} onTouchEnd={sEnd} onTouchCancel={sEnd} className="overflow-y-auto no-scrollbar px-5 pt-2.5 pb-5 flex-1 min-h-0 overscroll-contain">
+        {/* yagona skroll hudud: kvadrat rasm, nom, oziqlik, tavsif, souslar, tavsiyalar */}
+        <div ref={scrollRef} onTouchStart={sDown} onTouchMove={sMove} onTouchEnd={sEnd} onTouchCancel={sEnd} className="overflow-y-auto no-scrollbar px-5 pt-2.5 pb-5 flex-1 min-h-0 overscroll-contain">
           <div className="relative aspect-square rounded-[18px] overflow-hidden bg-navy-soft shrink-0">
             <ImgOrPlate src={pImg(p)} alt={pName(p, m.lang)} />
             {m.sale && (
@@ -1806,8 +1756,8 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
           {p.cat !== 'sous' && <div className="mt-4"><SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal onShow={setMini} /></div>}
           <div className="mt-4"><RecoRow items={m.reco} compact onShow={setMini} /></div>
         </div>
-        {/* biriktirilgan buyurtma paneli: yengil fonli ro'yxat (asosiy + qo'shilgan
-            qo'shimchalar, plus-only) va ikki tugma — Savatga / Menyuga qaytish. */}
+        {/* biriktirilgan buyurtma paneli: yengil fonli royxat (asosiy + qoshilganlar,
+            plus/minus bilan) va ikki tugma — Savatga / Menyuga qaytish */}
         <div style={{ paddingBottom: 'calc(14px + var(--sab))' }} className="px-5 pt-3 border-t border-[var(--line)] bg-[var(--sheet)]">
           <div className="rounded-[18px] bg-[var(--soft)] p-3">
             <div className="flex items-center justify-between gap-3">
@@ -1823,17 +1773,18 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
               <div key={s.id} className="mt-2.5 flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-[13.5px] font-extrabold leading-tight truncate">{pName(s, m.lang)}</div>
-                  <div className="text-[11px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{m.qtyOf(s.id) > 1 ? `×${m.qtyOf(s.id)} ` : ''}{fmt(s.price * m.qtyOf(s.id))} <span className="text-[10px] font-bold">UZS</span></div>
+                  <div className="text-[11px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(s.price * m.qtyOf(s.id))} <span className="text-[10px] font-bold">UZS</span></div>
                 </div>
-                <button onClick={() => { m.setQty(s.id, m.qtyOf(s.id) + 1); haptic() }}
-                  className="press w-9 h-9 rounded-full bg-navy text-white grid place-items-center active:scale-90 transition-transform shrink-0"><IcPlus s={14} /></button>
+                <QtyStepper size="sm" q={m.qtyOf(s.id)} min={0}
+                  onInc={() => { m.setQty(s.id, m.qtyOf(s.id) + 1); haptic() }}
+                  onDec={() => { if (m.qtyOf(s.id) > 0) { m.setQty(s.id, m.qtyOf(s.id) - 1); haptic() } }} />
               </div>
             ))}
           </div>
           <div className="mt-3 grid grid-cols-2 gap-2">
             <button onClick={() => { onClose(); nav('/cart') }}
               className="press py-3 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">{m.t.goCart}</button>
-            <button onClick={onClose}
+            <button onClick={doClose}
               className="press py-3 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink2)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">{m.t.backMenu}</button>
           </div>
         </div>

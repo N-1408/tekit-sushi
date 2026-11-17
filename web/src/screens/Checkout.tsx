@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useStore, pName } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, BigButton, IcTruck, IcCheck, IcPin, IcStore, IcChevR, IcCash } from '../components/ui'
+import { TopBar, BigButton, IcTruck, IcCheck, IcPin, IcStore, IcChevR, IcCash, IcCard } from '../components/ui'
 import MapPicker from '../components/MapPicker'
 import { PickupModal, pickupSummary, branchLabel } from '../components/Fulfillment'
 
@@ -183,12 +183,14 @@ export default function Checkout() {
         <>
           <div className="lg:max-w-[1240px] lg:mx-auto lg:flex lg:gap-8 lg:items-start">
           <div className="px-4 mt-4 space-y-3.5 lg:flex-1 lg:min-w-0 lg:px-0">
-            <Line label={t.yourName}><input className={input} value={name} onChange={e => setName(e.target.value)} placeholder="Nurmuhammad" /></Line>
-            <Line label={t.phone}>
-              <div className="flex items-center gap-1.5 bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 focus-within:border-navy focus-within:ring-2 focus-within:ring-navy/10">
-                <span className="text-[14px] font-extrabold text-[var(--mut2)]">+998</span>
-                <input className="flex-1 min-w-0 bg-transparent text-[14px] font-medium outline-none placeholder:text-[var(--mut2)]" type="tel" inputMode="numeric" autoComplete="tel-national"
-                  value={fmtPhone(phoneD)} onChange={e => setPhoneD(e.target.value.replace(/\D/g, '').slice(0, 9))} placeholder="90 123 45 67" />
+            <Line label={t.contactInfo}>
+              <div className="flex flex-wrap gap-2">
+                <input className={input + ' flex-1 min-w-[168px]'} value={name} onChange={e => setName(e.target.value)} placeholder="Nurmuhammad" />
+                <div className="flex items-center gap-1.5 bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 focus-within:border-navy focus-within:ring-2 focus-within:ring-navy/10 flex-1 min-w-[168px]">
+                  <span className="text-[14px] font-extrabold text-[var(--mut2)]">+998</span>
+                  <input className="flex-1 min-w-0 bg-transparent text-[14px] font-medium outline-none placeholder:text-[var(--mut2)]" type="tel" inputMode="numeric" autoComplete="tel-national"
+                    value={fmtPhone(phoneD)} onChange={e => setPhoneD(e.target.value.replace(/\D/g, '').slice(0, 9))} placeholder="90 123 45 67" />
+                </div>
               </div>
             </Line>
 
@@ -246,7 +248,11 @@ export default function Checkout() {
 
             <Line label={t.payment}>
               <div className="flex gap-2">
-                <span className={chip(true)}><span className="inline-flex items-center gap-1.5"><IcCash s={15} />{t.cash}</span></span>
+                <span className={chip(true)}><span className="inline-flex items-center justify-center gap-1.5"><IcCash s={15} />{t.cash}</span></span>
+                <span aria-disabled="true" className={chip(false) + ' relative inline-flex items-center justify-center gap-1.5 opacity-55 select-none cursor-not-allowed'}>
+                  <IcCard s={15} />{t.payCard}
+                  <span className="absolute -top-2 right-1.5 text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-full bg-[var(--promo)] text-[var(--promo-ink)] leading-none">{t.paySoonBadge}</span>
+                </span>
               </div>
               {pay === 'cash' && (
                 <div className="mt-2.5 space-y-2.5">
@@ -256,8 +262,7 @@ export default function Checkout() {
                   <div className="text-[12.5px] font-semibold text-[var(--mut2)] -mt-1.5">{t.changeLabel} · {t.changeHint}</div>
                 </div>
               )}
-              <div className="text-[12.5px] font-semibold text-[var(--mut2)] mt-1.5">{t.paySoon}</div>
-            </Line>
+                          </Line>
 
             <Line label={t.promo}>
               <div className="flex gap-2">
@@ -271,6 +276,7 @@ export default function Checkout() {
 
           </div>
             <div className="lg:w-[400px] lg:shrink-0 lg:sticky lg:top-4 lg:px-4 lg:mt-4">
+            <div className="mt-7 pt-6 border-t border-[var(--line)] lg:hidden" aria-hidden="true" />
             <div className="bg-[var(--panel)] border border-navy-line rounded-[18px] p-4">
               {mode && (
                 <div className="mb-2.5 pb-2.5 border-b border-[var(--line)] space-y-1">
@@ -312,7 +318,7 @@ export default function Checkout() {
             {outside && <div className="mt-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 px-4 py-3 text-[13.5px] font-semibold text-[var(--ink)] leading-snug">{t.delCoverageOut}</div>}
             {err && <div className="text-[14px] font-bold text-red-500 text-center">{err}</div>}
           <div className="px-4 mt-5 lg:px-0">
-            <BigButton disabled={!valid || busy} onClick={submit}>{busy ? '…' : `${t.confirmOrder} · ${fmt(grand)}`}</BigButton>
+            <BigButton disabled={!valid || busy} onClick={submit}>{busy ? '…' : t.confirmOrder}</BigButton>
           </div>
           </div>
           </div>
