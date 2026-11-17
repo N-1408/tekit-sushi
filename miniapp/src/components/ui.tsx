@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useStore, useNav, pName, pImg, CATS, isSpicy, type Product } from '../lib/store'
+import { useStore, pName, pImg, CATS, isSpicy, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode, TGA } from '../lib/tg'
@@ -368,7 +368,7 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
   const loc = useLocation()
   useNativeBack(!!title && !TAB_PATHS.includes(loc.pathname))
   const inner = (
-    <div className="bg-[var(--bg)] text-[var(--ink)] border-b border-[var(--line)]">
+    <div className="text-[var(--ink)] border-b border-[var(--line)]">
       <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 py-2">
         {title ? (
           <>
@@ -388,7 +388,7 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
     </div>
   )
   if (flat) return inner
-  return <header className="sticky top-0 z-30 bg-[var(--bg)]" style={{ paddingTop: 'calc(6px + var(--sat))' }}>{inner}</header>
+  return <header className="sticky top-0 z-30" style={{ paddingTop: 'calc(6px + var(--sat))' }}>{inner}</header>
 }
 
 /* ---------- hamburger menyu ---------- */
@@ -470,8 +470,7 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
    ekraniga ko'chirildi. Skroll bo'lganda brend qatori silliq yig'iladi
    (slide, yo'qolmaydi); kategoriyalar qatori o'z joyida pinlangan qoladi. ---------- */
 export function Header({ collapsed = false, floating = false }: { collapsed?: boolean; floating?: boolean }) {
-  const { t, user, ob } = useStore()
-  const { navOpen, setNavOpen } = useNav()
+  const { t, lang, setLang, user, ob } = useStore()
   const nav = useNavigate()
   const [delOpen, setDelOpen] = useState(false)
   const [pickOpen, setPickOpen] = useState(false)
@@ -481,25 +480,47 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
   const isWide = useIsWide()
   // birinchi tashrif: bir marta so'raladi; yopilsa ham yoziladi
   const askOpen = askState && !!user && !ob
-  // Desktopda sidebar ochiqligida brend yashirinadi (sidebar o'z brendini ko'rsatadi).
-  const hideBrand = isWide && navOpen
   return (
     <>
       {/* Kollaps faqat header elementida: modallar transformdan TASHQARIDA turadi,
           aks holda fixed modallarning containing-blocki buzilardi. */}
-      <header className={`relative z-[31] text-[var(--ink)] ${isWide ? 'bg-[var(--bg)]' : ''}`}>
+      <header className="relative z-[31] text-[var(--ink)]">
         {/* Yig'ilish silliq va REMOUNTSIZ: qator doim mountda qoladi (logo pop
             animatsiyasi qayta o'ynamasligi va kontent sakramasligi uchun),
             faqat balandligi grid-rows bilan yig'iladi. */}
         <div className={`tk-brand-wrap max-w-[1240px] mx-auto ${collapsed ? 'is-hidden' : ''}`}>
           <div>
-            <div className="flex items-center justify-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2">
+            <div className={`flex items-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2 ${isWide ? 'justify-between' : 'justify-center'}`}>
               <button onClick={() => nav('/')} aria-label="Tekit Sushi"
-                aria-hidden={hideBrand || collapsed || undefined} tabIndex={hideBrand || collapsed ? -1 : undefined}
-                className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${floating && !isWide ? 'tk-brand-pill' : ''} ${hideBrand ? 'opacity-0 pointer-events-none' : ''}`}>
+                aria-hidden={collapsed || undefined} tabIndex={collapsed ? -1 : undefined}
+                className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${floating && !isWide ? 'tk-brand-pill' : ''}`}>
                 <BrandLogo size={36} />
                 <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
               </button>
+              {isWide && (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  {(['uz', 'ru', 'en'] as const).map(l => (
+                    <button key={l} onClick={() => { setLang(l); haptic('light') }}
+                      className={`press focus-ring flex items-center gap-1.5 h-9 px-2.5 rounded-full text-[12.5px] font-extrabold transition-colors ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--mut2)] hover:text-[var(--ink2)]'}`}>
+                      <FlagOf l={l} s={14} />{l.toUpperCase()}
+                    </button>
+                  ))}
+                  <span className="w-px h-5 bg-[var(--line)] mx-1.5" />
+                  <button onClick={() => { haptic(); nav('/orders') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                    <IcBag s={16} />{t.tabOrders}
+                  </button>
+                  <button onClick={() => { haptic(); nav('/profile') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                    <IcUser s={16} />{t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
+                  </button>
+                  <a href="tel:+998951550549" className="hidden xl:flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                    <IcCash s={16} />{t.ctPhoneVal}
+                  </a>
+                  <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="hidden xl:flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.25.25-.45.45-.9.45l.3-4.6L18.2 6.8c.35-.3-.1-.5-.55-.2L7.7 13.1l-4.4-1.4c-1-.3-1-1 .2-1.45L20.6 3.3c.8-.3 1.5.2 1.3 1.3Z" /></svg>
+                    {t.ctTgVal}
+                  </a>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -544,81 +565,6 @@ export function ModeSwitcher() {
   )
 }
 
-/* ---------- ish stoli uchun push-sidebar (lg+): kontent o'ngga suriladi,
-   ustma-ust emas. Mobil (<lg) Drawer ishlatiladi. ---------- */
-export function SideNav() {
-  const { t, lang, setLang, user } = useStore()
-  const { navOpen, setNavOpen } = useNav()
-  const nav = useNavigate()
-  const loc = useLocation()
-  const isWide = useIsWide()
-  useEffect(() => {
-    if (navOpen && (loc.pathname.startsWith('/p/') || loc.pathname.startsWith('/admin'))) setNavOpen(false)
-  }, [loc.pathname, navOpen, setNavOpen])
-  /* Breakpoint o'tishida menyuni yopamiz: aks holda torayganda eski holat
-     mobil Drawerni o'zi ochib qo'yardi (fon qatlami + skroll qulfi qolardi). */
-  useEffect(() => { setNavOpen(false) }, [isWide, setNavOpen])
-  /* Suzuvchi chap qator kontent bilan birga surilishi uchun umumiy o'zgaruvchi */
-  useEffect(() => {
-    const el = document.documentElement
-    el.style.setProperty('--nav-w', navOpen && isWide ? '300px' : '0px')
-    return () => { el.style.setProperty('--nav-w', '0px') }
-  }, [navOpen, isWide])
-  /* Mobil Drawer o'z Escape ishlovchisiga ega. Desktopda bu qolimli panel:
-     modal fokus-trapi yo'q, Escape uni yopmaydi — faqat X tugmasi. */
-  const closeNav = () => {
-    setNavOpen(false)
-    requestAnimationFrame(() => { const el = document.getElementById('tk-menu-toggle'); if (el) el.focus() })
-  }
-  // Desktopda sidebar qolimli panel: kategoriya tanlash uni yopmaydi.
-  // Bu yerda avval har safar setNavOpen(false) chaqirilgani takroriy qaytishning asosiy sababi edi.
-  const go = (to: string) => { haptic(); nav(to) }
-  return (
-    <aside id="tk-sidenav" aria-label={t.menuT} aria-hidden={!navOpen}
-      className={`hidden md:flex flex-col shrink-0 overflow-hidden sticky top-0 self-start h-dvh z-[35] bg-[var(--bg2)] text-[var(--ink)]
-        motion-safe:transition-[width,visibility] motion-safe:duration-300 motion-safe:ease-out
-        ${navOpen ? 'w-[300px] visible border-r border-[var(--line)]' : 'w-0 invisible'}`}
-      style={{ paddingTop: 'calc(14px + var(--sat))', paddingBottom: 'calc(14px + var(--sab))' }}>
-      <div className="w-[300px] min-w-[300px] flex flex-col h-full min-h-0">
-      <div className="flex items-center justify-between px-5 pb-3">
-        <div className="flex items-center gap-2.5">
-          <BrandLogo size={36} />
-          <span className="text-[15px] font-extrabold tracking-[0.08em]">TEKIT SUSHI</span>
-        </div>
-        <button onClick={closeNav} aria-label="close-menu"
-          className="press focus-ring w-9 h-9 rounded-xl grid place-items-center text-[var(--mut2)] hover:bg-[var(--soft)] active:scale-95 transition-colors">
-          <IcX s={15} />
-        </button>
-      </div>
-      <div className="px-5 flex gap-2">
-        {(['uz', 'ru', 'en'] as const).map(l => (
-          <button key={l} onClick={() => { setLang(l); haptic('light') }}
-            className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-extrabold transition-colors ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--panel)] text-[var(--mut2)] hover:text-[var(--ink2)]'}`}>
-            <FlagOf l={l} s={15} />{l.toUpperCase()}
-          </button>
-        ))}
-      </div>
-      <div className="flex-1" />
-      <div className="px-5 pt-3 mt-2 border-t border-[var(--line)] space-y-0.5">
-        <button onClick={() => go('/orders')} className="press focus-ring w-full flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)] active:opacity-70">
-          <IcBag /> {t.tabOrders}
-        </button>
-        <button onClick={() => go('/profile')} className="press focus-ring w-full flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)] active:opacity-70">
-          <IcUser /> {t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
-        </button>
-        <a href="tel:+998951550549" className="flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)]">
-          <IcCash /> {t.ctPhoneVal}
-        </a>
-        <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)]">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.25.25-.45.45-.9.45l.3-4.6L18.2 6.8c.35-.3-.1-.5-.55-.2L7.7 13.1l-4.4-1.4c-1-.3-1-1 .2-1.45L20.6 3.3c.8-.3 1.5.2 1.3 1.3Z" /></svg>
-          {t.ctTgVal}
-        </a>
-      </div>
-      </div>
-    </aside>
-  )
-}
-
 /* ---------- bir martalik shahar banneri ---------- */
 export function CityBanner() {
   const { t } = useStore()
@@ -660,11 +606,10 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
   const { t } = useStore()
   const [open, setOpen] = useState(false)
   return (
-    <div className="bg-[var(--bg)]/95 backdrop-blur-md border-b border-[var(--line)]">
+    <div className="border-b border-[var(--line)]">
       <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
         {open ? (
           <div className="flex items-center gap-1.5">
-            <MenuToggle />
             <div className="relative flex-1 min-w-0">
               <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
                 className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
@@ -677,7 +622,6 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <MenuToggle />
             <button onClick={() => setOpen(true)} aria-label={t.search}
               className="tk-search-btn press focus-ring flex-1 min-w-0 flex items-center gap-2.5 h-[42px] px-4 rounded-full text-left text-[15px] font-medium">
               <IcSearch s={17} />
@@ -687,22 +631,6 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
         )}
       </div>
     </div>
-  )
-}
-
-/* ---------- hamburger: Home sticky qatorida va kategoriya sahifasi qidiruv qatorida ---------- */
-export function MenuToggle() {
-  const { t } = useStore()
-  const { navOpen, setNavOpen } = useNav()
-  // Mobil: sidebar olib tashlandi — pastki suzuvchi navbar bor; burger faqat md+.
-  const isWide = useIsWide()
-  if (!isWide) return null
-  return (
-    <button id="tk-menu-toggle" data-menu-toggle onClick={() => { haptic(); setNavOpen(!navOpen) }}
-      aria-label={t.menuT} aria-expanded={navOpen} aria-controls="tk-sidenav"
-      className="press focus-ring tk-glass-chip w-10 h-10 rounded-xl grid place-items-center shrink-0 text-[var(--ink2)] transition-colors hover:text-[var(--ink)] active:scale-95">
-      <IcBurger s={20} />
-    </button>
   )
 }
 
@@ -719,8 +647,6 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
   const stripRef = useRef<HTMLDivElement>(null)
   const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({})
   const searching = open || closing
-  // burger sticky qatorning doimiy qismi: skroll holatidan qat'i nazar ko'rinadi
-  const burger = <MenuToggle />
 
   /* Qidiruv inputi fokusda = klaviatura ko'tarilgan: navbar va suzuvchi
      boshqaruvlar sirg'alib yashiriladi (html[data-kb]); blur bo'lgach qaytadi. */
@@ -781,11 +707,10 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
   }, [active, searching, chips.length])
 
   return (
-    <div className="bg-[var(--bg)]">
+    <div>
       <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
         {searching ? (
           <div className={`flex items-center gap-1.5 ${closing ? 'tk-search-exit' : 'tk-search-enter'}`}>
-            {burger}
             <div className="relative flex-1 min-w-0">
               <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
                 onFocus={() => setKb(true)} onBlur={() => setKb(false)}
@@ -799,7 +724,6 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
           </div>
         ) : (
           <div className="flex items-center gap-2 tk-search-enter">
-            {burger}
             <button onClick={() => setOpen(true)} aria-label={t.search} aria-expanded={false}
               className="tk-search-btn press focus-ring flex-none flex items-center justify-center gap-2 h-[38px] w-[38px] lg:w-auto lg:px-4 rounded-full">
               <IcSearch s={17} />
@@ -1855,14 +1779,31 @@ function useCartBeat() {
 }
 
 /* ---------- suzuvchi savat tugmasi: App.dagi floating-row ichida ---------- */
+/* ---------- Desktop savat paneli holati (lg+): FloatingCart ochadi,
+   sahifa yo'nalishi o'zgarganda, overlay/Escape/BackButton bosilganda yopiladi. ---------- */
+let cartPanelOpen = false
+const cartPanelSubs = new Set<() => void>()
+export function setCartPanelOpen(v: boolean) {
+  if (v === cartPanelOpen) return
+  cartPanelOpen = v
+  cartPanelSubs.forEach(f => f())
+}
+export function useCartPanelOpen() {
+  return React.useSyncExternalStore(
+    (cb) => { cartPanelSubs.add(cb); return () => { cartPanelSubs.delete(cb) } },
+    () => cartPanelOpen,
+  )
+}
+
 export function FloatingCart() {
   const { cartCount, t } = useStore()
   const nav = useNavigate()
   const loc = useLocation()
   const beat = useCartBeat()
+  const isWide = useIsWide()
   if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
   return (
-    <button onClick={() => { haptic(); nav('/cart') }} aria-label="cart"
+    <button onClick={() => { haptic(); if (isWide) setCartPanelOpen(true); else nav('/cart') }} aria-label="cart"
       className="floating-quick relative w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] tk-float-cart grid place-items-center cursor-pointer">
       <span role="status" className="sr-only">{t.cartLive.replace('{n}', String(cartCount))}</span>
       <span key={beat} className={`grid place-items-center ${beat ? 'cart-beat' : ''}`}><IcBag s={26} /></span>
