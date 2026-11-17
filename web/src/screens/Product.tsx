@@ -22,7 +22,7 @@ export default function Product() {
       <div className="lg:max-w-[1240px] lg:mx-auto lg:grid lg:grid-cols-2 lg:gap-10 lg:items-start lg:px-8 lg:pt-6">
       <div className="relative lg:rounded-[26px] lg:overflow-hidden">
         <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover bg-navy-soft" />
-        {p.pcs ? <span className="absolute bottom-3 left-4 bg-white/95 text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
+        {p.pcs ? <span className="absolute bottom-3 left-4 bg-[var(--panel)] border border-navy-line text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
       </div>
       <div className="px-4 mt-4 lg:px-0 lg:mt-0">
         <div className="flex items-start justify-between gap-3">
@@ -49,7 +49,7 @@ export default function Product() {
         {p.cat !== 'sous' && sauces.length > 0 && (
           <div className="mt-4 bg-navy-soft/60 rounded-3xl p-3.5">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-white grid place-items-center text-[#29A8E0] shrink-0 shadow-sm"><IcSauce /></span>
+              <span className="w-8 h-8 rounded-full bg-[var(--panel)] border border-navy-line grid place-items-center text-[#29A8E0] shrink-0"><IcSauce /></span>
               <div className="flex-1 min-w-0">
                 <div className="text-[13.5px] font-extrabold text-[#29A8E0] leading-tight">{t.sAsk}</div>
                 <div className="text-[10.5px] font-semibold text-[var(--mut2)] leading-tight mt-0.5">{t.sSub}</div>
@@ -60,7 +60,7 @@ export default function Product() {
               {sauces.map(s => {
                 const sq = qtyOf(s.id)
                 return (
-                  <div key={s.id} className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-navy-line')}>
+                  <div key={s.id} className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(0,0,0,.3)]' : 'border-navy-line')}>
                     <img src={pImg(s)} alt={pName(s, lang)} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-navy-soft shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-extrabold leading-tight truncate">{pName(s, lang)}</div>
@@ -74,13 +74,13 @@ export default function Product() {
                         </button>
                         <span className="min-w-[18px] text-center text-[13.5px] font-extrabold tabular-nums">{sq}</span>
                         <button onClick={() => { setQty(s.id, sq + 1); haptic() }} aria-label="plus"
-                          className="press w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">
+                          className="press w-8 h-8 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] grid place-items-center shadow-[0_3px_8px_-3px_rgba(0,0,0,.35)] active:scale-90 transition-transform">
                           <IcPlus s={14} />
                         </button>
                       </span>
                     ) : (
                       <button onClick={() => { add(s.id, 1); haptic('light') }} aria-label="add"
-                        className="press w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform shrink-0">
+                        className="press w-8 h-8 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] grid place-items-center shadow-[0_3px_8px_-3px_rgba(0,0,0,.35)] active:scale-90 transition-transform shrink-0">
                         <IcPlus s={14} />
                       </button>
                     )}
