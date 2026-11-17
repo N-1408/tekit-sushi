@@ -14,49 +14,55 @@ export {
 
 export function initTelegram() {
   if (!TGA) return
-  try {
-    TGA.ready()
-    TGA.expand()
-    applyTheme(resolveTheme())
-    initThemeWatch()
-    TGA.disableVerticalSwipes?.()
-    TGA.requestFullscreen?.()
-    const applyInsets = () => {
-      const st = document.documentElement.style
-      const ios = TGA?.platform === 'ios' || /iPhone|iPad|iPod/i.test(navigator.userAgent || '')
-      const andr = TGA?.platform === 'android' || /Android/i.test(navigator.userAgent || '')
-      const mob = ios || andr
-      const cs = (TGA as any).contentSafeAreaInset || {}
-      const sa = (TGA as any).safeAreaInset || {}
-      const top = Number(cs.top) || 0
-      const bottom = Number(cs.bottom) || 0
-      // contentSafeAreaInset Telegram xromi balandligini o'zi hisoblab beradi —
-      // u mavjud bo'lsa qo'shimcha strip IKKI MARSA hisoblanmasin. Fullscreen yoki csa
-      // bermaydigan klientda Telegramning minimize/close tugmalari vebview USTIDA
-      // chiziladi. Androidda ko'p mijozlar top=0 deb hisobot qilsa-da tugmalar
-      // kontent USTIDA chiziladi — Androidda KAMIDA 72px zaxira qilinadi
-      // (hisobot qilingan qiymat katta bo'lsa, o'sha olinadi).
-      st.setProperty('--tg-extra', (mob && (TGA?.isFullscreen || !(top > 0))) ? '56px' : '0px')
-      if (mob) {
-        const eff = Math.max(top, Number(sa.top) || 0, andr ? 72 : 0)
-        if (eff > 0) st.setProperty('--tg-csa-top', `${eff}px`)
-        else st.removeProperty('--tg-csa-top')
-        const effB = Math.max(bottom, Number(sa.bottom) || 0)
-        if (effB > 0) st.setProperty('--tg-csa-bottom', `${effB}px`)
-        else st.removeProperty('--tg-csa-bottom')
-      } else {
-        st.removeProperty('--tg-csa-top')
-        st.removeProperty('--tg-csa-bottom')
-      }
+  // Har chaqiruv o'z try/catch'ida: biror API tashlasa (masalan iOSda
+  // requestFullscreen qo'llab-quvvatlanmaydi), insetlar baribir qo'llanilsin.
+  try { TGA.ready() } catch {}
+  try { TGA.expand() } catch {}
+  try { applyTheme(resolveTheme()) } catch {}
+  try { initThemeWatch() } catch {}
+  try { TGA.disableVerticalSwipes?.() } catch {}
+  try { TGA.requestFullscreen?.() } catch {}
+  const applyInsets = () => {
+    const st = document.documentElement.style
+    const ios = TGA?.platform === 'ios' || /iPhone|iPad|iPod/i.test(navigator.userAgent || '')
+    const andr = TGA?.platform === 'android' || /Android/i.test(navigator.userAgent || '')
+    const cs = (TGA as any).contentSafeAreaInset || {}
+    const sa = (TGA as any).safeAreaInset || {}
+    const top = Number(cs.top) || 0
+    const bottom = Number(cs.bottom) || 0
+    if (ios) {
+      // iOS: Telegram xromi webview ICHIDA bo'lib, contentSafeAreaInset orqali
+      // hisobot qilinadi; notch esa env(safe-area-inset-top) bilan qoplanadi
+      // (index.html viewport-fit=cover). iOSda qo'shimcha statik strip QO'SHILMAYDI
+      // — ikkitalik hisob bo'lmasin. Hech narsa hisobot qilinmasa 59px iPhone
+      // notch zaxirasi: top bar hech qachon xrom/notch ostida qolmasin.
+      st.setProperty('--tg-extra', '0px')
+      const eff = Math.max(top, Number(sa.top) || 0)
+      st.setProperty('--tg-csa-top', `${eff > 0 ? eff : 59}px`)
+    } else if (andr) {
+      // Android: ko'p mijozlar top=0 deb hisobot qilsa-da Telegram tugmalari
+      // kontent USTIDA chiziladi — KAMIDA 72px zaxira (hisobot qilingan qiymat
+      // katta bo'lsa o'sha olinadi). Fullscreen yoki hisobot yo'q bo'lsa +56px strip.
+      st.setProperty('--tg-extra', (TGA?.isFullscreen || !(top > 0)) ? '56px' : '0px')
+      const eff = Math.max(top, Number(sa.top) || 0, 72)
+      st.setProperty('--tg-csa-top', `${eff}px`)
+    } else {
+      // Desktop Telegram / oddiy brauzer: insetlar ishonchsiz, tozalansin
+      // (CSS tomondan env(safe-area-inset-top) o'zi ishlaydi).
+      st.setProperty('--tg-extra', '0px')
+      st.removeProperty('--tg-csa-top')
     }
-        try { TGA.onEvent?.('viewportChanged', applyInsets) } catch {}
-    try { TGA.onEvent?.('safeAreaChanged', applyInsets) } catch {}
-    try { TGA.onEvent?.('contentSafeAreaChanged', applyInsets) } catch {}
-    try { TGA.onEvent?.('fullscreenChanged', applyInsets) } catch {}
-    applyInsets()
-    setTimeout(applyInsets, 600)
-    setTimeout(applyInsets, 1800)
-  } catch {}
+    const effB = Math.max(bottom, Number(sa.bottom) || 0)
+    if (effB > 0 && (ios || andr)) st.setProperty('--tg-csa-bottom', `${effB}px`)
+    else st.removeProperty('--tg-csa-bottom')
+  }
+  try { TGA.onEvent?.('viewportChanged', applyInsets) } catch {}
+  try { TGA.onEvent?.('safeAreaChanged', applyInsets) } catch {}
+  try { TGA.onEvent?.('contentSafeAreaChanged', applyInsets) } catch {}
+  try { TGA.onEvent?.('fullscreenChanged', applyInsets) } catch {}
+  applyInsets()
+  setTimeout(applyInsets, 600)
+  setTimeout(applyInsets, 1800)
 }
 
 export function tgUser(): { id: number; first_name?: string; username?: string; photo_url?: string } | null {

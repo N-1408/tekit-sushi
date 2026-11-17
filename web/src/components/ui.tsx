@@ -552,7 +552,6 @@ export function SideNav() {
   const nav = useNavigate()
   const loc = useLocation()
   const isWide = useIsWide()
-  const activeCat = loc.pathname.startsWith('/cat/') ? loc.pathname.slice(5) : null
   useEffect(() => {
     if (navOpen && (loc.pathname.startsWith('/p/') || loc.pathname.startsWith('/admin'))) setNavOpen(false)
   }, [loc.pathname, navOpen, setNavOpen])
@@ -599,19 +598,7 @@ export function SideNav() {
           </button>
         ))}
       </div>
-      <div className="px-5 mt-5 mb-1.5 text-[11px] uppercase tracking-[0.14em] text-[var(--mut2)] font-extrabold">{t.menuT}</div>
-      <nav className="flex-1 overflow-y-auto overscroll-contain no-scrollbar px-3" aria-label={t.menuT}>
-        {CATS.map(c => {
-          const on = activeCat === c.id
-          return (
-            <button key={c.id} onClick={() => go(`/cat/${c.id}`)} aria-current={on ? 'page' : undefined}
-              className={`focus-ring press w-full flex items-center justify-between px-3 py-3 rounded-xl text-[15.5px] font-bold transition-colors ${on ? 'bg-[var(--soft)] text-[var(--ink)]' : 'text-[var(--ink2)] hover:bg-[var(--soft)] hover:text-[var(--ink)]'}`}>
-              {(c as any)[lang] || t.catNames[c.id]}
-              <span className="text-[var(--mut3)]"><IcChevR /></span>
-            </button>
-          )
-        })}
-      </nav>
+      <div className="flex-1" />
       <div className="px-5 pt-3 mt-2 border-t border-[var(--line)] space-y-0.5">
         <button onClick={() => go('/orders')} className="press focus-ring w-full flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)] active:opacity-70">
           <IcBag /> {t.tabOrders}
@@ -1265,7 +1252,7 @@ export function StatusChip({ status, label }: { status: string; label: string })
 }
 
 /* ---------- navigatsiya uchun keng ekran aniqlash (md+: push-sidebar zona) ---------- */
-function useIsWide() {
+export function useIsWide() {
   const [w, setW] = useState(() => typeof window !== 'undefined' && window.matchMedia('(min-width:768px)').matches)
   useEffect(() => {
     const m = window.matchMedia('(min-width:768px)')
