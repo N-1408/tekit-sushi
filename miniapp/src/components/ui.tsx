@@ -1753,7 +1753,14 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
           </div>
           <NutritionPanel className="mt-2.5" items={m.nutrition} per100={m.t.per100} />
           {pDesc(p, m.lang) && <p className="mt-3 text-[14px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
-          {p.cat !== 'sous' && <div className="mt-4"><SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal onShow={setMini} /></div>}
+          {p.cat !== 'sous' && (
+  /* Souslar: PINNED ro'yxat — skroll davomida popapning ostida doim ko'rinadi,
+     oxirga yetganda o'z tabiiy joyiga qo'taladi (tavsiyalar va buyurtma panelidan oldin). */
+  <div className="sticky bottom-0 z-10 -mx-5 mt-4 px-5 pt-3 bg-[var(--sheet)] border-t border-[var(--line)]"
+    style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
+    <SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} horizontal onShow={setMini} />
+  </div>
+)}
           <div className="mt-4"><RecoRow items={m.reco} compact onShow={setMini} /></div>
           {/* buyurtma paneli SKROLL OQIMINING ENG OXIRIDA: ro'yxat (asosiy + qoshilganlar,
               plus/minus bilan) va ikki tugma — Savatga / Menyuga qaytish. Biriktirilmaydi,

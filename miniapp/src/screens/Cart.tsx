@@ -68,8 +68,25 @@ export default function Cart() {
   const hasExtras = extras.some(s => s.items.length > 0)
 
   return (
-    <div className="pb-28">
+    <div className="pb-[180px] lg:pb-28">
       <TopBar title={t.tabCart} back={false} right={<div />} />
+      {/* Biriktirilgan buyurtma paneli: pastki navbar ustida doim ko'rinadi.
+          Jami chapda, tugma o'ngda; mobil uchun (desktopda yon panel bor). */}
+      {lines.length > 0 && (
+        <div className="fixed inset-x-3.5 z-[39] lg:hidden flex items-center justify-between gap-3 rounded-[20px] bg-[var(--sheet)] border border-[var(--line2)] shadow-[0_16px_36px_-14px_rgba(0,0,0,.6)] p-2.5 pl-4"
+          style={{ bottom: 'calc(80px + var(--sab))' }}>
+          <div className="min-w-0">
+            <div className="text-[10.5px] font-bold text-[var(--mut2)] leading-tight">{t.total}</div>
+            <div className="text-[15.5px] font-extrabold tabular-nums whitespace-nowrap">
+              {fmt(sum + (mode === 'delivery' ? (deliveryCfg?.fee || 0) : 0))} <span className="text-[10px] font-bold text-[var(--mut2)]">UZS</span>
+            </div>
+          </div>
+          <button onClick={() => { haptic(); nav('/checkout') }}
+            className="press shrink-0 h-[46px] px-5 rounded-[14px] bg-[var(--btn)] text-[var(--btn-ink)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform">
+            {t.checkout}
+          </button>
+        </div>
+      )}
       {lines.length === 0 ? (
         <div className="px-4">
           <Empty emoji="🛒" title={t.cartEmpty} sub={t.cartEmptySub}
@@ -131,7 +148,7 @@ export default function Cart() {
             <div className="flex justify-between text-[16px] font-extrabold"><span>{t.total}</span><span>{fmt(sum + (mode === 'delivery' ? (deliveryCfg?.fee || 0) : 0))} UZS</span></div>
           </div>
           <div className="px-4 mt-4 flex flex-col gap-2.5 lg:px-0">
-            <BigButton onClick={() => { haptic(); nav('/checkout') }}>{t.checkout} · {fmt(sum)}</BigButton>
+            <div className="hidden lg:block"><BigButton onClick={() => { haptic(); nav('/checkout') }}>{t.checkout} · {fmt(sum)}</BigButton></div>
             <button onClick={clearCart} className="text-[13px] font-bold text-[var(--mut2)] py-2 active:text-red-500">{t.clearCart}</button>
           </div>
           </div>
