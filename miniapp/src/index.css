@@ -315,3 +315,15 @@ html[data-theme='dark'] .a-bad-text { color: #f87171; }
 .a-bar { background: var(--btn); }
 .a-bar-45 { background: color-mix(in srgb, var(--btn) 45%, transparent); }
 .a-bar-70 { background: color-mix(in srgb, var(--btn) 70%, transparent); }
+
+
+/* ---------- Savat bo'limi tonirovka: fon va qutilar biroz kulrangga siljiydi
+   (yorug' va qorong'u tema; faqat savat sahifasi, boshqa bo'limlar o'zgarishsiz). ---------- */
+.tk-basket-tone {
+  --bg:#F3F3F5; --bg2:#F9F9FA; --panel:#F9F9FA; --sheet:#F9F9FA; --soft:#EDEDEF;
+  --line:#E5E5E9; --line2:#DEDEE2;
+}
+[data-theme='dark'] .tk-basket-tone {
+  --bg:#12151A; --bg2:#15181C; --panel:#1E2228; --sheet:#171B21; --soft:#1E2228;
+  --line:#262A30; --line2:#2F333A;
+}
