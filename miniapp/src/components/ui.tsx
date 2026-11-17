@@ -300,7 +300,7 @@ export function LangPicker({ dark }: { dark?: boolean }) {
         <div className="space-y-2 pb-2">
           {(['uz', 'ru', 'en'] as const).map(l => (
             <button key={l} onClick={() => { setLang(l); haptic(); setOpen(false) }}
-              className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-navy text-white border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.4)]' : 'bg-[var(--panel)] border-navy-line'}`}>
+              className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)] border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(0,0,0,.3)]' : 'bg-[var(--panel)] border-navy-line'}`}>
               <FlagOf l={l} s={22} />
               <span className="text-[15px] font-extrabold flex-1">{LANG_NAME[l]}</span>
               {lang === l && <IcCheck s={18} />}
@@ -1230,7 +1230,7 @@ function SaucePicker({ sauces, qtyOf, setQty, onShow }: {
           const sq = qtyOf(sa.id)
           return (
             <div key={sa.id}
-              className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(10,33,148,.35)]' : 'border-[var(--line2)]')}>
+              className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(0,0,0,.3)]' : 'border-[var(--line2)]')}>
               <button onClick={() => { haptic(); onShow?.(sa) }} className="press flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer active:opacity-80 transition-opacity">
                 <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-navy-soft shrink-0" />
                 <span className="min-w-0">
@@ -1246,13 +1246,13 @@ function SaucePicker({ sauces, qtyOf, setQty, onShow }: {
                   </button>
                   <span className="min-w-[18px] text-center text-[13.5px] font-extrabold tabular-nums">{sq}</span>
                   <button onClick={() => { setQty(sa.id, sq + 1); haptic() }} aria-label="plus"
-                    className="press w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform cursor-pointer">
+                    className="press w-8 h-8 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] grid place-items-center shadow-[0_3px_8px_-3px_rgba(0,0,0,.35)] active:scale-90 transition-transform cursor-pointer">
                     <IcPlus s={14} />
                   </button>
                 </span>
               ) : (
                 <button onClick={() => { setQty(sa.id, 1); haptic('light') }} aria-label="add"
-                  className="press w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform cursor-pointer shrink-0">
+                  className="press w-8 h-8 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] grid place-items-center shadow-[0_3px_8px_-3px_rgba(0,0,0,.35)] active:scale-90 transition-transform cursor-pointer shrink-0">
                   <IcPlus s={14} />
                 </button>
               )}
@@ -1280,7 +1280,7 @@ function RecoRow({ items, compact, onShow }: { items: Product[]; compact?: boole
         <div className="mt-0.5 text-[12.5px] font-extrabold text-[var(--ink)] whitespace-nowrap">{fmt(r.price)} <span className="text-[10.5px] font-bold text-[var(--mut2)]">UZS</span></div>
       </button>
       <button aria-label="add" onClick={e => { e.stopPropagation(); add(r.id); haptic('medium') }}
-        className="press absolute top-2 right-2 w-8 h-8 rounded-full bg-navy text-white grid place-items-center shadow-[0_4px_10px_-3px_rgba(10,33,148,.5)] active:scale-90 transition-transform">
+        className="press absolute top-2 right-2 w-8 h-8 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] grid place-items-center shadow-[0_3px_8px_-3px_rgba(0,0,0,.35)] active:scale-90 transition-transform">
         <IcPlus s={15} />
       </button>
     </div>
