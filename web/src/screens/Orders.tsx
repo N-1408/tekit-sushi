@@ -59,7 +59,8 @@ function Stepper({ o, t }: { o: MyOrder; t: any }) {
   )
 }
 
-export default function Orders() {
+export default function Orders({ variant = 'page' }: { variant?: 'page' | 'panel' }) {
+  const panel = variant === 'panel'
   const { t, lang, myOrders, refreshOrders, ff, ordersLoaded } = useStore()
   const nav = useNavigate()
 
@@ -115,8 +116,8 @@ export default function Orders() {
   }
 
   return (
-    <div className="pb-28">
-      <TopBar title={t.tabOrders} back={false} />
+    <div className={panel ? 'pb-4' : 'pb-28'}>
+      {!panel && <TopBar title={t.tabOrders} back={false} />}
       {!ordersLoaded ? (
         <div className="px-4 mt-4 space-y-2.5" aria-hidden="true">
           {[0, 1, 2].map(i => <div key={i} className="skel h-[120px]" />)}
@@ -133,7 +134,7 @@ export default function Orders() {
             action={<BigButton onClick={() => nav('/')}>{t.toMenu}</BigButton>} />
         </div>
       ) : (
-        <div className="px-4 mt-4 space-y-3 anim-up lg:max-w-[1240px] lg:mx-auto lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0">
+        <div className={panel ? 'px-4 mt-4 space-y-3' : 'px-4 mt-4 space-y-3 anim-up lg:max-w-[1240px] lg:mx-auto lg:grid lg:grid-cols-2 lg:gap-4 lg:space-y-0'}>
           {act.map(o => <ActiveCard key={o.oid} o={o} />)}
         </div>
       )}

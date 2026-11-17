@@ -243,32 +243,6 @@ export const IcLock = ({ s = 15 }: { s?: number }) => (
 
 
 
-/* ---------- brend logotipi: yangi kit logotipi, temaga mos (yorug' — to'q kit,
-   tungi — oq kit) 300ms crossfade bilan almashadi; mount'da kichik pop. ---------- */
-export function BrandLogo({ size = 36, className = '' }: { size?: number; className?: string }) {
-  const [dark, setDark] = useState(() => currentTheme() === 'dark')
-  useEffect(() => subscribeTheme(th => setDark(th === 'dark')), [])
-  return (
-    <span className={`relative inline-block shrink-0 ${className}`} style={{ width: size, height: size }}>
-      <img src="/logo.png" alt="" width={size} height={size}
-        className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${dark ? 'opacity-0' : 'opacity-100'}`} />
-      <img src="/logo-light.png" alt="" width={size} height={size}
-        className={`absolute inset-0 w-full h-full object-contain transition-opacity duration-300 ${dark ? 'opacity-100' : 'opacity-0'}`} />
-    </span>
-  )
-}
-
-export function WhaleMark({ size = 40 }: { size?: number }) {
-  return <BrandLogo size={size} />
-}
-
-function hiName(t: any, user: { name?: string } | null) {
-  let h = 12
-  try { h = Number(new Intl.DateTimeFormat('en-GB', { hour: '2-digit', hourCycle: 'h23', timeZone: 'Asia/Tashkent' }).format(new Date())) } catch {}
-  const g = h >= 5 && h < 12 ? t.greetMorning : h < 18 ? t.greetDay : t.greetEvening
-  return `${g}, ${user?.name || tgUser()?.first_name || t.greetGuest}!`
-}
-
 /* ---------- savat tugmasi (badge bilan) ---------- */
 export function CartBtn() {
   const { cartCount, cartSum } = useStore()
@@ -356,40 +330,8 @@ export function ThemeToggle() {
   )
 }
 
-/* ---------- ichki sahifalar uchun yuqori panel (tungi) ---------- */
-/* Pastki tab ekranlarida (Home/Cart/Orders/Profile/History) native "orqaga"
-   yopiq turadi: tab almashinuvi tarix yozuvini ALMASHTIRADI (replace), shu
-   sababli Telegram orqaga tugmasi tab orasida sakramaydi. Ichki sahifalarda
-   (mahsulot, checkout va h.k.) push bo'ladi va orqaga ko'rinadi. */
-const TAB_PATHS = ['/', '/cart', '/orders', '/profile', '/history']
-
-export function TopBar({ title, right, flat }: { title?: string; right?: React.ReactNode; back?: boolean; flat?: boolean }) {
-  const { t, user } = useStore()
-  const loc = useLocation()
-  useNativeBack(!!title && !TAB_PATHS.includes(loc.pathname))
-  const inner = (
-    <div className="text-[var(--ink)] border-b border-[var(--line)]">
-      <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 py-2">
-        {title ? (
-          <>
-            <div className="text-[16px] font-extrabold flex-1 text-center truncate">{title}</div>
-          </>
-        ) : (
-          <>
-            <WhaleMark />
-            <div className="flex-1 min-w-0">
-              <div className="text-[16px] font-extrabold leading-tight">{t.brand}</div>
-              <div className="text-[12.5px] font-semibold text-[var(--mut2)] leading-tight truncate">{hiName(t, user)}</div>
-            </div>
-          </>
-        )}
-        {/* ikonkalar Profile ekraniga ko'chirildi: sarlavha paneli faqat matn */}
-      </div>
-    </div>
-  )
-  if (flat) return inner
-  return <header className="sticky top-0 z-30" style={{ paddingTop: 'calc(6px + var(--sat))' }}>{inner}</header>
-}
+export { TopBar, WhaleMark } from './topbar'
+export { BrandLogo } from './topbar/brand-logo'
 
 /* ---------- hamburger menyu ---------- */
 export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -506,7 +448,7 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
                     </button>
                   ))}
                   <span className="w-px h-5 bg-[var(--line)] mx-1.5" />
-                  <button onClick={() => { haptic(); nav('/orders') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                  <button onClick={() => { haptic(); if (isWide) { setCartPanelOpen(false); setOrdersPanelOpen(true) } else nav('/orders') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
                     <IcBag s={16} />{t.tabOrders}
                   </button>
                   <button onClick={() => { haptic(); nav('/profile') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
@@ -1790,6 +1732,22 @@ export function useCartPanelOpen() {
   )
 }
 
+/* ---------- Desktop buyurtmalar paneli holati (lg+): headerdagi
+   "Buyurtmalar" tugmasi ochadi; overlay/Escape/BackButton bosilganda yopiladi. ---------- */
+let ordersPanelOpen = false
+const ordersPanelSubs = new Set<() => void>()
+export function setOrdersPanelOpen(v: boolean) {
+  if (v === ordersPanelOpen) return
+  ordersPanelOpen = v
+  ordersPanelSubs.forEach(f => f())
+}
+export function useOrdersPanelOpen() {
+  return React.useSyncExternalStore(
+    (cb) => { ordersPanelSubs.add(cb); return () => { ordersPanelSubs.delete(cb) } },
+    () => ordersPanelOpen,
+  )
+}
+
 export function FloatingCart() {
   const { cartCount, t } = useStore()
   const nav = useNavigate()
@@ -1798,7 +1756,7 @@ export function FloatingCart() {
   const isWide = useIsWide()
   if (loc.pathname.startsWith('/cart') || loc.pathname.startsWith('/checkout')) return null
   return (
-    <button onClick={() => { haptic(); if (isWide) setCartPanelOpen(true); else nav('/cart') }} aria-label="cart"
+    <button onClick={() => { haptic(); if (isWide) { setOrdersPanelOpen(false); setCartPanelOpen(true) } else nav('/cart') }} aria-label="cart"
       className="floating-quick relative w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] tk-float-cart grid place-items-center cursor-pointer">
       <span role="status" className="sr-only">{t.cartLive.replace('{n}', String(cartCount))}</span>
       <span key={beat} className={`grid place-items-center ${beat ? 'cart-beat' : ''}`}><IcBag s={26} /></span>
