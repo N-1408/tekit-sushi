@@ -317,17 +317,22 @@ export function LangPicker({ dark }: { dark?: boolean }) {
 
 /* ---------- mavzu almashtirish tugmasi ---------- */
 
-export function ThemeToggle() {
+/* variant: 'default' — Profil va boshqa ekranlar uchun eskicha ko'rinish;
+   'header' — mobil ko'k header uchun: oq ikonka, oq/16% doira. */
+export function ThemeToggle({ variant = 'default', className }: { variant?: 'default' | 'header'; className?: string } = {}) {
   const { t } = useStore()
   const [theme, setThemeL] = useState<ThemeMode>(() => currentTheme())
   useEffect(() => subscribeTheme(setThemeL), [])
+  const cls = className ?? (variant === 'header'
+    ? 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-white/[.16] text-white hover:bg-white/[.24] active:scale-95 transition-colors shrink-0'
+    : 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)] active:scale-95 transition-colors shrink-0')
   return (
     <AnimatedThemeToggler
       theme={theme}
       onThemeChange={changeTheme}
       aria-label={t.themeLabel}
       icon={(dark) => (dark ? <IcSun s={17} /> : <IcMoon s={17} />)}
-      className="focus-ring press grid place-items-center w-10 h-10 rounded-full bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)] active:scale-95 transition-colors shrink-0"
+      className={cls}
     />
   )
 }
@@ -458,33 +463,21 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
     try { return !localStorage.getItem('tk-onboarded') } catch { return true }
   })
   const isWide = useIsWide()
+  const hdrRef = useRef<HTMLElement | null>(null)
+  // Panel ochiq bo'lsa: tashqariga bosilsa yoki Escape bosilsa yopiladi
+  useEffect(() => {
+    if (!selOpen || isWide) return
+    const onDown = (e: PointerEvent) => {
+      if (hdrRef.current && !hdrRef.current.contains(e.target as Node)) setSelOpen(false)
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelOpen(false) }
+    document.addEventListener('pointerdown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('pointerdown', onDown); document.removeEventListener('keydown', onKey) }
+  }, [selOpen, isWide])
   // birinchi tashrif: bir marta so'raladi; yopilsa ham yoziladi
   const askOpen = askState && !!user && !ob
 
-  /* Radio nuqta: tanlanmagan — bo'sh halqa, tanlangan — oq nuqta */
-  const RadioDot = ({ on }: { on: boolean }) => (
-    <span className="w-3.5 h-3.5 rounded-full border-2 border-white/85 grid place-items-center shrink-0">
-      {on && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
-    </span>
-  )
-  /* Ixcham radio-modul: rejim hali tanlanmagan paytda yorliq o'rnida turadi.
-     Tanlov store'ga yoziladi (session holati) va header yorliq holatiga o'tadi. */
-  const OrderTypeSelector = ({ compact = false }: { compact?: boolean }) => (
-    <div role="radiogroup" aria-label="order-type"
-      className={`flex items-center ${compact ? 'gap-0.5' : 'gap-1'} rounded-full bg-white/[.16] p-1`}>
-      {(['delivery', 'pickup'] as const).map(m => {
-        const on = mode === m
-        return (
-          <button key={m} role="radio" aria-checked={on}
-            onClick={() => { haptic('medium'); setMode(m); setSelOpen(false) }}
-            className={`press focus-ring flex items-center gap-1.5 h-8 rounded-full text-[12px] font-extrabold whitespace-nowrap transition-colors ${compact ? 'px-2.5' : 'flex-1 justify-center px-3'} ${on ? 'bg-white text-[var(--brand-blue)]' : 'text-white active:bg-white/10'}`}>
-            <RadioDot on={on} />
-            {m === 'delivery' ? t.fcDel : t.fcPick}
-          </button>
-        )
-      })}
-    </div>
-  )
 
   return (
     <>
@@ -518,12 +511,11 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
            1-qator: logo Telegram native tugmalari orasida markazda (oq).
            2-qator: chapda burger (yon menyu), o'ngda buyurtma turi.
            Yig'ilish silliq va remountsiz: faqat logo qatori yig'iladi. */
-        <header className="relative z-[31] text-white">
-          <div className={`tk-brand-wrap max-w-[1240px] mx-auto ${collapsed ? 'is-hidden' : ''}`}>
+        <header ref={hdrRef} className="relative z-[31] text-white">
+          <div className="tk-brand-wrap max-w-[1240px] mx-auto">
             <div>
               <div className="flex items-center justify-center px-4 pt-1 pb-0.5">
                 <button onClick={() => nav('/')} aria-label="Tekit Sushi"
-                  aria-hidden={collapsed || undefined} tabIndex={collapsed ? -1 : undefined}
                   className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
                   <img src="/logo-light.png" alt="Tekit Sushi" width={34} height={34}
                     className="w-[34px] h-[34px] object-contain" />
@@ -532,26 +524,43 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
               </div>
             </div>
           </div>
-          <div className="flex items-center justify-between px-3 pt-0.5 pb-1.5 max-w-[1240px] mx-auto">
+          {/* 2-qator: 3 ustunli grid — chapda burger, MARKAZDA buyurtma turi,
+              o'ngda tema almashtirgich. Pill ekranning aniq o'rtasida turadi. */}
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-0.5 pb-1.5 max-w-[1240px] mx-auto">
             <button onClick={() => { haptic(); setMenuOpen(true) }} aria-label={t.menuT} aria-haspopup="dialog"
-              className="press focus-ring w-10 h-10 -ml-1.5 grid place-items-center rounded-xl text-white active:scale-95 transition-transform shrink-0">
+              className="press focus-ring w-10 h-10 -ml-1.5 justify-self-start grid place-items-center rounded-xl text-white active:scale-95 transition-transform">
               <IcBurger s={20} />
             </button>
-            {mode ? (
+            <div className="min-w-0 justify-self-center max-w-full">
               <button onClick={() => { haptic(); setSelOpen(v => !v) }} aria-expanded={selOpen}
-                className="press focus-ring flex items-center gap-1.5 h-9 pl-3.5 pr-2.5 rounded-full bg-white/[.16] text-[13px] font-extrabold text-white active:scale-[.97] transition-transform max-w-[62%]">
-                <span className="truncate">{mode === 'delivery' ? t.fcDel : t.fcPick}</span>
+                className="press focus-ring flex items-center gap-1.5 h-9 pl-3.5 pr-2.5 rounded-full bg-white/[.16] text-[13px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0 max-w-full">
+                <span className="truncate">{mode === 'delivery' ? t.fcDel : mode === 'pickup' ? t.fcPick : t.orderType}</span>
                 <span className={`transition-transform duration-150 shrink-0 ${selOpen ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
               </button>
-            ) : (
-              <OrderTypeSelector compact />
-            )}
-          </div>
-          {selOpen && !!mode && (
-            <div className="px-3 pb-2 max-w-[1240px] mx-auto">
-              <OrderTypeSelector />
             </div>
-          )}
+            <div className="justify-self-end"><ThemeToggle variant="header" /></div>
+          </div>
+          {/* Tanlov paneli: grid-rows 0fr/1fr texnikasi bilan silliq ochiladi-yopiladi,
+              remountsiz, prefers-reduced-motion hurmat qilinadi */}
+          <div className={`tk-sel-wrap ${selOpen ? 'is-open' : ''}`}>
+            <div>
+              <div className="px-3 pb-2 max-w-[1240px] mx-auto">
+                <div role="group" aria-label="order-type" className="flex items-center gap-1 rounded-full bg-white/[.16] p-1">
+                  {(['delivery', 'pickup'] as const).map(m => {
+                    const on = mode === m
+                    return (
+                      <button key={m} aria-pressed={on}
+                        onClick={() => { haptic('medium'); setMode(m); setSelOpen(false) }}
+                        className={`press focus-ring flex flex-1 items-center justify-center gap-1.5 h-8 rounded-full px-3 text-[12px] font-extrabold whitespace-nowrap transition-colors ${on ? 'bg-white text-[var(--brand-blue)]' : 'text-white active:bg-white/10'}`}>
+                        {m === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
+                        {m === 'delivery' ? t.fcDel : t.fcPick}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
         </header>
       )}
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} switchTo={() => { setDelOpen(false); setPickOpen(true) }} />

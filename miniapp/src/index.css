@@ -190,6 +190,12 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 .tk-brand-wrap.is-hidden { grid-template-rows: 0fr; opacity: 0; pointer-events: none; }
 .tk-brand-wrap > div { min-height: 0; overflow: hidden; }
 
+/* Headerdagi buyurtma-turi paneli: .tk-brand-wrap bilan bir xil grid-rows
+   0fr/1fr texnikasi — silliq ochilish/yopilish, layout sakramasdan */
+.tk-sel-wrap { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .28s cubic-bezier(.32,.72,0,1), opacity .2s ease; }
+.tk-sel-wrap.is-open { grid-template-rows: 1fr; opacity: 1; }
+.tk-sel-wrap > div { min-height: 0; overflow: hidden; }
+
 /* ---------- brend ko'k header bloki (mobil): qidiruv + kategoriya chiplari
    ko'k fon ustida o'qiladigan bo'lishi uchun xuddi shu joyda qayta bo'yaladi.
    Ishlash (skroll, anchor, qidiruv) o'zgarmaydi — faqat ko'rinishi. ---------- */
@@ -261,6 +267,7 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
   .anim-sheet, .anim-modal, .anim-modal-out, .anim-fade, .anim-drawer, .anim-up, .anim-page, .anim-pop { animation: none !important; }
   .cart-beat, .add-ok { animation: none !important; }
   .tk-brand-wrap { transition: none !important; }
+  .tk-sel-wrap { transition: none !important; }
   .tk-j-cart { animation: none !important; }
   .tk-add-active .tk-add-label { animation: none !important; }
   .press:active { transform: none; }
