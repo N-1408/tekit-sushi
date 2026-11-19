@@ -1683,8 +1683,11 @@ function ImgOrPlate({ src, alt }: { src: string; alt: string }) {
    (SaucePicker / RecoRow komponentlari saqlanadi, savat sahifasi uchun
    qayta ishlatiladi). Buyurtma paneli PASTDA BIRIKTIRILGAN: skroll qancha
    bo'lsa ham miqdor + "Savatga qo'shish · jami narx" doim ko'rinadi.
-   Telegram xavfsizlik zonasida: tepada Back/v/… tugmalari ostidan kontent
-   o'tmaydi, pastda home-indicator ustidan panel ko'tariladi. ---------- */
+   Varaq TO'LIQ EKRAN EMAS: pastga biriktirilgan bottom sheet — balandligi
+   kontentga bog'liq, lekin 100dvh - --sat - 28px dan oshmaydi, shuning uchun
+   tepada doim xira zona qoladi va Telegramning Back/v/… tugmalari hech qachon
+   varaq ustiga tushmaydi. Sudrash dastagi varaqaning tashqarisida, uning
+   tepasida turadi va harakat yo'nalishiga qarab "v"/"^" bo'lib bukiladi. ---------- */
 function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void }) {
   const m = useProductModal(p)
   const [enter, setEnter] = useState(false)
@@ -1693,11 +1696,17 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   const [drag, setDrag] = useState(false)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
+  /* Sudrash dastagining "chevron" holati (daraja): 0 = tekis, musbat =
+     o'rtasi PASTGA bukilgan (sudrab yopish/yopilish), manfiy = TEPAGA
+     bukilgan (ochilish va orqaga qaytish). prefers-reduced-motion: doim tekis. */
+  const [bend, setBend] = useState(0)
+  const reducedMotion = useRef(false)
   /* Yopish: popap pastga silliq sirg'alib chiqadi (chiroyli exit), keyin o'chiriladi */
   const closingRef = useRef(false)
   const doClose = () => {
     if (closingRef.current) return
     closingRef.current = true
+    if (!reducedMotion.current) setBend(16)
     setDrag(false); setDy(0); setClosing(true)
     window.setTimeout(onClose, 340)
   }
@@ -1718,6 +1727,14 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
       if (!TAB_PATHS.includes(loc.pathname)) { try { bb.show() } catch {} }
     }
   }, [loc.pathname])
+  useEffect(() => { reducedMotion.current = window.matchMedia('(prefers-reduced-motion: reduce)').matches }, [])
+  useEffect(() => {
+    // ochilish animatsiyasida dastak o'rtasi TEPAGA bukiladi, keyin tekislanadi
+    if (reducedMotion.current) return
+    setBend(-14)
+    const t = window.setTimeout(() => setBend(0), 520)
+    return () => window.clearTimeout(t)
+  }, [])
   useEffect(() => { const id = window.setTimeout(() => setEnter(true), 16); return () => window.clearTimeout(id) }, [])
   /* Kontent eng tepasida yana pastga surilsa — popap yopiladi */
   const sw = useRef<{ y0: number; engaged: boolean } | null>(null)
@@ -1728,7 +1745,11 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     const dyv = e.touches[0].clientY - st.y0
     const el = scrollRef.current
     if (!st.engaged && dyv > 8 && el && el.scrollTop <= 0) { st.engaged = true; setDrag(true) }
-    if (st.engaged) setDy(Math.max(0, dyv - 8))
+    if (st.engaged) {
+      const v = Math.max(0, dyv - 8)
+      setDy(v)
+      if (!reducedMotion.current) setBend(Math.min(16, v / 7))
+    }
   }
   const sEnd = () => {
     const st = sw.current
@@ -1737,6 +1758,8 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     setDrag(false)
     if (dy > 110) { doClose(); return }
     setDy(0)
+    // yopilmadi: varaq orqaga ko'tariladi — dastak TEPAGA bukiladi, keyin tekislanadi
+    if (!reducedMotion.current) { setBend(-10); window.setTimeout(() => setBend(0), 260) }
   }
   /* Sarlavha zonasidan pastga sudrab yopish */
   const down = useRef<{ y: number } | null>(null)
@@ -1744,7 +1767,10 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   const onMove = (e: React.TouchEvent) => {
     if (!down.current || closingRef.current) return
     const d = e.touches[0].clientY - down.current.y
-    if (d > 0) setDy(d)
+    if (d > 0) {
+      setDy(d)
+      if (!reducedMotion.current) setBend(Math.min(16, d / 7))
+    }
   }
   const onEnd = (e: React.TouchEvent) => {
     if (!down.current) return
@@ -1753,6 +1779,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     setDrag(false)
     if (d > 110) { doClose(); return }
     setDy(0)
+    if (!reducedMotion.current) { setBend(-10); window.setTimeout(() => setBend(0), 260) }
   }
   const bgDown = useRef<{ x: number; y: number } | null>(null)
   /* Popap qaysi sahifada ochilgani: yopilganda skrollni faqat shu sahifada qaytaramiz */
@@ -1815,34 +1842,45 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
         className={`absolute inset-0 bg-black/55 transition-opacity duration-300 ${enter && !closing ? 'opacity-100' : 'opacity-0'}`}
         style={{ pointerEvents: enter && !closing ? undefined : 'none' }}
       />
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-label={pName(p, m.lang)}
-        className="absolute inset-0 flex flex-col bg-[var(--sheet)] rounded-t-[22px] shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none"
+      {/* Varaq va dastak BIRGA tarjima qilinadi (translateY): dastak varaqaning
+          YuQORISIDA, xira fon ustida turadi. Balandlik kontentga bog'liq, lekin
+          tk-sheet-cap (100dvh - --sat - 28px) bilan cheklanadi — tepada doim
+          xira zona qoladi, Telegram Back/v/… tugmalari varaq ustiga tushmaydi. */}
+      <div className="absolute inset-x-0 bottom-0"
         style={{
           transform: `translateY(${closing || !enter ? '100%' : `${dy}px`})`,
           transition: drag ? 'none' : 'transform .42s cubic-bezier(.32,.72,0,1)',
         }}>
-        {/* sarlavha: pastga sudrab yopish zonasi; grabber har doim korinadi.
-            Telegram tugmalari (Back / v / …) kontent USTIGA chiziladi:
-            contentSafeAreaInset/safeAreaInset --sat orqali keladi, hisobot
-            0 bo'lsa ham xrom balandligiga teng zaxira (min 56px) qo'yamiz. */}
+        {/* sudrash dastagi: ikkita bo'lakcha TASHQI uchidan aylanadi — Safari
+            SVG 'd' atributini animatsiya qilmaydi, shuning uchun shu usul.
+            Tekis holatda chiziq; pastga sudranda "v", ochilishda/orqaga
+            qaytganda "^"; 240ms ichida silliq o'tadi. */}
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
-          style={{ touchAction: 'none', paddingTop: inTg ? 'max(var(--sat), 56px)' : 'var(--sat)' }}
-          className="shrink-0 cursor-grab active:cursor-grabbing">
-          <div className="pt-2.5 pb-1">
-            <div className="w-10 h-1.5 rounded-full bg-[var(--line2)] mx-auto" />
-          </div>
-          {/* Telegramda X yoq: yopish BackButton va pastga surish orqali */}
-          {!inTg && (
-            <div className="flex items-center justify-end px-5 pt-1 pb-1.5">
+          style={{ touchAction: 'none' }}
+          className="absolute bottom-full left-1/2 z-10 h-11 w-16 -translate-x-1/2 flex flex-col items-center justify-end pb-1 cursor-grab active:cursor-grabbing">
+          <span className="relative block h-[5px] w-[38px]" aria-hidden="true">
+            <span className="absolute left-0 top-0 h-[5px] w-[19px] rounded-full bg-white/90"
+              style={{ transformOrigin: 'left center', transform: `rotate(${bend}deg)`, transition: 'transform .24s cubic-bezier(.32,.72,0,1)' }} />
+            <span className="absolute right-0 top-0 h-[5px] w-[19px] rounded-full bg-white/90"
+              style={{ transformOrigin: 'right center', transform: `rotate(${-bend}deg)`, transition: 'transform .24s cubic-bezier(.32,.72,0,1)' }} />
+          </span>
+        </div>
+        <div ref={panelRef} role="dialog" aria-modal="true" aria-label={pName(p, m.lang)}
+          className="tk-sheet-cap relative flex flex-col bg-[var(--sheet)] rounded-t-[22px] shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none">
+          {/* tepa: sudrab yopish zonasi (ko'rinadigan dastak varaqaning ustida) */}
+          <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
+            style={{ touchAction: 'none' }}
+            className={`relative shrink-0 cursor-grab active:cursor-grabbing ${inTg ? 'h-6' : 'h-11'}`}>
+            {/* Telegramda X yoq: yopish BackButton va pastga surish orqali */}
+            {!inTg && (
               <button onClick={doClose} aria-label={m.t.closeBtn}
-                className="press w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform shrink-0">
+                className="press absolute right-4 top-1 w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform shrink-0">
                 <IcX s={16} />
               </button>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
         {/* yagona skroll hudud: rasm → nom → KBJU → tavsif */}
-        <div ref={scrollRef} onTouchStart={sDown} onTouchMove={sMove} onTouchEnd={sEnd} onTouchCancel={sEnd} className="overflow-y-auto no-scrollbar px-5 pt-1 pb-5 flex-1 min-h-0 overscroll-contain">
+        <div ref={scrollRef} onTouchStart={sDown} onTouchMove={sMove} onTouchEnd={sEnd} onTouchCancel={sEnd} className="min-h-0 overflow-y-auto no-scrollbar px-5 pt-1 pb-5 overscroll-contain">
           <div className="relative aspect-square rounded-[20px] overflow-hidden bg-navy-soft shrink-0">
             <ProductImage src={pImg(p)} alt={pName(p, m.lang)} />
             {m.sale && (
@@ -1859,15 +1897,17 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
           <NutritionFacts className="mt-3" items={m.nutrition} per100={m.t.per100} />
           <ProductDescription className="mt-3" text={cleanDesc(pDesc(p, m.lang) || '')} moreLabel={m.t.moreBtn} lessLabel={m.t.lessBtn} />
         </div>
-        {/* biriktirilgan buyurtma paneli: miqdor + "Savatga qo'shish · jami" */}
-        <div style={{ paddingBottom: 'calc(12px + var(--sab))' }} className="shrink-0 bg-[var(--sheet)] border-t border-[var(--line)] px-4 pt-3">
-          <ProductPriceBar
-            q={m.q} total={p.price * m.q} min={0}
-            onInc={() => { m.setQ(v => v + 1); haptic() }}
-            onDec={() => { if (m.q > 0) { m.setQ(v => v - 1); haptic() } }}
-            onAdd={onAdd} onCloseEmpty={doClose} emptyLabel={m.t.closeBtn}
-            label={m.t.addCart} busy={m.busy} anim={m.anim}
-          />
+          {/* biriktirilgan buyurtma paneli: miqdor + "Savatga qo'shish · jami".
+              Miqdor 0 bo'lsa tugma "Yopish" bo'ladi va hech narsa qo'shilmaydi. */}
+          <div style={{ paddingBottom: 'calc(12px + var(--sab))' }} className="shrink-0 bg-[var(--sheet)] border-t border-[var(--line)] px-4 pt-3">
+            <ProductPriceBar
+              q={m.q} total={p.price * m.q} min={0}
+              onInc={() => { m.setQ(v => v + 1); haptic() }}
+              onDec={() => { if (m.q > 0) { m.setQ(v => v - 1); haptic() } }}
+              onAdd={onAdd} onCloseEmpty={doClose} emptyLabel={m.t.closeBtn}
+              label={m.t.addCart} busy={m.busy} anim={m.anim}
+            />
+          </div>
         </div>
       </div>
     </div>,

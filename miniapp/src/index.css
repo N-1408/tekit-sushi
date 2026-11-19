@@ -69,6 +69,14 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 @media (prefers-reduced-motion: reduce) { .skel { animation: none } }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
+
+/* Mahsulot varag'i (bottom sheet): balandlik kontentga bog'liq, lekin tepada
+   doim xira zona qolsin — Telegram Back/v/… tugmalari hech qachon varaq
+   ustiga tushmasin. dvh qo'llanmasa vh ishlaydi. */
+.tk-sheet-cap {
+  max-height: calc(100vh - var(--sat, 0px) - 28px);
+  max-height: calc(100dvh - var(--sat, 0px) - 28px);
+}
 .app-h { height: 100dvh; }
 
 /* katakana brand pattern (navy bg, white outline wordmarks) */
