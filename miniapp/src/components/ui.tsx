@@ -5,7 +5,7 @@ import { useStore, pName, pImg, CATS, isSpicy, type Product } from '../lib/store
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode, TGA } from '../lib/tg'
-import { beginAddToCartAnim } from '../lib/addAnim'
+import { beginAddToCartAnim, flyProductToCart } from '../lib/addAnim'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import MapPicker from './MapPicker'
 import { DeliveryModal, PickupModal, InitialChoiceModal } from './Fulfillment'
@@ -989,7 +989,7 @@ export function SpicyBadge({ size = 24, className }: { size?: number; className?
 
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const { cart, add, setQty, lang, t, openP } = useStore()
-  // Mobil: '+' savatga qo'shmaydi — popapni ochadi. Desktopda eskicha savatga qo'shiladi.
+  const imgRef = useRef<HTMLImageElement | null>(null) // savatga uchish animatsiyasi manbasi
   const desk = useIsDesktop()
   const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
   const inCart = q > 0
@@ -1011,7 +1011,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const onAdd = (el?: HTMLElement | null) => {
     add(p.id); haptic('medium'); setOk(true)
     const res = beginAddToCartAnim(el)
-    if (res) setAnim(res.k)
+    if (res) { setAnim(res.k); flyProductToCart(imgRef.current) }
     if (okTimer.current) window.clearTimeout(okTimer.current)
     okTimer.current = window.setTimeout(() => { setOk(false); setAnim(null) }, 810)
   }
@@ -1020,7 +1020,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
       className="anim-up cursor-pointer relative flex flex-col h-full"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
       <div className={`relative aspect-square rounded-[12px] overflow-hidden bg-[var(--sheet)] shrink-0 ${inCart ? 'ring-1 ring-inset ring-[var(--chip-on)]/45' : ''}`}>
-        <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+        <img ref={imgRef} src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         {wtxt && <span className="absolute bottom-2 left-2 bg-black/45 text-white text-[11px] font-bold px-2 py-1 rounded-[8px] backdrop-blur-[2px]">{wtxt}</span>}
         {isSpicy(p) && <SpicyBadge size={26} className="absolute top-2 right-2 tk-spicy-ember bg-black/40 backdrop-blur-[2px] shadow-sm" />}
         {inCart && !desk && (
@@ -1039,13 +1039,14 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
             </>
           )}
         </div>
-        {/* Qo'shish tasdig'i ko'rinib bo'lgach miqdor boshqaruvi chiqadi */}
+        {/* Bosilanda popap OCHILMAYDI: darhol savatga qo'shadi (rasmi suzuvchi savatga uchadi);
+            tasdiq ko'rinib bo'lgach miqdor boshqaruvi chiqadi. Batafsil ma'lumot uchun kartochkaning o'zi bosiladi */}
         {inCart && !ok ? (
           <QtyStepper full className="mt-1.5" q={q} min={0}
             onDec={() => { setQty(p.id, q - 1); haptic('light') }}
             onInc={() => { add(p.id); haptic('medium') }} />
         ) : (
-          <button onClick={e => { e.stopPropagation(); if (desk) onAdd(e.currentTarget); else { haptic('light'); openP(p) } }}
+          <button onClick={e => { e.stopPropagation(); onAdd(e.currentTarget) }}
             className={`press mt-1.5 relative overflow-hidden w-full h-[44px] rounded-[12px] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform ${ok && anim != null ? 'tk-add-active' : ''} ${sale ? 'bg-[var(--promo-deep)] text-white hover:brightness-110' : 'bg-[var(--btn)] text-[var(--btn-ink)]'}`}>
             {ok ? (anim != null ? null : <span className="add-ok grid place-items-center"><IcCheck s={17} /></span>) : <IcBag s={17} />}
             <span className="tk-add-label">{t.cardAdd}</span>
