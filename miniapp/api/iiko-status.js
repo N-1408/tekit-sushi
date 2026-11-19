@@ -34,8 +34,13 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: false, stage: 'env', env, error: 'IIKO_API_LOGIN is not set in the Vercel environment variables' });
   }
 
-  // 1) Token
-  const tok = await post('/api/1/access_token', null, { apiLogin: process.env.IIKO_API_LOGIN });
+  // 1) Token: v1 birinchi, agar kalit faqat v2 bo'lsa v2 ga o'tamiz
+  let tok = await post('/api/1/access_token', null, { apiLogin: process.env.IIKO_API_LOGIN });
+  let version = 'v1';
+  if (tok.status !== 200 || !tok.data || !tok.data.token) {
+    const v2 = await post('/api/v2/access_token', null, { apiLogin: process.env.IIKO_API_LOGIN });
+    if (v2.status === 200 && v2.data && v2.data.token) { tok = v2; version = 'v2'; }
+  }
   if (tok.status !== 200 || !tok.data || !tok.data.token) {
     return res.status(200).json({
       ok: false, stage: 'token', env,
