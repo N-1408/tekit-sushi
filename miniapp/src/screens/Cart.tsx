@@ -70,7 +70,7 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
 
   return (
     <div className={panel ? 'pb-4' : 'tk-basket-tone bg-[var(--bg)] pb-[calc(194px+var(--sab))] lg:pb-28'} style={panel ? undefined : { minHeight: '100dvh' }}>
-      {!panel && <TopBar title={t.tabCart} back={false} right={<div />} />}
+      {!panel && <TopBar title={t.tabCart} right={<div />} />}
       {/* Biriktirilgan buyurtma paneli: pastki navbar ustida doim ko'rinadi.
           Jami chapda, tugma o'ngda; mobil uchun (desktopda yon panel bor). */}
       {!panel && lines.length > 0 && (

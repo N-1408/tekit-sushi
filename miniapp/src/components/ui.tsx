@@ -588,7 +588,7 @@ export function CityBanner() {
   if (ok) return null
   return (
     <>
-      <div ref={wrapRef} className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(124px + var(--sat))' }}>
+      <div ref={wrapRef} className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(var(--hdr-h, 160px) + 8px)' }}>
       <div className="flex items-center gap-3 bg-[var(--panel)] border border-[var(--line2)] rounded-2xl px-4 py-3 shadow-[0_18px_44px_-14px_rgba(0,0,0,.6)]">
         <span className="text-[var(--acc)] shrink-0"><IcPin /></span>
         <div className="flex-1 text-[14px] font-bold text-[var(--ink)] leading-snug">{t.cityNote}</div>
@@ -599,40 +599,6 @@ export function CityBanner() {
       </div>
     </div>
     </>
-  )
-}
-
-/* ---------- qidiruv + tartiblash (kategoriya qatori o'chirildi: kategoriyalar
-   burger menyuda; chip qatoridagi funksiyalar shu yerga ko'chirildi) ---------- */
-export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void }) {
-  const { t } = useStore()
-  const [open, setOpen] = useState(false)
-  return (
-    <div className="border-b border-[var(--line)]">
-      <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
-        {open ? (
-          <div className="flex items-center gap-1.5">
-            <div className="relative flex-1 min-w-0">
-              <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
-                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
-              <button onClick={() => { setOpen(false); setQ('') }} aria-label="close-search"
-                className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
-                <IcX s={14} />
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <button onClick={() => setOpen(true)} aria-label={t.search}
-              className="tk-search-btn press focus-ring flex-1 min-w-0 flex items-center gap-2.5 h-[42px] px-4 rounded-full text-left text-[15px] font-medium">
-              <IcSearch s={17} />
-              <span className="truncate">{t.search}</span>
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
   )
 }
 
@@ -659,18 +625,24 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
   }
   /* Ochish: input doim DOM'da — fokus SINXRON, tap handler ICHIDA.
      iOS/Android klaviaturasi shu sababli kechikmaydi. */
+  const activeRef = useRef(false)
   const openSearch = () => {
+    activeRef.current = true
     setOpen(true)
     /* Klaviatura avtomatik ochilsin: maydon ochilgach yana bir necha marta
        fokus beriladi — birinchi urinish yashirin qatlamga tushib qolsa ham
        keyingisi klaviaturani ochadi. */
-    const focusInput = () => { try { inputRef.current?.focus({ preventScroll: true } as FocusOptions) } catch {} }
+    const focusInput = () => {
+      if (!activeRef.current) return
+      try { inputRef.current?.focus({ preventScroll: true } as FocusOptions) } catch {}
+    }
     focusInput()
     requestAnimationFrame(() => { focusInput(); window.setTimeout(focusInput, 90) })
     if (kbT.current) window.clearTimeout(kbT.current)
     kbT.current = window.setTimeout(() => setKb(true), 230)
   }
   const closeSearch = () => {
+    activeRef.current = false
     setQ('')
     try { inputRef.current?.blur() } catch {}
     setKb(false)
@@ -735,10 +707,11 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
               Ochilganda fade + tepaga siljish (faqat transform/opacity). */}
           <div className={`tk-search-row absolute inset-0 flex items-center gap-2.5 ${open ? 'is-out' : ''}`} aria-hidden={open || undefined}>
             <button onClick={openSearch} aria-label={t.search} aria-expanded={open} tabIndex={open ? -1 : undefined}
-              className="tk-search-btn press focus-ring flex-none flex items-center justify-center gap-2 h-[40px] w-[40px] lg:w-auto lg:px-4 rounded-full">
+              className={`tk-search-btn press focus-ring ${chips.length ? 'flex-none flex items-center justify-center gap-2 h-[40px] w-[40px] lg:w-auto lg:px-4' : 'flex-1 min-w-0 flex items-center gap-2.5 h-[40px] px-4 text-left'} rounded-full`}>
               <IcSearch s={17} />
-              <span className="hidden lg:inline text-[14px] font-medium">{t.search}</span>
+              <span className={chips.length ? 'hidden lg:inline text-[14px] font-medium' : 'text-[15px] font-medium'}>{t.search}</span>
             </button>
+            {chips.length > 0 && (
             <div ref={stripRef} className="min-w-0 flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar" role="tablist" aria-label={t.menuT}>
               {chips.map(c => (
                 <button key={c.id} ref={el => { chipRefs.current[c.id] = el }} role="tab" aria-selected={active === c.id}
@@ -748,6 +721,7 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
                 </button>
               ))}
             </div>
+            )}
           </div>
           {/* 2-qatlam: qidiruv maydoni. Doim DOM'da, faqat transform/opacity/
               clip-path bilan ko'rinadi — qidiruv tugmasi inputga aylanib ochiladi.
@@ -757,7 +731,7 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
               <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
                 tabIndex={open ? undefined : -1}
                 onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); closeSearch() } }}
-                onBlur={() => setKb(false)}
+                onBlur={() => { setKb(false); if (open) closeSearch() }}
                 className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full h-[40px] pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
               <button onClick={closeSearch} aria-label="close-search" tabIndex={open ? undefined : -1}

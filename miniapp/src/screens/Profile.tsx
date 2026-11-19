@@ -77,7 +77,7 @@ export default function Profile({ variant = 'page' }: { variant?: 'page' | 'pane
   const panel = variant === 'panel'
   return (
     <div className={panel ? 'pb-4' : 'pb-28'}>
-      {!panel && <TopBar title={t.tabProfile} back={false} />}
+      {!panel && <TopBar title={t.tabProfile} />}
       <div className={panel ? 'px-4 mt-2 pb-2' : 'px-4 mt-4 lg:max-w-[760px] lg:mx-auto'}>
         <div className="tekit-pattern rounded-[22px] p-4 flex items-center gap-3.5 shadow-lg">
           <img src="/logo-light.png" className="w-14 h-14" alt="" />

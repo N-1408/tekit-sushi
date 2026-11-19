@@ -25,7 +25,7 @@ function hiName(t: any, user: { name?: string } | null) {
   return `${g}, ${user?.name || tgUser()?.first_name || t.greetGuest}!`
 }
 
-export function TopBar({ title, right, flat }: { title?: string; right?: React.ReactNode; back?: boolean; flat?: boolean }) {
+export function TopBar({ title, right, flat }: { title?: string; right?: React.ReactNode; flat?: boolean }) {
   const { t, user } = useStore()
   const loc = useLocation()
   useNativeBack(!!title && !TAB_PATHS.includes(loc.pathname))

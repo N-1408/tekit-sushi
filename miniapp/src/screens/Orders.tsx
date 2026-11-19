@@ -117,7 +117,7 @@ export default function Orders({ variant = 'page' }: { variant?: 'page' | 'panel
 
   return (
     <div className={panel ? 'pb-4' : 'pb-28'}>
-      {!panel && <TopBar title={t.tabOrders} back={false} />}
+      {!panel && <TopBar title={t.tabOrders} />}
       {!ordersLoaded ? (
         <div className="px-4 mt-4 space-y-2.5" aria-hidden="true">
           {[0, 1, 2].map(i => <div key={i} className="skel h-[120px]" />)}
