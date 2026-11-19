@@ -1384,24 +1384,43 @@ export function ProductDescription({ text, moreLabel, lessLabel, className }: {
   )
 }
 
-/* ---------- yakuniy narx paneli: miqdor (katta tugmachalar, min 44px) +
-   brend ko'k "Savatga qo'shish · jami narx" tugmasi. Jami narx miqdor
-   o'zgarganda darhol o'zgaradi (narx x miqdor). Mobil varaq va desktop
-   modalida bir xil ishlatiladi. ---------- */
-export function ProductPriceBar({ q, total, onInc, onDec, onAdd, label, busy, anim, className }: {
+/* ---------- yakuniy narx paneli: miqdor + "Savatga qo'shish" tugmasi
+   (savat ikonkasi bilan, ikki qator: yorliq + TO'LIQ jami narx — hech qachon
+   qisqarmaydi). Jami narx miqdor o'zgarganda darhol o'zgaradi (narx x miqdor).
+   miqdor 0 bo'lsa tugma oddiy "Yopish" amaliga aylanadi: hech narsa
+   savatga qo'shilmaydi. Mobil varaq va desktop modalida bir xil. ---------- */
+export function ProductPriceBar({ q, total, onInc, onDec, onAdd, onCloseEmpty, emptyLabel, label, busy, anim, min = 1, stepperSize = 'md', className }: {
   q: number; total: number; onInc: () => void; onDec: () => void
-  onAdd: (el?: HTMLElement | null) => void; label: string
-  busy?: boolean; anim?: number | null; className?: string
+  onAdd: (el?: HTMLElement | null) => void; onCloseEmpty?: () => void
+  emptyLabel?: string; label: string
+  busy?: boolean; anim?: number | null; min?: number; stepperSize?: 'sm' | 'md' | 'lg'; className?: string
 }) {
+  if (q <= 0) {
+    return (
+      <div className={"flex items-center gap-3 " + (className || '')}>
+        <QtyStepper size={stepperSize} q={q} min={min} onInc={onInc} onDec={onDec} />
+        <button type="button" onClick={() => onCloseEmpty?.()} aria-label={emptyLabel || label}
+          className="press focus-ring flex-1 min-w-0 h-[56px] rounded-2xl bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] text-[15px] font-extrabold flex items-center justify-center active:scale-[.98] transition-transform cursor-pointer">
+          {emptyLabel || label}
+        </button>
+      </div>
+    )
+  }
   return (
     <div className={"flex items-center gap-3 " + (className || '')}>
-      <QtyStepper size="lg" q={q} min={1} onInc={onInc} onDec={onDec} />
+      <QtyStepper size={stepperSize} q={q} min={min} onInc={onInc} onDec={onDec} />
       <button type="button" onClick={e => onAdd(e.currentTarget)} disabled={busy}
         aria-label={label + ' · ' + fmt(total) + ' UZS'}
-        className={`press focus-ring flex-1 relative overflow-hidden h-[52px] rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15px] font-extrabold flex items-center justify-center active:scale-[.98] transition-transform cursor-pointer disabled:opacity-60 ${anim != null ? 'tk-add-active' : ''}`}>
+        className={`press focus-ring flex-1 min-w-0 relative overflow-hidden h-[56px] rounded-2xl bg-[var(--brand-blue)] text-white text-[15px] font-extrabold flex items-center justify-center active:scale-[.98] transition-transform cursor-pointer disabled:opacity-60 ${anim != null ? 'tk-add-active' : ''}`}>
         {anim != null && <CartJourney k={anim} />}
-        <span className="tk-add-label whitespace-nowrap truncate px-3">
-          {label} <span className="opacity-75">·</span> {fmt(total)} <span className="text-[11px] font-bold opacity-70">UZS</span>
+        <span className="tk-add-label relative flex flex-col items-center justify-center leading-none px-2">
+          <span className="flex items-center gap-1.5 whitespace-nowrap">
+            <IcNavCart s={18} />
+            <span className="text-[13.5px] font-extrabold">{label}</span>
+          </span>
+          <span className="mt-1 text-[16px] font-extrabold tabular-nums whitespace-nowrap">
+            {fmt(total)} <span className="text-[11px] font-bold opacity-70">UZS</span>
+          </span>
         </span>
       </button>
     </div>
@@ -1630,10 +1649,11 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
           {/* buyurtma paneli biriktirilgan: miqdor + jami narx */}
           <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--sheet)]">
             <ProductPriceBar
-              q={m.q} total={p.price * m.q}
+              q={m.q} total={p.price * m.q} min={0} stepperSize="lg"
               onInc={() => { m.setQ(v => v + 1); haptic() }}
-              onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }}
-              onAdd={(el) => m.addToCart(el)}
+              onDec={() => { if (m.q > 0) { m.setQ(v => v - 1); haptic() } }}
+              onAdd={(el) => { if (m.q > 0) m.addToCart(el) }}
+              onCloseEmpty={onClose} emptyLabel={m.t.closeBtn}
               label={m.t.addCart} busy={m.busy} anim={m.anim}
             />
           </div>
@@ -1769,7 +1789,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
      kamida 1). Javob animatsiyasidan keyin modal yopiladi. Menyudan boshqa
      sahifadan ochilgan bo'lsa menyuga qaytib, kartochkani ko'rsatamiz. */
   const onAdd = (el?: HTMLElement | null) => {
-    if (m.busy) return
+    if (m.busy || m.q <= 0) return
     m.addToCart(el)
     window.setTimeout(() => {
       if (mountPathRef.current !== '/') {
@@ -1842,10 +1862,10 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
         {/* biriktirilgan buyurtma paneli: miqdor + "Savatga qo'shish · jami" */}
         <div style={{ paddingBottom: 'calc(12px + var(--sab))' }} className="shrink-0 bg-[var(--sheet)] border-t border-[var(--line)] px-4 pt-3">
           <ProductPriceBar
-            q={m.q} total={p.price * m.q}
+            q={m.q} total={p.price * m.q} min={0}
             onInc={() => { m.setQ(v => v + 1); haptic() }}
-            onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }}
-            onAdd={onAdd}
+            onDec={() => { if (m.q > 0) { m.setQ(v => v - 1); haptic() } }}
+            onAdd={onAdd} onCloseEmpty={doClose} emptyLabel={m.t.closeBtn}
             label={m.t.addCart} busy={m.busy} anim={m.anim}
           />
         </div>
