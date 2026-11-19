@@ -1113,10 +1113,12 @@ export function BigButton({ children, onClick, disabled, ghost, type }: {
    oxirgi donani ham olib tashlashga ruxsat). Karta bosilganda modal ochilmasligi
    uchun stopPropagation konteynerda. ---------- */
 export function QtyStepper({ q, onInc, onDec, min = 1, size = 'md', full, className }: {
-  q: number; onInc: () => void; onDec: () => void; min?: number; size?: 'sm' | 'md'; full?: boolean; className?: string
+  q: number; onInc: () => void; onDec: () => void; min?: number; size?: 'sm' | 'md' | 'lg'; full?: boolean; className?: string
 }) {
   const cfg = size === 'sm'
     ? { box: 'p-1 gap-1 rounded-[12px]', btn: 'w-8 h-8 rounded-[10px]', ic: 13, txt: 'text-[14px]' }
+    : size === 'lg'
+    ? { box: 'p-1.5 gap-2 rounded-[16px]', btn: 'w-11 h-11 rounded-[13px]', ic: 18, txt: 'text-[16px]' }
     : { box: 'p-1 gap-1.5 rounded-[14px]', btn: 'w-9 h-9 rounded-[11px]', ic: 15, txt: 'text-[15px]' }
   const btn = `press focus-ring ${cfg.btn} grid place-items-center bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] hover:bg-navy-soft disabled:opacity-35 disabled:pointer-events-none active:scale-90 transition-transform cursor-pointer`
   return (
@@ -1237,6 +1239,97 @@ export function NutritionPanel({ items, per100, className }: {
           </span>
         ))}
       </div>
+    </div>
+  )
+}
+
+/* ---------- KBJU blok: 4 ta teng plitka bir qatorda (juda tor ekranda 2x2).
+   Har bir plitka: mayda, kulrang yorliq + qalin qiymat birligi bilan.
+   Qiymati yo'q plitka umuman chiqmaydi (hook allaqachon filtrlaydi),
+   hammasi bo'lmasa butun blok chiqmaydi. ---------- */
+export function NutritionFacts({ items, per100, className }: {
+  items: ReadonlyArray<readonly [string, number | null | undefined, string]>; per100: string; className?: string
+}) {
+  if (!items.length) return null
+  return (
+    <div className={className}>
+      <div className="text-[11px] font-extrabold uppercase tracking-[0.08em] text-[var(--mut2)]">{per100}</div>
+      <div className="mt-2 grid grid-cols-4 gap-1.5 max-[380px]:grid-cols-2">
+        {items.map(([l, v, u]) => (
+          <div key={l} className="min-w-0 rounded-xl bg-[var(--soft)] border border-[var(--line2)] px-2 py-2 text-center">
+            <div className="text-[10px] font-bold text-[var(--mut2)] leading-tight truncate">{l}</div>
+            <div className="mt-1 text-[14px] font-extrabold text-[var(--ink)] tabular-nums leading-none whitespace-nowrap">
+              {v}{u ? <span className="text-[10px] font-bold text-[var(--mut2)]"> {u}</span> : null}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/* ---------- mahsulot rasmi: yuklanish skeleti (shimmer), lazy yuklash,
+   xatolikda idish belgisi — modal hech qachon "bo'sh oyna" ko'rinmaydi ---------- */
+export function ProductImage({ src, alt }: { src: string; alt: string }) {
+  const [loaded, setLoaded] = useState(false)
+  const [failed, setFailed] = useState(false)
+  const refCb = (el: HTMLImageElement | null) => {
+    if (el && el.complete && el.naturalWidth > 0) setLoaded(true)
+  }
+  return (
+    <>
+      {!loaded && !failed && <div aria-hidden="true" className="skel absolute inset-0 !rounded-none" />}
+      {failed
+        ? <div className="absolute inset-0 grid place-items-center text-[var(--mut2)]"><IcPlate /></div>
+        : <img ref={refCb} src={src} alt={alt} loading="lazy" decoding="async"
+            onLoad={() => setLoaded(true)} onError={() => setFailed(true)}
+            className={"absolute inset-0 w-full h-full object-cover motion-safe:transition-opacity duration-300 " + (loaded ? "opacity-100" : "opacity-0")} />}
+    </>
+  )
+}
+
+/* ---------- tavsif: avval 3 qator, "Batafsil" bilan ochiladi ("Yopish" yig'adi).
+   To'liq tarkib asosiy amallarni ekrandan siqib chiqarmaydi. ---------- */
+export function ProductDescription({ text, moreLabel, lessLabel, className }: {
+  text: string; moreLabel: string; lessLabel: string; className?: string
+}) {
+  const [open, setOpen] = useState(false)
+  const clean = (text || '').replace(/\\n/g, '\n')
+  if (!clean.trim()) return null
+  const long = clean.trim().length > 120
+  return (
+    <div className={className}>
+      <p className={"text-[14px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line " + (open ? '' : 'line-clamp-3')}>{clean}</p>
+      {long && (
+        <button type="button" onClick={() => setOpen(o => !o)} aria-expanded={open}
+          className="press focus-ring mt-1.5 -ml-1 px-1 py-0.5 rounded-lg text-[13px] font-extrabold text-[var(--btn)] cursor-pointer">
+          {open ? lessLabel : moreLabel}
+        </button>
+      )}
+    </div>
+  )
+}
+
+/* ---------- yakuniy narx paneli: miqdor (katta tugmachalar, min 44px) +
+   brend ko'k "Savatga qo'shish · jami narx" tugmasi. Jami narx miqdor
+   o'zgarganda darhol o'zgaradi (narx x miqdor). Mobil varaq va desktop
+   modalida bir xil ishlatiladi. ---------- */
+export function ProductPriceBar({ q, total, onInc, onDec, onAdd, label, busy, anim, className }: {
+  q: number; total: number; onInc: () => void; onDec: () => void
+  onAdd: (el?: HTMLElement | null) => void; label: string
+  busy?: boolean; anim?: number | null; className?: string
+}) {
+  return (
+    <div className={"flex items-center gap-3 " + (className || '')}>
+      <QtyStepper size="lg" q={q} min={1} onInc={onInc} onDec={onDec} />
+      <button type="button" onClick={e => onAdd(e.currentTarget)} disabled={busy}
+        aria-label={label + ' · ' + fmt(total) + ' UZS'}
+        className={`press focus-ring flex-1 relative overflow-hidden h-[52px] rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15px] font-extrabold flex items-center justify-center active:scale-[.98] transition-transform cursor-pointer disabled:opacity-60 ${anim != null ? 'tk-add-active' : ''}`}>
+        {anim != null && <CartJourney k={anim} />}
+        <span className="tk-add-label whitespace-nowrap truncate px-3">
+          {label} <span className="opacity-75">·</span> {fmt(total)} <span className="text-[11px] font-bold opacity-70">UZS</span>
+        </span>
+      </button>
     </div>
   )
 }
@@ -1386,15 +1479,14 @@ export function ProductSheet() {
   return <ProductSheetMobile p={sheetP} onClose={closeP} />
 }
 
-/* ---------- desktop mahsulot moduli (>=1024px): chapda rasm+nom+tavsif+narx+oziqlik,
-   o'ngda qo'shimchalar va tavsiyalar. Tashqi o'lchamlar barqaror: balandlik
-   kontentga emas, ko'rish oynasiga bog'liq (h, max-h emas) — sous tanlash yoki
-   son o'zgarishida oyna o'lchami sakramaydi. Ikkala ustun ham mavjud balandlik
-   ichida o'zgartirilmagan holda aylanadi (parallel skroll, ichma-ich emas). ---------- */
+/* ---------- desktop mahsulot moduli (>=1024px): bitta ustun — rasm, nom,
+   KBJU, tavsif ("Batafsil" bilan). Souslar va tavsiyalar modalda KO'RINMAYDI
+   (SaucePicker / RecoRow komponentlari saqlanadi — savat sahifasi uchun).
+   Tashqi o'lchamlar barqaror: balandlik kontentga emas, ko'rish oynasiga
+   bog'liq; buyurtma paneli pastda biriktirilgan, kontent yuqorida aylanadi. ---------- */
 function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
   const m = useProductModal(p)
   const [enter, setEnter] = useState(false)
-  const [mini, setMini] = useState<Product | null>(null)
   const panelRef = useRef<HTMLDivElement | null>(null)
   useEffect(() => { const id = window.setTimeout(() => setEnter(true), 10); return () => clearTimeout(id) }, [])
   useEffect(() => {
@@ -1436,17 +1528,16 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
       <div className={`absolute inset-0 bg-black/55 transition-opacity duration-300 ${enter ? 'opacity-100' : 'opacity-0'}`} onClick={onClose} />
       <div className="absolute inset-0 grid place-items-center p-6 pointer-events-none">
         <div ref={panelRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={pName(p, m.lang)}
-          className={`pointer-events-auto relative w-[min(880px,94vw)] h-[min(86vh,640px)] flex flex-col outline-none rounded-[26px] bg-[var(--sheet)] shadow-[0_40px_120px_rgba(4,10,40,.55)] overflow-hidden transition-[opacity,transform] duration-300 ${enter ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.96] translate-y-2'}`}>
+          className={`pointer-events-auto relative w-[min(420px,94vw)] h-[min(86vh,680px)] flex flex-col outline-none rounded-[26px] bg-[var(--sheet)] shadow-[0_40px_120px_rgba(4,10,40,.55)] overflow-hidden transition-[opacity,transform] duration-300 ${enter ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-[0.96] translate-y-2'}`}>
           <button onClick={onClose} aria-label={m.t.closeBtn}
             className="absolute top-4 right-4 z-10 w-9 h-9 rounded-full bg-[var(--panel)] border border-[var(--line2)] grid place-items-center text-[var(--mut2)] hover:text-[var(--ink)] hover:bg-navy-soft active:scale-90 transition-all cursor-pointer">
             <IcX s={16} />
           </button>
-          <div className="flex flex-1 min-h-0">
-            {/* chap: KVADRAT rasm yuqoridan, ostida nom, tavsif va oziqlik.
-                Narx bu ustunda TAKRORLANMAYDI — yakuniy narx o'ng ustun buyurtma panelida. */}
-            <div className="w-[340px] shrink-0 flex flex-col min-h-0 overflow-y-auto no-scrollbar border-r border-[var(--line)] px-5 py-5">
-              <div className="relative aspect-square w-full rounded-[16px] overflow-hidden bg-navy-soft shrink-0">
-                <ImgOrPlate src={pImg(p)} alt={pName(p, m.lang)} />
+          {/* yagona skroll hudud: rasm → nom → KBJU → tavsif */}
+          <div className="flex-1 min-h-0 overflow-y-auto no-scrollbar overscroll-contain">
+            <div className="w-full max-w-[420px] mx-auto px-6 pt-7 pb-6">
+              <div className="relative aspect-square rounded-[18px] overflow-hidden bg-navy-soft shrink-0">
+                <ProductImage src={pImg(p)} alt={pName(p, m.lang)} />
                 {m.sale && (
                   <span className="absolute top-3 left-3 bg-[var(--promo)] text-[var(--promo-ink)] text-[12px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-[9px]">
                     −{m.salePct}%
@@ -1458,38 +1549,22 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
                 <div className="text-[22px] font-extrabold leading-tight">{pName(p, m.lang)}</div>
                 {isSpicy(p) && <SpicyBadge size={20} />}
               </div>
-              {pDesc(p, m.lang) && <p className="mt-2.5 text-[14.5px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
-              <NutritionPanel className="mt-4" items={m.nutrition} per100={m.t.per100} />
+              <NutritionFacts className="mt-3.5" items={m.nutrition} per100={m.t.per100} />
+              <ProductDescription className="mt-3.5" text={cleanDesc(pDesc(p, m.lang) || '')} moreLabel={m.t.moreBtn} lessLabel={m.t.lessBtn} />
             </div>
-            {/* o'ng: qo'shimchalar (souslar) + tavsiyalar; buyurtma paneli pastda biriktirilgan */}
-            <div className="flex-1 min-w-0 flex flex-col min-h-0">
-              <div className="overflow-y-auto no-scrollbar px-7 pt-7 pb-5 flex-1 min-h-0">
-                {p.cat !== 'sous' && <SaucePicker sauces={m.sauces} qtyOf={m.qtyOf} setQty={m.setQty} onShow={setMini} />}
-                <div className="mt-5"><RecoRow items={m.reco} onShow={setMini} /></div>
-              </div>
-              <div className="px-7 py-4 border-t border-[var(--line)] bg-[var(--sheet)]">
-                {m.sale && (
-                  <div className="mb-2.5 flex items-center gap-2">
-                    <span className="text-[13px] font-bold text-[var(--mut2)] line-through">{fmt(p.old_price)} UZS</span>
-                    <span className="text-[12px] font-extrabold text-[var(--promo-deep)]">−{m.salePct}%</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-3">
-                  <QtyStepper q={m.q} min={1}
-                    onInc={() => { m.setQ(v => v + 1); haptic() }}
-                    onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }} />
-                  <button onClick={e => m.addToCart(e.currentTarget)} disabled={m.busy}
-                    className={`press flex-1 relative overflow-hidden py-3.5 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15px] font-extrabold flex items-center justify-center hover:brightness-105 active:scale-[.98] transition-all cursor-pointer disabled:opacity-60 ${m.anim != null ? 'tk-add-active' : ''}`}>
-                    {m.anim != null && <CartJourney k={m.anim} />}
-                    <span className="tk-add-label whitespace-nowrap">{m.t.addCart} · {fmt(p.price * m.q)} <span className="text-[11px] font-bold opacity-70">UZS</span></span>
-                  </button>
-                </div>
-              </div>
-            </div>
+          </div>
+          {/* buyurtma paneli biriktirilgan: miqdor + jami narx */}
+          <div className="px-6 py-4 border-t border-[var(--line)] bg-[var(--sheet)]">
+            <ProductPriceBar
+              q={m.q} total={p.price * m.q}
+              onInc={() => { m.setQ(v => v + 1); haptic() }}
+              onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }}
+              onAdd={(el) => m.addToCart(el)}
+              label={m.t.addCart} busy={m.busy} anim={m.anim}
+            />
           </div>
         </div>
       </div>
-      {mini && <MiniProduct p={mini} onClose={() => setMini(null)} />}
     </div>,
     document.body
   )
@@ -1509,11 +1584,13 @@ function ImgOrPlate({ src, alt }: { src: string; alt: string }) {
 }
 
 /* ---------- mobil mahsulot modali (<1024px): to'liq balandlikdagi varaq.
-   Tashqi o'lchami doim ko'rish oynasi bilan bir xil — ichki matn qancha bo'lsa ham
-   o'lcham o'zgarmaydi; barcha kontent yuqori sarlavha va pastdagi biriktirilgan
-   buyurtma paneli orasidagi yagona skroll hududida aylanadi. Yopish: tugma,
-   fon bosilishi yoki sarlavhadan pastga sudrab (sudrab yopish faqat sarlavha
-   zonasida — matnni aylantirish tasodifan yopmaydi). ---------- */
+   Tarkibi qisqartirildi — faqat: rasm (badge bilan) → nom → KBJU → tavsif
+   ("Batafsil"/"Yopish"). Souslar va tavsiyalar modalda KO'RINMAYDI
+   (SaucePicker / RecoRow komponentlari saqlanadi, savat sahifasi uchun
+   qayta ishlatiladi). Buyurtma paneli PASTDA BIRIKTIRILGAN: skroll qancha
+   bo'lsa ham miqdor + "Savatga qo'shish · jami narx" doim ko'rinadi.
+   Telegram xavfsizlik zonasida: tepada Back/v/… tugmalari ostidan kontent
+   o'tmaydi, pastda home-indicator ustidan panel ko'tariladi. ---------- */
 function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void }) {
   const m = useProductModal(p)
   const [enter, setEnter] = useState(false)
@@ -1522,14 +1599,6 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   const [drag, setDrag] = useState(false)
   const panelRef = useRef<HTMLDivElement | null>(null)
   const scrollRef = useRef<HTMLDivElement | null>(null)
-  const [mini, setMini] = useState<Product | null>(null)
-  /* Shu popapdagi TANLOV: savatga tegmaydi. Pastdagi "Savatga qo'shish"
-     bosilganda tanlangan hammasi bir vaqtda savatga qo'shiladi. */
-  const [sel, setSel] = useState<Record<string, number>>(() => ({ [p.id]: 1 }))
-  const selOf = (id: string) => sel[id] || 0
-  const setSelQty = (id: string, q: number) => setSel(s => { const c = { ...s }; if (q <= 0) delete c[id]; else c[id] = q; return c })
-  /* Popap qaysi sahifada ochilgani: yopilganda skrollni faqat shu sahifada qaytaramiz */
-  const mountPathRef = useRef<string>('')
   /* Yopish: popap pastga silliq sirg'alib chiqadi (chiroyli exit), keyin o'chiriladi */
   const closingRef = useRef(false)
   const doClose = () => {
@@ -1592,6 +1661,8 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     setDy(0)
   }
   const bgDown = useRef<{ x: number; y: number } | null>(null)
+  /* Popap qaysi sahifada ochilgani: yopilganda skrollni faqat shu sahifada qaytaramiz */
+  const mountPathRef = useRef<string>('')
   useEffect(() => {
     mountPathRef.current = loc.pathname
     const prevOverflow = document.body.style.overflow
@@ -1620,37 +1691,23 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
       try { prevFocus?.focus?.() } catch {}
     }
   }, [])
-  // Qo'shilganlar ro'yxati: asosiy + qo'shilgan sous/tavsiyalar (qo'shni takrorlamasdan)
-  const extras: Product[] = []
-  {
-    const seen = new Set<string>()
-    for (const x of [...m.sauces, ...m.reco]) {
-      if (seen.has(x.id)) continue
-      seen.add(x.id)
-      if (selOf(x.id) > 0) extras.push(x)
-    }
-  }
-  const mainQty = selOf(p.id)
-  const selCount = mainQty + extras.reduce((a, x) => a + selOf(x.id), 0)
-  const selTotal = p.price * mainQty + extras.reduce((a, x) => a + x.price * selOf(x.id), 0)
-  /* Savatga qo'shish: shu popapda tanlangan hammasi bir vaqtda savatga qo'shiladi,
-     popap yopilib, asosiy menyuga qaytiladi. */
-  const onAddAll = () => {
-    if (selCount <= 0) return
-    for (const [id, q] of Object.entries(sel)) if (q > 0) m.add(id, q)
-    haptic('medium')
-    /* Chiqishda foydalanuvchi qolgan joyiga qaytadi: asosiy menyudan ochilgan
-       bo'lsa skroll o'z-o'zidan eski joyiga qaytadi; boshqa sahifadan bo'lsa
-       menyuga o'tib, shu mahsulot kartochkasi tortiladi. */
-    if (mountPathRef.current !== '/') {
-      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      nav('/')
-      window.setTimeout(() => {
-        const el = document.querySelector<HTMLElement>(`[data-pc="${p.id}"]`)
-        if (el) el.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' })
-      }, 420)
-    }
-    doClose()
+  /* Savatga qo'shish: faqat asosiy mahsulot (shu modaldagi miqdor bilan,
+     kamida 1). Javob animatsiyasidan keyin modal yopiladi. Menyudan boshqa
+     sahifadan ochilgan bo'lsa menyuga qaytib, kartochkani ko'rsatamiz. */
+  const onAdd = (el?: HTMLElement | null) => {
+    if (m.busy) return
+    m.addToCart(el)
+    window.setTimeout(() => {
+      if (mountPathRef.current !== '/') {
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        nav('/')
+        window.setTimeout(() => {
+          const el2 = document.querySelector<HTMLElement>(`[data-pc="${p.id}"]`)
+          if (el2) el2.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' })
+        }, 420)
+      }
+      doClose()
+    }, 560)
   }
   return createPortal(
     <div className="fixed inset-0 z-50">
@@ -1670,9 +1727,12 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
           transform: `translateY(${closing || !enter ? '100%' : `${dy}px`})`,
           transition: drag ? 'none' : 'transform .42s cubic-bezier(.32,.72,0,1)',
         }}>
-        {/* sarlavha: pastga sudrab yopish zonasi; grabber har doim korinadi */}
+        {/* sarlavha: pastga sudrab yopish zonasi; grabber har doim korinadi.
+            Telegram tugmalari (Back / v / …) kontent USTIGA chiziladi:
+            contentSafeAreaInset/safeAreaInset --sat orqali keladi, hisobot
+            0 bo'lsa ham xrom balandligiga teng zaxira (min 56px) qo'yamiz. */}
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
-          style={{ touchAction: 'none', paddingTop: 'var(--sat)' }}
+          style={{ touchAction: 'none', paddingTop: inTg ? 'max(var(--sat), 56px)' : 'var(--sat)' }}
           className="shrink-0 cursor-grab active:cursor-grabbing">
           <div className="pt-2.5 pb-1">
             <div className="w-10 h-1.5 rounded-full bg-[var(--line2)] mx-auto" />
@@ -1687,10 +1747,10 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
             </div>
           )}
         </div>
-        {/* yagona skroll hudud: kvadrat rasm, nom, oziqlik, tavsif, souslar, tavsiyalar */}
-        <div ref={scrollRef} onTouchStart={sDown} onTouchMove={sMove} onTouchEnd={sEnd} onTouchCancel={sEnd} className="overflow-y-auto no-scrollbar px-5 pt-2.5 pb-5 flex-1 min-h-0 overscroll-contain">
-          <div className="relative aspect-square rounded-[18px] overflow-hidden bg-navy-soft shrink-0">
-            <ImgOrPlate src={pImg(p)} alt={pName(p, m.lang)} />
+        {/* yagona skroll hudud: rasm → nom → KBJU → tavsif */}
+        <div ref={scrollRef} onTouchStart={sDown} onTouchMove={sMove} onTouchEnd={sEnd} onTouchCancel={sEnd} className="overflow-y-auto no-scrollbar px-5 pt-1 pb-5 flex-1 min-h-0 overscroll-contain">
+          <div className="relative aspect-square rounded-[20px] overflow-hidden bg-navy-soft shrink-0">
+            <ProductImage src={pImg(p)} alt={pName(p, m.lang)} />
             {m.sale && (
               <span className="absolute top-2.5 left-2.5 bg-[var(--promo)] text-[var(--promo-ink)] text-[11.5px] font-extrabold tracking-wide px-2.5 py-1.5 rounded-[9px]">
                 −{m.salePct}%
@@ -1702,52 +1762,20 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
             <div className="text-[21px] font-extrabold leading-tight">{pName(p, m.lang)}</div>
             {isSpicy(p) && <SpicyBadge size={20} />}
           </div>
-          <NutritionPanel className="mt-2.5" items={m.nutrition} per100={m.t.per100} />
-          {pDesc(p, m.lang) && <p className="mt-3 text-[14px] leading-relaxed text-[var(--mut2)] font-medium whitespace-pre-line">{cleanDesc(pDesc(p, m.lang))}</p>}
-          {p.cat !== 'sous' && (
-  /* Souslar: oqim ichida oddiy bo'lim — alohida biriktirilgan panel emas,
-     rasm → tavsif → souslar → tavsiyalar → buyurtma paneli bitta sahifada. */
-  <div className="mt-4">
-    <SaucePicker sauces={m.sauces} qtyOf={selOf} setQty={setSelQty} onShow={setMini} />
-  </div>
-)}
-          <div className="mt-4"><RecoRow items={m.reco} compact onShow={setMini} qtyOf={selOf} setSel={setSelQty} /></div>
-          {/* buyurtma paneli SKROLL OQIMINING ENG OXIRIDA: ro'yxat (asosiy + qoshilganlar,
-              plus/minus bilan) va bitta Savatga qo'shish tugmasi (miqdor bilan)*/}
-          <div style={{ paddingBottom: 'calc(6px + var(--sab))' }} className="mt-6 border-t border-[var(--line)] pt-4">
-            <div className="rounded-[18px] bg-[var(--soft)] p-3">
-              <div className="flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-[14.5px] font-extrabold leading-tight truncate">{pName(p, m.lang)}</div>
-                  <div className="text-[11.5px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(p.price * mainQty)} <span className="text-[10px] font-bold">UZS</span></div>
-                </div>
-              </div>
-              {extras.map(s => (
-                <div key={s.id} className="mt-2.5 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[13.5px] font-extrabold leading-tight truncate">{pName(s, m.lang)}</div>
-                    <div className="text-[11px] font-bold text-[var(--mut2)] mt-0.5 tabular-nums whitespace-nowrap">{fmt(s.price * selOf(s.id))} <span className="text-[10px] font-bold">UZS</span></div>
-                  </div>
-                  <QtyStepper size="sm" q={selOf(s.id)} min={0}
-                    onInc={() => { setSelQty(s.id, selOf(s.id) + 1); haptic() }}
-                    onDec={() => { if (selOf(s.id) > 0) { setSelQty(s.id, selOf(s.id) - 1); haptic() } }} />
-                </div>
-              ))}
-            </div>
-            <div className="mt-3 flex items-center gap-2">
-              <QtyStepper q={mainQty} min={0}
-                onInc={() => { setSelQty(p.id, mainQty + 1); haptic('medium') }}
-                onDec={() => { if (mainQty > 0) { setSelQty(p.id, mainQty - 1); haptic() } }} />
-              <button onClick={onAddAll} disabled={selCount <= 0}
-                className={`press flex-1 py-3 rounded-2xl text-[14.5px] font-extrabold active:scale-[.98] transition-transform disabled:opacity-45 disabled:pointer-events-none ${selCount <= 0 ? 'bg-[var(--panel)] border border-[var(--line2)] text-[var(--mut2)]' : 'bg-[var(--btn)] text-[var(--btn-ink)]'}`}>
-                {m.t.addCart}
-                {selTotal > 0 && <span className="font-bold opacity-75">&nbsp;&middot; {fmt(selTotal)} <span className="text-[10px]">UZS</span></span>}
-              </button>
-            </div>
-          </div>
+          <NutritionFacts className="mt-3" items={m.nutrition} per100={m.t.per100} />
+          <ProductDescription className="mt-3" text={cleanDesc(pDesc(p, m.lang) || '')} moreLabel={m.t.moreBtn} lessLabel={m.t.lessBtn} />
+        </div>
+        {/* biriktirilgan buyurtma paneli: miqdor + "Savatga qo'shish · jami" */}
+        <div style={{ paddingBottom: 'calc(12px + var(--sab))' }} className="shrink-0 bg-[var(--sheet)] border-t border-[var(--line)] px-4 pt-3">
+          <ProductPriceBar
+            q={m.q} total={p.price * m.q}
+            onInc={() => { m.setQ(v => v + 1); haptic() }}
+            onDec={() => { if (m.q > 1) { m.setQ(v => v - 1); haptic() } }}
+            onAdd={onAdd}
+            label={m.t.addCart} busy={m.busy} anim={m.anim}
+          />
         </div>
       </div>
-      {mini && <MiniProduct p={mini} onClose={() => setMini(null)} onAddSel={(q) => setSelQty(mini.id, selOf(mini.id) + q)} />}
     </div>,
     document.body
   )
