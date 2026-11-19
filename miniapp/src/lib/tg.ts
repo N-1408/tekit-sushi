@@ -116,10 +116,8 @@ export function requestLocation(): Promise<{ lat: number; lon: number } | null> 
 }
 
 export function haptic(kind: 'light' | 'medium' | 'heavy' | 'success' | 'error' = 'light') {
-  try {
-    if (kind === 'success' || kind === 'error') TGA?.HapticFeedback?.notificationOccurred(kind)
-    else TGA?.HapticFeedback?.impactOccurred(kind)
-  } catch {}
+  // Ega qarori (2026-11-20): har qanday titrash olib tashlandi.
+  // Chaqiruvlar joyida qoladi, lekin hech narsa tebranmaydi.
 }
 
 export function sendData(data: unknown) {

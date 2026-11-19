@@ -63,7 +63,7 @@ function Body() {
       if (top > myMax) {
         if (!firstRef.current) {
           startAlertLoop()
-          try { haptic('heavy'); navigator.vibrate?.([80, 60, 80]) } catch {}
+          haptic('heavy')
           showToast(t.aNewOrderA)
         }
         maxIdRef.current = top
