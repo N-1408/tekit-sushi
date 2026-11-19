@@ -185,6 +185,7 @@ const TAB_ICON: Record<string, JSX.Element> = {
   orders: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2h-2" /><rect x="8" y="2" width="8" height="4" rx="1" /><path d="M8 11h8M8 15h5" /></svg>,
   menu: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" rx="2" /><rect x="14" y="3" width="7" height="7" rx="2" /><rect x="3" y="14" width="7" height="7" rx="2" /><rect x="14" y="14" width="7" height="7" rx="2" /></svg>,
   promos: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13" /><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" /><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9.5 3 11 5 12 8c1-3 2.5-5 4.5-5a2.5 2.5 0 0 1 0 5" /></svg>,
+  customers: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
   dash: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M22 20H2" /></svg>,
 }
 
@@ -208,6 +209,7 @@ function AdminSidebar() {
     { id: 'menu', to: '/admin/menu', label: t.aTabM, icon: TAB_ICON.menu },
     { id: 'promos', to: '/admin/promos', label: t.aTabP, icon: TAB_ICON.promos },
     { id: 'dash', to: '/admin/dash', label: t.aTabD, icon: TAB_ICON.dash },
+    { id: 'customers', to: '/admin/customers', label: t.aTabC, icon: TAB_ICON.customers },
   ]
   const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
   return (
@@ -251,6 +253,7 @@ function AdminTabBar() {
     { id: 'menu', to: '/admin/menu', label: t.aTabM, icon: 'menu' },
     { id: 'promos', to: '/admin/promos', label: t.aTabP, icon: 'promos' },
     { id: 'dash', to: '/admin/dash', label: t.aTabD, icon: 'dash' },
+    { id: 'customers', to: '/admin/customers', label: t.aTabC, icon: 'customers' },
   ]
   const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
   return (
