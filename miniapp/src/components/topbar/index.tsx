@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom'
 import { useStore } from '../../lib/store'
 import { useNativeBack, tgUser } from "../../lib/tg"
 import { BrandLogo } from './brand-logo'
+import { ThemeToggle } from '../ui'
 
 /* ---------- yuqori panel: BARCHA ekranlarning umumiy sarlavhasi.
    Home'dagi katta brend sarlavhasi bundan tashqari (components/ui.tsx > Header). ---------- */
@@ -33,6 +34,7 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
       <div className="max-w-[1240px] mx-auto flex items-center gap-2 px-4 lg:px-6 py-2">
         {title ? (
           <>
+            <div className="w-10 shrink-0" aria-hidden="true" />
             <div className="text-[16px] font-extrabold flex-1 text-center truncate">{title}</div>
           </>
         ) : (
@@ -44,7 +46,8 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
             </div>
           </>
         )}
-        {/* ikonkalar Profile ekraniga ko'chirildi: sarlavha paneli faqat matn */}
+        {/* tema almashtirish doim ko'rinadi: sarlavha panelining o'ng chetida */}
+        <ThemeToggle variant="header" />
       </div>
     </div>
   )
