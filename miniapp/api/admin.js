@@ -198,6 +198,25 @@ export default async (req, res) => {
         const days = [1, 7, 30].includes(Number(req.query.days)) ? Number(req.query.days) : 7;
         return res.status(200).json({ ok: true, ...(await buildStats(P, days)) });
       }
+      if (action === 'customers') {
+        const days = [30, 90, 365, 0].includes(Number(req.query.days)) ? Number(req.query.days) : 90;
+        const r = await P.query(
+          `SELECT coalesce(nullif(trim(name),''), '') AS name, phone,
+                  count(*)::int AS n,
+                  coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue,
+                  count(*) FILTER (WHERE status = 'cancelled')::int AS cancels,
+                  max(created_at) AS last_at, min(created_at) AS first_at
+           FROM orders
+           WHERE phone IS NOT NULL AND phone <> ''
+             AND ($1::int = 0 OR created_at >= now() - ($1::int * interval '1 day'))
+           GROUP BY 1, 2
+           ORDER BY revenue DESC, n DESC
+           LIMIT 500`, [days]);
+        return res.status(200).json({
+          ok: true, days,
+          customers: r.rows.map(x => ({ ...x, revenue: Number(x.revenue) })),
+        });
+      }
       if (action === 'menu') {
         const cats = (await P.query(`SELECT * FROM menu_categories ORDER BY sort`)).rows;
         const items = (await P.query(`SELECT * FROM menu_items ORDER BY sort, cat`)).rows;
