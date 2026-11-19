@@ -26,6 +26,7 @@ export async function handleIikoStatus(req, res) {
     iikoOrganizationIdSet: !!process.env.IIKO_ORGANIZATION_ID,
     iikoTerminalGroupIdSet: !!process.env.IIKO_TERMINAL_GROUP_ID,
     iikoClientSecretSet: !!process.env.IIKO_CLIENT_SECRET,
+    iikoAppIdSet: !!process.env.IIKO_APP_ID,
     baseUrl: BASE,
   };
 
@@ -38,7 +39,7 @@ export async function handleIikoStatus(req, res) {
   let tok = v1;
   let version = 'v1';
   if (v1.status !== 200 || !v1.data || !v1.data.token) {
-    const v2 = await post('/api/v2/access_token', null, { apiLogin: process.env.IIKO_API_LOGIN, clientSecret: process.env.IIKO_CLIENT_SECRET || null });
+    const v2 = await post('/api/v2/access_token', null, { apiKey: process.env.IIKO_API_LOGIN, appId: process.env.IIKO_APP_ID || null, clientSecret: process.env.IIKO_CLIENT_SECRET || null });
     if (v2.status === 200 && v2.data && v2.data.token) { tok = v2; version = 'v2'; }
     else {
       return res.status(200).json({
