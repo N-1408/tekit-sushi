@@ -66,9 +66,6 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
     adminSession().then((ok) => { if (alive && ok) setSessOk(true) })
     return () => { alive = false }
   }, [])
-  React.useEffect(() => {
-    if (sessOk) refresh()
-  }, [sessOk, refresh])
 
   const update = React.useCallback((patch: Partial<AdminData>) => {
     setData(d => {
@@ -95,6 +92,9 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
     if (!(!!key || roleOk)) return
     refresh()
   }, [refresh])
+  React.useEffect(() => {
+    if (sessOk) refresh()
+  }, [sessOk, refresh])
 
   const H = React.useCallback(() => (sessOk && !key && !roleOk ? {} : authHeaders(key, role, uid)), [sessOk, key, role, uid])
   const refreshSess = React.useCallback(async () => {
