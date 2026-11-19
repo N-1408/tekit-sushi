@@ -448,50 +448,115 @@ export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }
    ekraniga ko'chirildi. Skroll bo'lganda brend qatori silliq yig'iladi
    (slide, yo'qolmaydi); kategoriyalar qatori o'z joyida pinlangan qoladi. ---------- */
 export function Header({ collapsed = false, floating = false }: { collapsed?: boolean; floating?: boolean }) {
-  const { t, lang, setLang, user, ob } = useStore()
+  const { t, lang, setLang, user, ob, mode, setMode } = useStore()
   const nav = useNavigate()
   const [delOpen, setDelOpen] = useState(false)
   const [pickOpen, setPickOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [selOpen, setSelOpen] = useState(false)
   const [askState, setAskState] = useState(() => {
     try { return !localStorage.getItem('tk-onboarded') } catch { return true }
   })
   const isWide = useIsWide()
   // birinchi tashrif: bir marta so'raladi; yopilsa ham yoziladi
   const askOpen = askState && !!user && !ob
+
+  /* Radio nuqta: tanlanmagan — bo'sh halqa, tanlangan — oq nuqta */
+  const RadioDot = ({ on }: { on: boolean }) => (
+    <span className="w-3.5 h-3.5 rounded-full border-2 border-white/85 grid place-items-center shrink-0">
+      {on && <span className="w-1.5 h-1.5 rounded-full bg-white" />}
+    </span>
+  )
+  /* Ixcham radio-modul: rejim hali tanlanmagan paytda yorliq o'rnida turadi.
+     Tanlov store'ga yoziladi (session holati) va header yorliq holatiga o'tadi. */
+  const OrderTypeSelector = ({ compact = false }: { compact?: boolean }) => (
+    <div role="radiogroup" aria-label="order-type"
+      className={`flex items-center ${compact ? 'gap-0.5' : 'gap-1'} rounded-full bg-white/[.16] p-1`}>
+      {(['delivery', 'pickup'] as const).map(m => {
+        const on = mode === m
+        return (
+          <button key={m} role="radio" aria-checked={on}
+            onClick={() => { haptic('medium'); setMode(m); setSelOpen(false) }}
+            className={`press focus-ring flex items-center gap-1.5 h-8 rounded-full text-[12px] font-extrabold whitespace-nowrap transition-colors ${compact ? 'px-2.5' : 'flex-1 justify-center px-3'} ${on ? 'bg-white text-[var(--brand-blue)]' : 'text-white active:bg-white/10'}`}>
+            <RadioDot on={on} />
+            {m === 'delivery' ? t.fcDel : t.fcPick}
+          </button>
+        )
+      })}
+    </div>
+  )
+
   return (
     <>
-      {/* Kollaps faqat header elementida: modallar transformdan TASHQARIDA turadi,
-          aks holda fixed modallarning containing-blocki buzilardi. */}
-      <header className="relative z-[31] text-[var(--ink)]">
-        {/* Yig'ilish silliq va REMOUNTSIZ: qator doim mountda qoladi (logo pop
-            animatsiyasi qayta o'ynamasligi va kontent sakramasligi uchun),
-            faqat balandligi grid-rows bilan yig'iladi. */}
-        <div className={`tk-brand-wrap max-w-[1240px] mx-auto ${collapsed ? 'is-hidden' : ''}`}>
-          <div>
-            <div className={`flex items-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2 ${isWide ? 'justify-between' : 'justify-center'}`}>
-              <button onClick={() => nav('/')} aria-label="Tekit Sushi"
-                aria-hidden={collapsed || undefined} tabIndex={collapsed ? -1 : undefined}
-                className={`press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity ${floating && !isWide ? 'tk-brand-pill' : ''}`}>
-                <BrandLogo size={36} />
-                <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
-              </button>
-              {isWide && (
+      {isWide ? (
+        /* KENG ekran (lg+): eskicha brend qatori — o'z ko'rinishi saqlanadi */
+        <header className="relative z-[31] text-[var(--ink)]">
+          <div className={`tk-brand-wrap max-w-[1240px] mx-auto ${collapsed ? 'is-hidden' : ''}`}>
+            <div>
+              <div className="flex items-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2 justify-between">
+                <button onClick={() => nav('/')} aria-label="Tekit Sushi"
+                  aria-hidden={collapsed || undefined} tabIndex={collapsed ? -1 : undefined}
+                  className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
+                  <BrandLogo size={36} />
+                  <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+                </button>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <button onClick={() => { haptic(); if (isWide) { setCartPanelOpen(false); setProfilePanelOpen(false); setOrdersPanelOpen(true) } else nav('/orders') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                  <button onClick={() => { haptic(); setCartPanelOpen(false); setProfilePanelOpen(false); setCheckoutPanelOpen(false); setOrdersPanelOpen(true) }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
                     <IcBag s={16} />{t.tabOrders}
                   </button>
-                  <button onClick={() => { haptic(); if (isWide) { setCartPanelOpen(false); setOrdersPanelOpen(false); setProfilePanelOpen(true) } else nav('/profile') }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                  <button onClick={() => { haptic(); setCartPanelOpen(false); setOrdersPanelOpen(false); setCheckoutPanelOpen(false); setProfilePanelOpen(true) }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
                     <IcUser s={16} />{t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
                   </button>
                   <HeaderLang />
                 </div>
-              )}
+              </div>
             </div>
           </div>
-        </div>
-      </header>
+        </header>
+      ) : (
+        /* MOBIL: Feed up uslubidagi yagona ko'k header.
+           1-qator: logo Telegram native tugmalari orasida markazda (oq).
+           2-qator: chapda burger (yon menyu), o'ngda buyurtma turi.
+           Yig'ilish silliq va remountsiz: faqat logo qatori yig'iladi. */
+        <header className="relative z-[31] text-white">
+          <div className={`tk-brand-wrap max-w-[1240px] mx-auto ${collapsed ? 'is-hidden' : ''}`}>
+            <div>
+              <div className="flex items-center justify-center px-4 pt-1 pb-0.5">
+                <button onClick={() => nav('/')} aria-label="Tekit Sushi"
+                  aria-hidden={collapsed || undefined} tabIndex={collapsed ? -1 : undefined}
+                  className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
+                  <img src="/logo-light.png" alt="Tekit Sushi" width={34} height={34}
+                    className="w-[34px] h-[34px] object-contain" />
+                  <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center justify-between px-3 pt-0.5 pb-1.5 max-w-[1240px] mx-auto">
+            <button onClick={() => { haptic(); setMenuOpen(true) }} aria-label={t.menuT} aria-haspopup="dialog"
+              className="press focus-ring w-10 h-10 -ml-1.5 grid place-items-center rounded-xl text-white active:scale-95 transition-transform shrink-0">
+              <IcBurger s={20} />
+            </button>
+            {mode ? (
+              <button onClick={() => { haptic(); setSelOpen(v => !v) }} aria-haspopup="radiogroup" aria-expanded={selOpen}
+                className="press focus-ring flex items-center gap-1.5 h-9 pl-3.5 pr-2.5 rounded-full bg-white/[.16] text-[13px] font-extrabold text-white active:scale-[.97] transition-transform max-w-[62%]">
+                <span className="truncate">{mode === 'delivery' ? t.fcDel : t.fcPick}</span>
+                <span className={`transition-transform duration-150 shrink-0 ${selOpen ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
+              </button>
+            ) : (
+              <OrderTypeSelector compact />
+            )}
+          </div>
+          {selOpen && !!mode && (
+            <div className="px-3 pb-2 max-w-[1240px] mx-auto">
+              <OrderTypeSelector />
+            </div>
+          )}
+        </header>
+      )}
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} switchTo={() => { setDelOpen(false); setPickOpen(true) }} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} switchTo={() => { setPickOpen(false); setDelOpen(true) }} />
+      <Drawer open={menuOpen} onClose={() => setMenuOpen(false)} />
       {askOpen && (
         <InitialChoiceModal
           open

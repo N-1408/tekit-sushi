@@ -22,6 +22,13 @@ export function initTelegram() {
   try { initThemeWatch() } catch {}
   try { TGA.disableVerticalSwipes?.() } catch {}
   try { TGA.requestFullscreen?.() } catch {}
+  // Birinchi bo'yoqdan oldin xrom rangi: ko'k header oq chiziqsiz ko'rinadi
+  try {
+    if (TGA.platform === 'ios' || TGA.platform === 'android') {
+      TGA.setHeaderColor?.('#29A8E0')
+      TGA.setBackgroundColor?.('#29A8E0')
+    }
+  } catch {}
   const applyInsets = () => {
     const st = document.documentElement.style
     const ios = TGA?.platform === 'ios' || /iPhone|iPad|iPod/i.test(navigator.userAgent || '')
@@ -30,6 +37,11 @@ export function initTelegram() {
     const sa = (TGA as any).safeAreaInset || {}
     const top = Number(cs.top) || 0
     const bottom = Number(cs.bottom) || 0
+    // Nomli inset o'zgaruvchilari (CSS tomonida ishlatiladi):
+    // --tg-content-safe-top: Telegram tugmalari ostidagi kontent inseti,
+    // --tg-safe-top: qurilmaning xavfsiz hudud inseti (notch/dynamic island).
+    st.setProperty('--tg-content-safe-top', `${top}px`)
+    st.setProperty('--tg-safe-top', `${Math.max(Number(sa.top) || 0, 0)}px`)
     if (ios) {
       // iOS: Telegram xromi webview ICHIDA bo'lib, contentSafeAreaInset orqali
       // hisobot qilinadi; notch esa env(safe-area-inset-top) bilan qoplanadi

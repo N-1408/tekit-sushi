@@ -18,6 +18,9 @@ import { TGA } from './tg'
 export type ThemeMode = 'dark' | 'light'
 export const THEME_BG: Record<ThemeMode, string> = { dark: '#0F1720', light: '#F6F7FB' }
 
+/* Brend ko'k: Telegram xromi mobil qurilmalarda shu rangda turadi, temadan qat'i nazar */
+export const BRAND_BLUE = '#29A8E0'
+
 /* themeParams faqat hex rang beradi; boshqa qiymat (bo'sh, tema nomi) e'tiborga olinmaydi */
 const isHex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)
 const tp = (): Record<string, string> => (TGA && typeof TGA.themeParams === 'object' ? (TGA.themeParams as any) : {})
@@ -76,15 +79,19 @@ export function applyTheme(t: ThemeMode) {
     set('--tg-header-bg', p.header_bg_color)
     set('--tg-bottom-bar', p.bottom_bar_bg_color)
   } catch {}
+  /* Mobil qurilmalarda yuqori xrom va fon brend ko'k: ko'k header bloki
+     Telegram tugmalari ortigacha uzluksiz davom etadi (oq bo'shliq yo'q).
+     Desktopda themeParams ranglari qoladi. */
+  const mobile = TGA?.platform === 'ios' || TGA?.platform === 'android'
   try {
     const chrome = chromeColor(t)
-    TGA?.setHeaderColor?.(chrome)
-    TGA?.setBackgroundColor?.(chrome)
+    TGA?.setHeaderColor?.(mobile ? BRAND_BLUE : chrome)
+    TGA?.setBackgroundColor?.(mobile ? BRAND_BLUE : chrome)
     // Telegram-native pastki bar: mavjud bo'lsa (yangi klientlar) tema bilan birga yangilanadi.
     TGA?.setBottomBarColor?.(chrome)
   } catch {}
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', THEME_BG[t])
+  if (meta) meta.setAttribute('content', mobile ? BRAND_BLUE : THEME_BG[t])
   themeSubs.forEach(cb => { try { cb(t) } catch {} })
 }
 

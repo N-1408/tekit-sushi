@@ -197,13 +197,18 @@ export default function Home() {
             </div>
           </>
         ) : (
+          /* Ko'k header bloki EKRAN TEPASIDAN boshlanadi: xavfsiz hudud
+             (Telegram tugmalari) ham ko'k fon ortida qoladi, kontent esa
+             paddingTop: var(--sat) bilan inset ostidan boshlanadi. */
           <div ref={navRef} className="sticky z-30 tk-hdr-sticky">
-            <Header collapsed={brandHidden} floating={scrolledTop && !brandHidden} />
-            <div ref={catRef}>{catalogNav}</div>
+            <div className="tk-hdr-blue" style={{ paddingTop: 'var(--sat)' }}>
+              <Header collapsed={brandHidden} floating={scrolledTop && !brandHidden} />
+              <div ref={catRef}>{catalogNav}</div>
+            </div>
           </div>
         )
       })()}
-      <div className="lg:max-w-[1240px] lg:mx-auto" style={wide ? undefined : { paddingTop: 'var(--sat)' }}>
+      <div className="lg:max-w-[1240px] lg:mx-auto">
         <CityBanner />
         {found ? (
           <section className="px-4 lg:px-6 mt-4">

@@ -19,6 +19,7 @@ html{ background:var(--bg); }@tailwind base;
   --btn:#E9EDF1; --btn-ink:#101821; --chip-on:#FFFFFF; --chip-on-ink:#0F1720; --ok:#34D399;
 }
 :root { --sat: max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
+:root { --brand-blue: #29A8E0; }
 html { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior-y: none; }
 body {
@@ -149,8 +150,10 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
    Eski padding+negative-margin yechimi margin-collapse tufayli pinlanganda
    yuqorida sat+6 ortiqcha bo'shliq qoldirardi. ---------- */
 .tk-sticky-catalog { top: 0; }
-/* Mobil sarlavhaning o'zi sticky: safe-zone chegarasida (sat) pinlanadi */
-.tk-hdr-sticky { top: var(--sat); }
+/* Mobil sarlavhaning o'zi sticky: EKRANINING ENG TEPASIDA pinlanadi —
+   ko'k fon safe-zone (Telegram tugmalari) ortigacha davom etadi,
+   kontent esa ichki paddingTop: var(--sat) bilan inset ostidan boshlanadi */
+.tk-hdr-sticky { top: 0; }
 
 /* ---------- suzuvchi oval pastki navbar: shaffof oyna (glass), slayd indikator.
    Temaga to'liq mos: --nav-glass, --chip-on, --mut2 hammasi mavzu o'zgaruvchilari. ---------- */
@@ -186,6 +189,23 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 .tk-brand-wrap { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .3s cubic-bezier(.32,.72,0,1), opacity .22s ease; }
 .tk-brand-wrap.is-hidden { grid-template-rows: 0fr; opacity: 0; pointer-events: none; }
 .tk-brand-wrap > div { min-height: 0; overflow: hidden; }
+
+/* ---------- brend ko'k header bloki (mobil): qidiruv + kategoriya chiplari
+   ko'k fon ustida o'qiladigan bo'lishi uchun xuddi shu joyda qayta bo'yaladi.
+   Ishlash (skroll, anchor, qidiruv) o'zgarmaydi — faqat ko'rinishi. ---------- */
+.tk-hdr-blue { background: var(--brand-blue); }
+.tk-hdr-blue .tk-search-btn { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.28); color: #fff; }
+.tk-hdr-blue .tk-search-btn:hover { color: #fff; background: rgba(255,255,255,.24); }
+.tk-hdr-blue [role='tablist'] > button { background: rgba(255,255,255,.14); color: rgba(255,255,255,.92); }
+.tk-hdr-blue [role='tablist'] > button:hover { background: rgba(255,255,255,.22); color: #fff; }
+.tk-hdr-blue [role='tablist'] > button[aria-selected='true'] { background: #fff; color: var(--brand-blue); }
+.tk-hdr-blue input { background: #fff; border-color: transparent; color: #10222E; }
+.tk-hdr-blue input::placeholder { color: #5C7683; }
+.tk-hdr-blue input:focus { border-color: rgba(255,255,255,.6); }
+.tk-hdr-blue input ~ button { color: #5C7683; }
+/* Ichki sahifalarning sarlavha paneli ham brend ko'k: Telegram xromi bilan uzluksiz */
+.tk-topbar-blue { background: var(--brand-blue); color: #fff; }
+.tk-topbar-blue > div { color: #fff; --line: rgba(255,255,255,.16); --mut2: rgba(255,255,255,.72); }
 
 /* savatga qo'shish tasdigi: ikonka urishi va tugma belgisi */
 @keyframes cartBeat { 0% { transform: scale(1) } 35% { transform: scale(1.16) } 100% { transform: scale(1) } }

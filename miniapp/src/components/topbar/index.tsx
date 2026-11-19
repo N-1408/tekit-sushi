@@ -49,5 +49,5 @@ export function TopBar({ title, right, flat }: { title?: string; right?: React.R
     </div>
   )
   if (flat) return inner
-  return <header className="sticky top-0 z-30" style={{ paddingTop: 'calc(6px + var(--sat))' }}>{inner}</header>
+  return <header className="sticky top-0 z-30 tk-topbar-blue" style={{ paddingTop: 'calc(6px + var(--sat))' }}>{inner}</header>
 }
