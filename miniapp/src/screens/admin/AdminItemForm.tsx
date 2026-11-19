@@ -12,7 +12,7 @@ type Cat = any
 const blank = {
   id: '', slug: '', cat: 'set', price: 0, img: '',
   t_uz: '', t_ru: '', t_en: '', d_uz: '', d_ru: '', d_en: '',
-  pcs: 0, weight: '', hit: false, active: true,
+  pcs: 0, weight: '', hit: false, spicy: false, active: true,
   kcal: '', protein: '', fat: '', carbs: '',
   sale_active: false, sale_percent: 0, sale_price: 0,
 }
@@ -170,6 +170,10 @@ function Body() {
           <div className="flex items-center justify-between bg-[var(--line)] rounded-xl px-3.5 py-2.5">
             <span className="text-[13px] font-extrabold">{t.aHitF}</span>
             <Toggle on={!!f.hit} onChange={v => set('hit', v)} />
+          </div>
+          <div className="flex items-center justify-between bg-[var(--line)] rounded-xl px-3.5 py-2.5">
+            <span className="text-[13px] font-extrabold">{t.aSpicyF}</span>
+            <Toggle on={!!f.spicy} onChange={v => set('spicy', v)} />
           </div>
           <div className="flex items-center justify-between bg-[var(--line)] rounded-xl px-3.5 py-2.5">
             <span className="text-[13px] font-extrabold">{t.aActiveA}</span>
