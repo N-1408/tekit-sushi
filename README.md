@@ -63,7 +63,14 @@ sinab ko'ring, keyin `DATABASE_SSL=verify` qiling (ixtiyoriy `DATABASE_SSL_CA`).
 Haftada bir marta: `pg_dump "$DATABASE_URL" -Fc -f tekit-$(date +%F).dump` (qarang `db/README.md`).
 Admin panelda yuklangan rasmlar bazada saqlanadi — zaxira bilan birga keladi.
 
-## Eski fayllar haqida
-`miniapp/fix_q.py` — bir marta ishlatilgan yamaq skripti (endi kerak emas).
-`miniapp/img/` — eski rasm nusxalari (menyu rasmlari bazadan beriladi, havorqatlangan).
-Ikkalasi ham o'chirilishi mumkin — eganing qaroriga qoldirildi.
+## Webhook sirini o'rnatish (majburiy!)
+2026-11-19 dan boshlab `TELEGRAM_WEBHOOK_SECRET` o'rnatilmagan bo'lsa bot webhook
+QABUL QILMAYDI (503). Ketma-ket amallar:
+1. Vercel → loyiha → Settings → Environment Variables → `TELEGRAM_WEBHOOK_SECRET`
+   o'zgaruvchisini qo'shing (qiymat — uzun tasodifiy matn, masalan parol generatoridan).
+2. Redeploy qiling (Deployments → Redeploy) yoki `improvements`ni masterga merge qiling.
+3. Webhookni yangi sir bilan qayta ro'yxatdan o'tkazing:
+   brauzerda oching: `https://api.telegram.org/bot<BOT_TOKEN>/setWebhook?url=https://<domen>/telegram/webhook&secret_token=<SIR>`
+   (`<SIR>` — 1-bosqichdagi bilan bir xil bo'lishi KERAK).
+4. Tekshirish: `https://api.telegram.org/bot<BOT_TOKEN>/getWebhookInfo` —
+   `last_error_message` bo'lmasligi kerak. Botga /start yuborib sinang.

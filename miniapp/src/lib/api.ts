@@ -37,11 +37,6 @@ export async function fetchMyOrders(tgId: number): Promise<ServerOrder[]> {
 
 // admin
 const KEY = () => localStorage.getItem('tk-admin') || ''
-export async function adminLogin(password: string) {
-  const r = await fetch(`${API_BASE}/api/admin`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'login', password }) })
-  const j = await r.json()
-  return j.ok === true
-}
 export async function adminOrders() {
   const r = await fetch(`${API_BASE}/api/admin?action=orders`, { headers: { 'X-Admin-Key': KEY() } })
   if (r.status === 401) throw new Error('unauthorized')

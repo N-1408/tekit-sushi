@@ -65,6 +65,11 @@ export default async (req, res) => {
     const o = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     // X-Init-Data kelsa tg_user_id faqat tekshirilgan Telegram ID dan olinadi
     // (so'rov tanasidagi ID ishonchsiz). Sarlavha yo'q bo'lsa eski xatti-harakat.
+    /* Ega qarori (2026-11-19): bu yerda Telegram imzosi MAJBURIY qilinmaydi —
+       sayt oddiy veb-sayt sifatida ham ishlaydi (kompyuter ko'rinishi, o'z domeni),
+       imzosiz buyurtmalar ishlashi kerak. Xavfsizlik server tomonda:
+       narx/promo/yetkazish bazadan qayta hisoblanadi + IP limit bor.
+       Imzosi bo'lsa mijoz ID faqat tekshirilgan imzodan olinadi. Bu atayin. */
     const vu = tgUserFrom(req);
     const tgId = vu ? String(vu.id) : (o.tg_user_id != null ? String(o.tg_user_id) : null);
     if (!o || !o.items || !o.name || !o.phone) {

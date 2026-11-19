@@ -176,10 +176,21 @@ async function handleUpdate(u) {
         if (d.type === 'order') {
           const p = getPool();
           if (p) {
+            /* Ega qarori (2026-11-19): summa MIJOZ yuborgan qiymatdan hisoblanmaydi.
+               Narxlar bazadan o'qiladi — /api/order bilan bir xil mantiq,
+               aks holda o'zgartirilgan so'rov yolg'on summa yozib qo'ya oladi. */
+            const items = Array.isArray(d.items) ? d.items : [];
+            const ids = [...new Set(items.map((i) => String((i && i.id) || '')))].filter(Boolean);
+            const priceById = new Map();
+            if (ids.length) {
+              const pr = await p.query('SELECT id, price FROM menu_items WHERE id = ANY($1)', [ids]);
+              for (const r of pr.rows) priceById.set(r.id, r.price || 0);
+            }
+            const total = items.reduce((s, i) => s + (priceById.get(String((i && i.id) || '')) || 0) * (Number(i && i.q) || 0), 0);
             await p.query(
               `INSERT INTO orders (tg_user_id, name, phone, address, branch, delivery_type, payment, items, total)
                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-              [from.id, d.name, d.phone, d.addr || '', d.mode === 'delivery' ? 'Yetkazish' : 'Olib ketish', d.pay, JSON.stringify(d.items), d.sum]);
+              [from.id, d.name, d.phone, d.addr || '', d.mode === 'delivery' ? 'Yetkazish' : 'Olib ketish', d.pay, JSON.stringify(d.items), total]);
           }
           return api('sendMessage', { chat_id: chat.id, text: `✅ Buyurtmangiz qabul qilindi, ${d.name || ''}! Tez orada aloqaga chiqamiz. 🍣` });
         }
@@ -208,9 +219,15 @@ async function handleUpdate(u) {
 
 export default async function handler(req, res) {
   const st = req.headers['x-telegram-bot-api-secret-token'] || '';
-  const expected = process.env.TELEGRAM_WEBHOOK_SECRET || 'tekitwebhook2026';
-  if (!process.env.TELEGRAM_WEBHOOK_SECRET) console.warn("TELEGRAM_WEBHOOK_SECRET o'rnatilmagan: kod ichidagi standart sir ishlatilmoqda — uni Vercel env'da o'rnatings");
-  if (!safeEqual(st, expected)) return res.status(401).json({ ok: false });
+  /* Ega qarori (2026-11-19): standart zaxira sir kodidan olib tashlandi —
+     kod ochiq, shuning uchun zaxira qiymat hamma uchun "sir" bo'lib qolmaydi.
+     TELEGRAM_WEBHOOK_SECRET o'rnatilmagan bo'lsa webhook QABUL QILINMAYDI (503):
+     Vercel env'ga sirni qo'yib, setWebhook'ni xuddi shu secret_token bilan qayta chaqiring. */
+  if (!process.env.TELEGRAM_WEBHOOK_SECRET) {
+    console.error("TELEGRAM_WEBHOOK_SECRET o'rnatilmagan — webhook 503 bilan javob beradi. Vercel env'ga sirni qo'ying va setWebhook'ni xuddi shu secret_token bilan qayta chaqiring.");
+    return res.status(503).json({ ok: false, error: 'Webhook sir sozlanmagan' });
+  }
+  if (!safeEqual(st, process.env.TELEGRAM_WEBHOOK_SECRET)) return res.status(401).json({ ok: false });
   if (req.method !== 'POST') { res.status(200).json({ ok: true, service: 'tekit-sushi-bot', token: !!TOKEN }); return; }
   try {
     const update = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
