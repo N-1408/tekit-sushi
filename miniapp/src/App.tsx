@@ -10,6 +10,7 @@ import History from './screens/History'
 import Profile from './screens/Profile'
 import AdminDash from './screens/admin/AdminDash'
 import AdminCustomers from './screens/admin/AdminCustomers'
+import AdminAccess from './screens/admin/AdminAccess'
 import AdminOrders from './screens/admin/AdminOrders'
 import AdminMenu from './screens/admin/AdminMenu'
 import AdminItemForm from './screens/admin/AdminItemForm'
@@ -193,6 +194,7 @@ export default function App() {
         <Route path="/admin/menu/edit/:id" element={<AdminGate><AdminItemForm /></AdminGate>} />
         <Route path="/admin/cats" element={<AdminGate><AdminCats /></AdminGate>} />
         <Route path="/admin/customers" element={<AdminShell><AdminCustomers /></AdminShell>} />
+        <Route path="/admin/access" element={<AdminShell><AdminAccess /></AdminShell>} />
         <Route path="/admin/promos" element={<AdminShell><AdminPromos /></AdminShell>} />
       </Routes>
       </div>
