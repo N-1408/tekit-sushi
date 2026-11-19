@@ -17,7 +17,7 @@ import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
-import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, useIsWide, useCartPanelOpen, setCartPanelOpen, useOrdersPanelOpen, setOrdersPanelOpen, useProfilePanelOpen, setProfilePanelOpen, IcX } from './components/ui'
+import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, SideThemeToggle, useIsWide, useCartPanelOpen, setCartPanelOpen, useOrdersPanelOpen, setOrdersPanelOpen, useProfilePanelOpen, setProfilePanelOpen, IcX } from './components/ui'
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 import { TGA } from './lib/tg'
@@ -204,6 +204,7 @@ export default function App() {
         <TabBar />
         {/* uchala suzuvchi boshqaruv bitta qatorda, o'lchamlari bir xil */}
         <div className="floating-row-left"><ScrollTop /></div>
+        <SideThemeToggle />
         <div className="floating-row-right"><GiftProgress /><FloatingCart /></div>
       </>}
       {!isAdmin && <ProductSheet />}
