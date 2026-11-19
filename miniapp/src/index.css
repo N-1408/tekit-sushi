@@ -9,7 +9,10 @@ html{ background:var(--bg); }@tailwind base;
   --line:#E8ECF2; --line2:#DCE2EB;
   --ink:#101821; --ink2:#3D4859; --ink3:#4A5568;
   --mut:#5A6472; --mut2:#8A93A0; --mut3:#B4BCC9;
-  --btn:#0A2194; --btn-ink:#FFFFFF; --chip-on:#0A2194; --chip-on-ink:#FFFFFF; --ok:#0E9F6E;
+  --brand-blue:#0F1E9A; /* yagona brend manbasi: logodagi ko'k kit */
+  --btn:var(--brand-blue); --btn-ink:#FFFFFF; --chip-on:var(--brand-blue); --chip-on-ink:#FFFFFF; --ok:#0E9F6E;
+  /* qorong'u fonda matn/ikonka uchun och ko'k (o'qiladigan) */
+  --acc-on-dark:#29A8E0;
 }
 [data-theme='dark']{
   --bg:#0F1720; --bg2:#101821; --panel:#1B2330; --sheet:#141B26; --soft:#1B2330;
@@ -19,7 +22,6 @@ html{ background:var(--bg); }@tailwind base;
   --btn:#E9EDF1; --btn-ink:#101821; --chip-on:#FFFFFF; --chip-on-ink:#0F1720; --ok:#34D399;
 }
 :root { --sat: max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
-:root { --brand-blue: #0F1E9A; }
 html { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior-y: none; }
 body {
@@ -35,7 +37,7 @@ button, a, [role="button"] { touch-action: manipulation; -webkit-user-select: no
 input, textarea, select {
   font-size: 16px !important;
   color: var(--ink);
-  caret-color: #29A8E0;
+  caret-color: var(--acc-on-dark);
 }
 input::placeholder, textarea::placeholder { color: var(--mut2); opacity: 1; }
 input:focus, textarea:focus, select:focus { outline: none; }
@@ -73,7 +75,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 
 /* katakana brand pattern (navy bg, white outline wordmarks) */
 .tekit-pattern {
-  background-color: #0A2194;
+  background-color: var(--brand-blue);
   background-image: repeating-linear-gradient(0deg, transparent 0 78px, rgba(255,255,255,.09) 78px 79px);
   overflow: hidden; position: relative;
 }
@@ -116,7 +118,8 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 
 /* Buyurtmalar: holat chiplari va bosqich aksenti temadan o'qiladi */
 :root {
-  --acc:#0A2194; --acc-ring:rgba(10,33,148,.25);
+  --acc:var(--brand-blue); --acc-ring:rgba(15,30,154,.25);
+  --acc-soft15:rgba(15,30,154,.15); --acc-soft10:rgba(15,30,154,.10); --acc-line50:rgba(15,30,154,.5);
   --chip-new-bg:#FEF3C7; --chip-new:#B45309;
   --chip-cf-bg:#E0F2FE;  --chip-cf:#0369A1;
   --chip-ck-bg:#E0E7FF;  --chip-ck:#4338CA;
@@ -125,7 +128,8 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   --chip-cx-bg:#FFE4E6;  --chip-cx:#E11D48;
 }
 [data-theme='dark'] {
-  --acc:#29A8E0; --acc-ring:rgba(41,168,224,.3);
+  --acc:var(--acc-on-dark); --acc-ring:rgba(41,168,224,.3);
+  --acc-soft15:rgba(41,168,224,.15); --acc-soft10:rgba(41,168,224,.10); --acc-line50:rgba(41,168,224,.5);
   --chip-new-bg:rgba(120,53,15,.4);  --chip-new:#FCD34D;
   --chip-cf-bg:rgba(12,74,110,.4);   --chip-cf:#7DD3FC;
   --chip-ck-bg:rgba(49,46,129,.45);  --chip-ck:#A5B4FC;

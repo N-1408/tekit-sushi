@@ -52,7 +52,7 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="tk-ob fixed inset-0 z-[70] bg-[#0A2194] overflow-y-auto">
+    <div className="tk-ob fixed inset-0 z-[70] bg-[var(--brand-blue)] overflow-y-auto">
       <div className="min-h-full flex flex-col">
         <div className="px-5 pt-[calc(env(safe-area-inset-top)+var(--tg-csa-top,0px)+var(--tg-extra,0px)+22px)] pb-7 text-white lg:max-w-[620px] lg:mx-auto lg:pt-10">
           <div className="flex items-center justify-between">
@@ -81,7 +81,7 @@ export default function Onboarding() {
                 </div>
               </div>
               <button onClick={() => { if (valid1) { haptic(); setStep(1) } }}
-                className={`w-full py-3.5 rounded-2xl text-[14.5px] font-extrabold press transition-all ${valid1 ? 'bg-navy text-white shadow-[0_8px_20px_-6px_rgba(10,33,148,.45)]' : 'bg-white text-[#A2A9C6] border border-navy-line'}`}>
+                className={`w-full py-3.5 rounded-2xl text-[14.5px] font-extrabold press transition-all ${valid1 ? 'bg-navy text-white shadow-[0_8px_20px_-6px_rgba(15,30,154,.45)]' : 'bg-white text-[#A2A9C6] border border-navy-line'}`}>
                 {t.obNext}
               </button>
               <button onClick={() => commit('')} className="w-full py-3 text-[13px] font-bold text-[#8A93B8] press">{t.obSkip}</button>
@@ -89,7 +89,7 @@ export default function Onboarding() {
           ) : (
             <div className="space-y-3.5 anim-up">
               <button onClick={detect} disabled={busy}
-                className="w-full py-4 rounded-2xl bg-navy text-white text-[14.5px] font-extrabold press shadow-[0_8px_20px_-6px_rgba(10,33,148,.45)] flex items-center justify-center gap-2.5 disabled:opacity-60">
+                className="w-full py-4 rounded-2xl bg-navy text-white text-[14.5px] font-extrabold press shadow-[0_8px_20px_-6px_rgba(15,30,154,.45)] flex items-center justify-center gap-2.5 disabled:opacity-60">
                 {busy ? <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" /> : (
                   <IcPin s={18} />
                 )}
@@ -102,7 +102,7 @@ export default function Onboarding() {
               )}
               <textarea className={input + ' min-h-[92px] resize-none'} value={addr} onChange={e => setAddr(e.target.value)} placeholder={t.addressPh} />
               <button onClick={() => commit(addr)} disabled={addr.trim().length < 5 || busy}
-                className={`w-full py-3.5 rounded-2xl text-[14.5px] font-extrabold press transition-all ${addr.trim().length >= 5 ? 'bg-navy text-white shadow-[0_8px_20px_-6px_rgba(10,33,148,.45)]' : 'bg-white text-[#A2A9C6] border border-navy-line'}`}>
+                className={`w-full py-3.5 rounded-2xl text-[14.5px] font-extrabold press transition-all ${addr.trim().length >= 5 ? 'bg-navy text-white shadow-[0_8px_20px_-6px_rgba(15,30,154,.45)]' : 'bg-white text-[#A2A9C6] border border-navy-line'}`}>
                 {t.obDone}
               </button>
               <button onClick={() => commit('')} className="w-full py-3 text-[13px] font-bold text-[#8A93B8] press">{t.obSkip}</button>

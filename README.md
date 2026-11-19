@@ -1,7 +1,9 @@
 # 🍣 Tekit Sushi — Telegram Bot + Mini App
 
 Professional full-screen Telegram Mini App + bot, yaponamama.uz uslubida.
-Ranglar: **havorang** (azure #29A8E0) va **delfin** (kulrang-binafsha #5C7683).
+Ranglar: brend ko'k **#0F1E9A** (logodagi kit, yagona manba: `miniapp/src/index.css` dagi `--brand-blue`),
+yorug' fonda matn/ikonka uchun ham shu, qorong'u fonda o'qiladigan och ko'k **#29A8E0** (`--acc-on-dark`),
+promo aksenti to'q sariq (#F97316), muvaffaqiyat yashil (#0E9F6E). Boshqa matn fonlari Telegram mavzusidan o'qiladi.
 
 ## Struktura
 - `bot/` — grammY asosidagi bot (`/start`, web_app tugma, buyurtmalarni qabul qilish)

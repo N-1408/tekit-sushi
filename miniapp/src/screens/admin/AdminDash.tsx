@@ -102,7 +102,7 @@ function Body() {
       <div className="px-4 mt-4 flex gap-2">
         {([1, 7, 30] as const).map(r => (
           <button key={r} onClick={() => setRange(r)}
-            className={`press px-4 py-2 rounded-xl text-[13px] font-extrabold transition-all ${range === r ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
+            className={`press px-4 py-2 rounded-xl text-[13px] font-extrabold transition-all ${range === r ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(15,30,154,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
             {labels[r]}
           </button>
         ))}
@@ -116,7 +116,7 @@ function Body() {
       ) : (
         <>
           <div className="px-4 mt-4">
-            <div className="bg-navy text-white rounded-[20px] p-4 shadow-[0_10px_24px_-10px_rgba(10,33,148,.55)]">
+            <div className="bg-navy text-white rounded-[20px] p-4 shadow-[0_10px_24px_-10px_rgba(15,30,154,.55)]">
               <div className="flex items-center gap-2">
                 <div className="text-[12px] font-bold text-white/70">{t.aRevenue} · {labels[range]}</div>
                 <span className="text-[10px] bg-[var(--panel)]/15 rounded-md px-1.5 py-0.5 font-extrabold">

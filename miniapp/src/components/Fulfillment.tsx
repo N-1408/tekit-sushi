@@ -204,7 +204,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
     onClose()
   }
 
-  const opt = 'press focus-ring w-full flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[#29A8E0]/50 text-left transition-colors active:scale-[.99]'
+  const opt = 'press focus-ring w-full flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[var(--acc-line50)] text-left transition-colors active:scale-[.99]'
   const optTitle = 'text-[15.5px] font-extrabold text-[var(--ink)] leading-tight'
   const optSub = 'text-[13.5px] font-medium text-[var(--mut2)] leading-snug mt-0.5'
   const outside = q && !q.loading && q.coverage === 'outside'
@@ -220,7 +220,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
                 {t.delAdj}
               </button>
               <button onClick={confirm} disabled={!!outside} data-autofocus
-                className="press focus-ring flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform disabled:opacity-40">
+                className="press focus-ring flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold shadow-[0_10px_22px_-8px_rgba(15,30,154,.6)] active:scale-[.98] transition-transform disabled:opacity-40">
                 {t.delConfirm}
               </button>
             </div>
@@ -242,7 +242,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
               placeholder={t.delWritePh}
               maxLength={200}
               autoFocus
-              className="w-full px-4 py-3.5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] focus:border-[#29A8E0]/60 outline-none text-[15px] font-semibold text-[var(--ink)] placeholder:text-[var(--mut2)] placeholder:font-medium"
+              className="w-full px-4 py-3.5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] focus:border-[var(--acc)]/60 outline-none text-[15px] font-semibold text-[var(--ink)] placeholder:text-[var(--mut2)] placeholder:font-medium"
             />
             <div className="text-[13px] font-medium text-[var(--mut2)] px-1 leading-snug">{t.delWriteSub}</div>
             <button
@@ -259,7 +259,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
               <IcChevL s={16} /> {t.delChange}
             </button>
             <div className="flex items-start gap-3 bg-[var(--panel)] border border-[var(--line2)] rounded-2xl px-4 py-3.5">
-              <span className="text-[#29A8E0] shrink-0 mt-0.5"><IcPin s={18} /></span>
+              <span className="text-[var(--acc)] shrink-0 mt-0.5"><IcPin s={18} /></span>
               <div className="min-w-0">
                 <div className="text-[15.5px] font-extrabold text-[var(--ink)] leading-snug break-words">{draft.addr}</div>
                 {!draft.verified && (
@@ -272,20 +272,20 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
             <div className="bg-[var(--panel)] border border-[var(--line2)] rounded-2xl px-4 py-3.5 space-y-2.5">
               {q?.loading ? (
                 <div className="flex items-center gap-3">
-                  <span className="w-5 h-5 border-[3px] border-[var(--line2)] border-t-[#29A8E0] rounded-full animate-spin shrink-0" />
+                  <span className="w-5 h-5 border-[3px] border-[var(--line2)] border-t-[var(--acc)] rounded-full animate-spin shrink-0" />
                   <span className="text-[14px] font-semibold text-[var(--mut2)]">…</span>
                 </div>
               ) : q ? (
                 <>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-[#29A8E0] shrink-0"><IcTruck s={16} /></span>
+                    <span className="text-[var(--acc)] shrink-0"><IcTruck s={16} /></span>
                     <span className="text-[15px] font-extrabold text-[var(--ink)]">{t.delFeeLine}:</span>
                     <span className={'text-[15px] font-extrabold ml-auto ' + (q.free ? 'text-emerald-500' : 'text-[var(--ink)]')}>
                       {q.free ? t.freeDelivery : fmt(q.fee) + ' UZS'}
                     </span>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    <span className="text-[#29A8E0] shrink-0"><IcClock s={16} /></span>
+                    <span className="text-[var(--acc)] shrink-0"><IcClock s={16} /></span>
                     <span className="text-[14px] font-semibold text-[var(--mut2)] leading-snug">
                       {q.eta_minutes != null ? t.delEtaIn.replace('{n}', String(q.eta_minutes)) : t.delEtaUnknown}
                     </span>
@@ -304,7 +304,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
             )}
             {!outside && q && !q.loading && q.coverage === 'unknown' && (
               <div className="flex items-start gap-2.5 bg-[var(--panel)] border border-[var(--line2)] rounded-2xl px-4 py-3">
-                <span className="text-[#29A8E0] shrink-0 mt-0.5"><IcInfo s={16} /></span>
+                <span className="text-[var(--acc)] shrink-0 mt-0.5"><IcInfo s={16} /></span>
                 <div className="text-[13px] font-medium text-[var(--mut2)] leading-snug">{t.delCoverageUnknown}</div>
               </div>
             )}
@@ -319,14 +319,14 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
           <div className="space-y-2.5">
             {locating ? (
               <div className="py-10 flex flex-col items-center gap-4">
-                <span className="w-8 h-8 border-[3px] border-[var(--line2)] border-t-[#29A8E0] rounded-full animate-spin" />
+                <span className="w-8 h-8 border-[3px] border-[var(--line2)] border-t-[var(--acc)] rounded-full animate-spin" />
                 <div className="text-[15px] font-bold text-[var(--ink2)]">{t.delLocating}</div>
               </div>
             ) : (
               <>
                 {user?.addr && (
                   <button className={opt} data-autofocus onClick={() => setDraftQ({ addr: user.addr, lat: user.lat ?? null, lon: user.lon ?? null, verified: user.lat != null })}>
-                    <span className="w-11 h-11 rounded-xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcCheck s={19} /></span>
+                    <span className="w-11 h-11 rounded-xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcCheck s={19} /></span>
                     <span className="min-w-0">
                       <span className={optTitle + ' block'}>{t.delSaved}</span>
                       <span className={optSub + ' block truncate'}>{user.addr}</span>
@@ -334,21 +334,21 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
                   </button>
                 )}
                 <button className={opt} onClick={() => { setWriteTxt(''); setView('write') }}>
-                  <span className="w-11 h-11 rounded-xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcPin s={19} /></span>
+                  <span className="w-11 h-11 rounded-xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcPin s={19} /></span>
                   <span className="min-w-0">
                     <span className={optTitle + ' block'}>{t.delWrite}</span>
                     <span className={optSub + ' block'}>{t.delWriteSub}</span>
                   </span>
                 </button>
                 <button className={opt} onClick={() => setMapOpen(true)}>
-                  <span className="w-11 h-11 rounded-xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcLocate s={19} /></span>
+                  <span className="w-11 h-11 rounded-xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcLocate s={19} /></span>
                   <span className="min-w-0">
                     <span className={optTitle + ' block'}>{t.delMapPick}</span>
                     <span className={optSub + ' block'}>{t.delMapSub}</span>
                   </span>
                 </button>
                 <div className="flex items-start gap-2 pt-1.5 px-1 text-[13px] font-medium text-[var(--mut2)] leading-snug">
-                  <span className="text-[#29A8E0] shrink-0 mt-0.5"><IcPin s={14} /></span>
+                  <span className="text-[var(--acc)] shrink-0 mt-0.5"><IcPin s={14} /></span>
                   {t.cityNote}
                 </div>
                 {locFail && (
@@ -412,8 +412,8 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
   }
 
   const chipBase = 'press focus-ring px-3.5 py-2 rounded-xl text-[14px] font-extrabold border transition-colors '
-  const chipOn = 'bg-navy text-white border-navy shadow-[0_6px_14px_-6px_rgba(10,33,148,.55)]'
-  const chipOff = 'bg-[var(--panel)] text-[var(--ink2)] border-[var(--line2)] hover:border-[#29A8E0]/50'
+  const chipOn = 'bg-navy text-white border-navy shadow-[0_6px_14px_-6px_rgba(15,30,154,.55)]'
+  const chipOff = 'bg-[var(--panel)] text-[var(--ink2)] border-[var(--line2)] hover:border-[var(--acc-line50)]'
   const ready = branch && (asap || (date && time))
 
   return (
@@ -427,7 +427,7 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
             </button>
           )}
           <button onClick={confirm} disabled={!ready} data-autofocus
-            className="press focus-ring flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform disabled:opacity-40">
+            className="press focus-ring flex-1 py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold shadow-[0_10px_22px_-8px_rgba(15,30,154,.6)] active:scale-[.98] transition-transform disabled:opacity-40">
             {t.delConfirm}
           </button>
         </div>
@@ -442,8 +442,8 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
               return (
                 <button key={b.id} onClick={() => { setBranch(b.id); haptic('light') }}
                   className={'press focus-ring w-full flex items-center gap-3.5 px-4 py-4 rounded-2xl text-left transition-colors active:scale-[.99] border '
-                    + (sel ? 'bg-[#29A8E0]/10 border-[#29A8E0]' : 'bg-[var(--panel)] border-[var(--line2)] hover:border-[#29A8E0]/50')}>
-                  <span className={'w-11 h-11 rounded-xl grid place-items-center shrink-0 ' + (sel ? 'bg-[#29A8E0] text-white' : 'bg-[#29A8E0]/15 text-[#29A8E0]')}><IcStore s={19} /></span>
+                    + (sel ? 'bg-[var(--acc-soft10)] border-[var(--acc)]' : 'bg-[var(--panel)] border-[var(--line2)] hover:border-[var(--acc-line50)]')}>
+                  <span className={'w-11 h-11 rounded-xl grid place-items-center shrink-0 ' + (sel ? 'bg-[var(--acc)] text-white' : 'bg-[var(--acc-soft15)] text-[var(--acc)]')}><IcStore s={19} /></span>
                   <span className="min-w-0 flex-1">
                     <span className="text-[15.5px] font-extrabold text-[var(--ink)] leading-tight block">{b.name[lang] || b.name.uz}</span>
                     <span className="text-[13px] font-bold text-[var(--mut2)] mt-0.5 block">
@@ -451,7 +451,7 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
                       {b.address ? ` · ${b.address}` : ''}
                     </span>
                   </span>
-                  {sel && <span className="text-[#29A8E0] shrink-0"><IcCheck s={18} /></span>}
+                  {sel && <span className="text-[var(--acc)] shrink-0"><IcCheck s={18} /></span>}
                 </button>
               )
             })}
@@ -465,16 +465,16 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
             <div className="grid grid-cols-2 gap-2.5">
               <button onClick={() => { setAsap(true); setSchedOpen(false); setTime(null); setDate(null) }}
                 className={'press focus-ring px-3 py-3.5 rounded-2xl border text-left transition-colors active:scale-[.99] '
-                  + (asap ? 'bg-[#29A8E0]/10 border-[#29A8E0]' : 'bg-[var(--panel)] border-[var(--line2)] hover:border-[#29A8E0]/50')}>
-                <span className={'flex items-center gap-2 ' + (asap ? 'text-[#29A8E0]' : 'text-[var(--ink)]')}><IcClock s={16} /> <span className="text-[14.5px] font-extrabold">{t.pickAsap}</span></span>
+                  + (asap ? 'bg-[var(--acc-soft10)] border-[var(--acc)]' : 'bg-[var(--panel)] border-[var(--line2)] hover:border-[var(--acc-line50)]')}>
+                <span className={'flex items-center gap-2 ' + (asap ? 'text-[var(--acc)]' : 'text-[var(--ink)]')}><IcClock s={16} /> <span className="text-[14.5px] font-extrabold">{t.pickAsap}</span></span>
                 <span className="text-[12.5px] font-semibold text-[var(--mut2)] mt-1.5 block leading-snug">
                   {cfg?.prep_minutes ? t.pickPrepIn.replace('{n}', String(cfg.prep_minutes)) : t.pickPrepUnknown}
                 </span>
               </button>
               <button onClick={() => { if (!cfg) return; setAsap(false); setSchedOpen(true) }} disabled={!cfg}
                 className={'press focus-ring px-3 py-3.5 rounded-2xl border text-left transition-colors active:scale-[.99] disabled:opacity-50 '
-                  + (!asap && cfg ? 'bg-[#29A8E0]/10 border-[#29A8E0]' : 'bg-[var(--panel)] border-[var(--line2)] hover:border-[#29A8E0]/50')}>
-                <span className={'flex items-center gap-2 ' + (!asap && cfg ? 'text-[#29A8E0]' : 'text-[var(--ink)]')}><IcClock s={16} /> <span className="text-[14.5px] font-extrabold">{t.pickChooseTime}</span></span>
+                  + (!asap && cfg ? 'bg-[var(--acc-soft10)] border-[var(--acc)]' : 'bg-[var(--panel)] border-[var(--line2)] hover:border-[var(--acc-line50)]')}>
+                <span className={'flex items-center gap-2 ' + (!asap && cfg ? 'text-[var(--acc)]' : 'text-[var(--ink)]')}><IcClock s={16} /> <span className="text-[14.5px] font-extrabold">{t.pickChooseTime}</span></span>
                 <span className="text-[12.5px] font-semibold text-[var(--mut2)] mt-1.5 block leading-snug">
                   {!cfg ? t.pickSchedOff : (asap ? t.pickChooseTime : (date && time ? `${pickupWhenText(t, `${date} ${time}`)}` : t.pickSchedTitle))}
                 </span>
@@ -527,9 +527,9 @@ export function InitialChoiceModal({ open, onClose, onPick }: { open: boolean; o
         <button
           onClick={() => choose('delivery')}
           data-autofocus
-          className="press focus-ring w-full flex items-center gap-4 px-4 py-5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[#29A8E0]/50 text-left transition-colors active:scale-[.99]"
+          className="press focus-ring w-full flex items-center gap-4 px-4 py-5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[var(--acc-line50)] text-left transition-colors active:scale-[.99]"
         >
-          <span className="w-12 h-12 rounded-2xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcTruck s={22} /></span>
+          <span className="w-12 h-12 rounded-2xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcTruck s={22} /></span>
           <span className="min-w-0">
             <span className="text-[16px] font-extrabold text-[var(--ink)] block">{t.fcDel}</span>
             <span className="text-[13.5px] font-medium text-[var(--mut2)] mt-0.5 block">{t.fcDelSub}</span>
@@ -537,9 +537,9 @@ export function InitialChoiceModal({ open, onClose, onPick }: { open: boolean; o
         </button>
         <button
           onClick={() => choose('pickup')}
-          className="press focus-ring w-full flex items-center gap-4 px-4 py-5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[#29A8E0]/50 text-left transition-colors active:scale-[.99]"
+          className="press focus-ring w-full flex items-center gap-4 px-4 py-5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[var(--acc-line50)] text-left transition-colors active:scale-[.99]"
         >
-          <span className="w-12 h-12 rounded-2xl bg-[#29A8E0]/15 text-[#29A8E0] grid place-items-center shrink-0"><IcStore s={22} /></span>
+          <span className="w-12 h-12 rounded-2xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcStore s={22} /></span>
           <span className="min-w-0">
             <span className="text-[16px] font-extrabold text-[var(--ink)] block">{t.fcPick}</span>
             <span className="text-[13.5px] font-medium text-[var(--mut2)] mt-0.5 block">{t.fcPickSub}</span>

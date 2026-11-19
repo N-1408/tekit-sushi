@@ -35,7 +35,7 @@ export default function Profile({ variant = 'page' }: { variant?: 'page' | 'pane
         return (
           <div className="bg-[var(--panel)] border border-navy-line rounded-[18px] p-4">
             <div className="flex items-center gap-3">
-              <span className="w-10 h-10 rounded-xl bg-navy-soft grid place-items-center text-[#29A8E0]"><IcPin /></span>
+              <span className="w-10 h-10 rounded-xl bg-navy-soft grid place-items-center text-[var(--acc)]"><IcPin /></span>
               <div>
                 <div className="text-[14.5px] font-extrabold">{t.branchName}</div>
                 <div className="text-[12px] font-semibold text-[var(--mut2)] mt-0.5">{t.branchSoon}</div>
@@ -48,11 +48,11 @@ export default function Profile({ variant = 'page' }: { variant?: 'page' | 'pane
           <div className="bg-[var(--panel)] border border-navy-line rounded-[18px] px-4 divide-y divide-navy-line">
             <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center justify-between py-3.5">
               <span className="text-[13.5px] font-semibold text-[var(--mut2)]">{t.ctTg}</span>
-              <span className="text-[13.5px] font-extrabold text-[#29A8E0]">{t.ctTgVal}</span>
+              <span className="text-[13.5px] font-extrabold text-[var(--acc)]">{t.ctTgVal}</span>
             </a>
             <a href="tel:+998951550549" className="flex items-center justify-between py-3.5">
               <span className="text-[13.5px] font-semibold text-[var(--mut2)]">{t.ctPhone}</span>
-              <span className="text-[13.5px] font-extrabold text-[#29A8E0]">{t.ctPhoneVal}</span>
+              <span className="text-[13.5px] font-extrabold text-[var(--acc)]">{t.ctPhoneVal}</span>
             </a>
           </div>
         )

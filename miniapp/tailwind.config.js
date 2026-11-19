@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       colors: {
-        navy: { DEFAULT: "#0A2194", deep: "var(--bg)", ink: "var(--ink)", soft: "var(--soft)", line: "var(--line)" },
+        navy: { DEFAULT: "var(--brand-blue)", deep: "var(--bg)", ink: "var(--ink)", soft: "var(--soft)", line: "var(--line)" },
         paper: "var(--bg)",
       },
       borderRadius: { xl2: "22px" },
