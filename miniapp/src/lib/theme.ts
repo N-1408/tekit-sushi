@@ -18,8 +18,12 @@ import { TGA } from './tg'
 export type ThemeMode = 'dark' | 'light'
 export const THEME_BG: Record<ThemeMode, string> = { dark: '#0F1720', light: '#F6F7FB' }
 
-/* Brend ko'k: Telegram xromi mobil qurilmalarda shu rangda turadi, temadan qat'i nazar */
+/* Brend ko'k: yorug'lik rejimdagi header yuzasi (index.css --hdr-bg bilan BIR XIL qiymat) */
 export const BRAND_BLUE = '#0F1E9A'
+
+/* Mobil header yuzasi mavzuga qarab: index.css dagi --hdr-bg tokeni bilan bir xil.
+   Telegram xromi (setHeaderColor/setBackgroundColor + theme-color) shu rangda turadi. */
+export const HEADER_BG: Record<ThemeMode, string> = { light: '#0F1E9A', dark: '#1B2330' }
 
 /* themeParams faqat hex rang beradi; boshqa qiymat (bo'sh, tema nomi) e'tiborga olinmaydi */
 const isHex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)
@@ -83,15 +87,18 @@ export function applyTheme(t: ThemeMode) {
      Telegram tugmalari ortigacha uzluksiz davom etadi (oq bo'shliq yo'q).
      Desktopda themeParams ranglari qoladi. */
   const mobile = TGA?.platform === 'ios' || TGA?.platform === 'android'
+  /* Mobil header yuzasi MAVZU BILAN o'zgaradi: yorug'likda brend ko'k, tunda qorong'i.
+     applyTheme har tema almashganida darhol ishlaydi (qo'lda va Telegramning o'zidan). */
+  const hdr = HEADER_BG[t]
   try {
     const chrome = chromeColor(t)
-    TGA?.setHeaderColor?.(mobile ? BRAND_BLUE : chrome)
-    TGA?.setBackgroundColor?.(mobile ? BRAND_BLUE : chrome)
+    TGA?.setHeaderColor?.(mobile ? hdr : chrome)
+    TGA?.setBackgroundColor?.(mobile ? hdr : chrome)
     // Telegram-native pastki bar: mavjud bo'lsa (yangi klientlar) tema bilan birga yangilanadi.
     TGA?.setBottomBarColor?.(chrome)
   } catch {}
   const meta = document.querySelector('meta[name="theme-color"]')
-  if (meta) meta.setAttribute('content', mobile ? BRAND_BLUE : THEME_BG[t])
+  if (meta) meta.setAttribute('content', mobile ? hdr : THEME_BG[t])
   themeSubs.forEach(cb => { try { cb(t) } catch {} })
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, startTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useStore, pName, pImg, CATS, isSpicy, type Product } from '../lib/store'
@@ -150,6 +150,13 @@ export const IcBurger = ({ s = 18 }: { s?: number }) => (
   </svg>
 )
 
+/* Globus: til almashtirish (headerdagi chap tugma). IcBurger bilan bir xil uslub. */
+export const IcGlobe = ({ s = 18 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 1.333C4.318 1.333 1.333 4.318 1.333 8s2.985 6.667 6.667 6.667 6.667-2.985 6.667-6.667S11.682 1.333 8 1.333Zm4.974 6H10.94a10.6 10.6 0 0 0-.584-2.827c.734.243 1.375.617 1.863 1.101a5.32 5.32 0 0 1 .755 1.726ZM8 2.667c.443 0 1.06.753 1.453 2.06.18.61.314 1.303.395 2.058H6.152c.081-.755.214-1.448.395-2.058C6.94 3.42 7.557 2.667 8 2.667ZM3.026 7.333a5.32 5.32 0 0 1 .755-1.726c.488-.484 1.13-.858 1.863-1.101A10.6 10.6 0 0 0 5.06 7.333H3.026Zm0 1.334H5.06c.057 1.024.252 1.98.584 2.827-.734-.243-1.375-.617-1.863-1.101a5.32 5.32 0 0 1-.755-1.726ZM8 13.333c-.443 0-1.06-.753-1.453-2.06a9.29 9.29 0 0 1-.395-2.058h3.696a9.29 9.29 0 0 1-.395 2.058c-.393 1.307-1.01 2.06-1.453 2.06Zm2.356-2.24c.332-.846.527-1.802.584-2.826h2.034a5.32 5.32 0 0 1-.755 1.726c-.488.484-1.13.858-1.863 1.1Z"/>
+  </svg>
+)
+
 export const IcHome = ({ s = 18 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
     <path d="M7.49 1.45c.3-.24.72-.24 1.02 0l5.55 4.48c.38.31.61.78.61 1.27v5.9c0 .94-.76 1.7-1.7 1.7h-2.35v-3.02c0-1.06-.86-1.92-1.92-1.92s-1.92.86-1.92 1.92V14.8H3.83a1.7 1.7 0 0 1-1.7-1.7V7.2c0-.49.23-.96.61-1.27Z" />
@@ -289,8 +296,28 @@ const FLAGS: Record<string, (p: { s?: number }) => React.ReactElement> = { uz: F
 const FlagOf = ({ l, s = 15 }: { l: string; s?: number }) => { const F = FLAGS[l] || FlagUZ; return <F s={s} /> }
 const LANG_NAME: Record<string, string> = { uz: "O'zbekcha", ru: 'Русский', en: 'English' }
 
-export function LangPicker({ dark }: { dark?: boolean }) {
+/* Til tanlash pastki oynasi: bayroq + nom, joriy tilda belgi.
+   LangPicker (Profil) va mobil headerdagi til tugmasi birgalikda ishlatadi. */
+export function LangSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t, lang, setLang } = useStore()
+  return (
+    <Sheet open={open} onClose={onClose} title={t.language}>
+      <div className="space-y-2 pb-2">
+        {(['uz', 'ru', 'en'] as const).map(l => (
+          <button key={l} onClick={() => { setLang(l); haptic(); onClose() }}
+            className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)] border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(0,0,0,.3)]' : 'bg-[var(--panel)] border-navy-line'}`}>
+            <FlagOf l={l} s={22} />
+            <span className="text-[15px] font-extrabold flex-1">{LANG_NAME[l]}</span>
+            {lang === l && <IcCheck s={18} />}
+          </button>
+        ))}
+      </div>
+    </Sheet>
+  )
+}
+
+export function LangPicker({ dark }: { dark?: boolean }) {
+  const { lang } = useStore()
   const [open, setOpen] = React.useState(false)
   return (
     <>
@@ -298,18 +325,7 @@ export function LangPicker({ dark }: { dark?: boolean }) {
         className={`press flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[12px] font-extrabold active:scale-95 transition-transform ${dark ? 'bg-[var(--panel)] text-[var(--ink)]' : 'bg-navy-soft text-navy-ink'}`}>
         <FlagOf l={lang} s={15} />{lang.toUpperCase()}
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} title={t.language}>
-        <div className="space-y-2 pb-2">
-          {(['uz', 'ru', 'en'] as const).map(l => (
-            <button key={l} onClick={() => { setLang(l); haptic(); setOpen(false) }}
-              className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)] border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(0,0,0,.3)]' : 'bg-[var(--panel)] border-navy-line'}`}>
-              <FlagOf l={l} s={22} />
-              <span className="text-[15px] font-extrabold flex-1">{LANG_NAME[l]}</span>
-              {lang === l && <IcCheck s={18} />}
-            </button>
-          ))}
-        </div>
-      </Sheet>
+      <LangSheet open={open} onClose={() => setOpen(false)} />
     </>
   )
 }
@@ -324,7 +340,7 @@ export function ThemeToggle({ variant = 'default', className }: { variant?: 'def
   const [theme, setThemeL] = useState<ThemeMode>(() => currentTheme())
   useEffect(() => subscribeTheme(setThemeL), [])
   const cls = className ?? (variant === 'header'
-    ? 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-white/[.16] text-white hover:bg-white/[.24] active:scale-95 transition-colors shrink-0'
+    ? 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-[var(--hdr-chip)] text-white hover:bg-[var(--hdr-chip-hover)] active:scale-95 transition-colors shrink-0'
     : 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)] active:scale-95 transition-colors shrink-0')
   return (
     <AnimatedThemeToggler
@@ -457,8 +473,29 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
   const nav = useNavigate()
   const [delOpen, setDelOpen] = useState(false)
   const [pickOpen, setPickOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
   const [selOpen, setSelOpen] = useState(false)
+  const [selAnim, setSelAnim] = useState(false)
+  const selAnimT = useRef<number | null>(null)
+  // Panel ochilishi/yopilishi FAQAT transform/opacity (overlay) — sahifa qayta joylashmaydi.
+  // will-change faqat animatsiya davomida: state + taymer bilan yoqiladi/o'chiriladi.
+  const toggleSel = () => {
+    haptic()
+    setSelOpen(v => !v)
+    setSelAnim(true)
+    if (selAnimT.current) window.clearTimeout(selAnimT.current)
+    selAnimT.current = window.setTimeout(() => setSelAnim(false), 280)
+  }
+  useEffect(() => () => { if (selAnimT.current) window.clearTimeout(selAnimT.current) }, [])
+  /* Variant tanlash: panel DARHOL yopiladi, mos modal (manzil/filial) ochiladi;
+     setMode (butun ilova qayta renderi) startTransition ichida — animatsiya kutmaydi.
+     Tanlangan variantni yana bosish ham modalni ochadi (manzilni o'zgartirish uchun). */
+  const chooseMode = (m: 'delivery' | 'pickup') => {
+    haptic('medium')
+    setSelOpen(false)
+    if (m === 'delivery') setDelOpen(true); else setPickOpen(true)
+    startTransition(() => setMode(m))
+  }
   const [askState, setAskState] = useState(() => {
     try { return !localStorage.getItem('tk-onboarded') } catch { return true }
   })
@@ -527,37 +564,38 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
           {/* 2-qator: 3 ustunli grid — chapda burger, MARKAZDA buyurtma turi,
               o'ngda tema almashtirgich. Pill ekranning aniq o'rtasida turadi. */}
           <div className="grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-0.5 pb-1.5 max-w-[1240px] mx-auto">
-            <button onClick={() => { haptic(); setMenuOpen(true) }} aria-label={t.menuT} aria-haspopup="dialog"
-              className="press focus-ring w-10 h-10 -ml-1.5 justify-self-start grid place-items-center rounded-xl text-white active:scale-95 transition-transform">
-              <IcBurger s={20} />
+            {/* Chapda til tugmasi: o'ngdagi tema tugmasi bilan bir xil o'lcham/uslub */}
+            <button onClick={() => { haptic(); setLangOpen(true) }} aria-label={t.language} aria-haspopup="dialog"
+              className="press focus-ring w-10 h-10 justify-self-start grid place-items-center rounded-full bg-[var(--hdr-chip)] active:scale-95 transition-transform">
+              <FlagOf l={lang} s={20} />
             </button>
             <div className="min-w-0 justify-self-center max-w-full">
-              <button onClick={() => { haptic(); setSelOpen(v => !v) }} aria-expanded={selOpen}
-                className="press focus-ring flex items-center gap-1.5 h-9 pl-3.5 pr-2.5 rounded-full bg-white/[.16] text-[13px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0 max-w-full">
+              <button onClick={toggleSel} aria-expanded={selOpen}
+                className="press focus-ring flex items-center gap-1.5 h-9 pl-3.5 pr-2.5 rounded-full bg-[var(--hdr-chip)] text-[13px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0 max-w-full">
                 <span className="truncate">{mode === 'delivery' ? t.fcDel : mode === 'pickup' ? t.fcPick : t.orderType}</span>
                 <span className={`transition-transform duration-150 shrink-0 ${selOpen ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
               </button>
             </div>
             <div className="justify-self-end"><ThemeToggle variant="header" /></div>
           </div>
-          {/* Tanlov paneli: grid-rows 0fr/1fr texnikasi bilan silliq ochiladi-yopiladi,
-              remountsiz, prefers-reduced-motion hurmat qilinadi */}
-          <div className={`tk-sel-wrap ${selOpen ? 'is-open' : ''}`}>
-            <div>
-              <div className="px-3 pb-2 max-w-[1240px] mx-auto">
-                <div role="group" aria-label="order-type" className="flex items-center gap-1 rounded-full bg-white/[.16] p-1">
-                  {(['delivery', 'pickup'] as const).map(m => {
-                    const on = mode === m
-                    return (
-                      <button key={m} aria-pressed={on}
-                        onClick={() => { haptic('medium'); setMode(m); setSelOpen(false) }}
-                        className={`press focus-ring flex flex-1 items-center justify-center gap-1.5 h-8 rounded-full px-3 text-[12px] font-extrabold whitespace-nowrap transition-colors ${on ? 'bg-white text-[var(--brand-blue)]' : 'text-white active:bg-white/10'}`}>
-                        {m === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
-                        {m === 'delivery' ? t.fcDel : t.fcPick}
-                      </button>
-                    )
-                  })}
-                </div>
+          {/* Tanlov paneli: OVERLAY — header ostida mutlaq joylashadi, faqat
+              transform/opacity bilan animatsiya qilinadi, header balandligi
+              O'ZGARMAYDI va sahifa qayta joylashmaydi (iOS/Android silliq).
+              Remountsiz: doim DOM'da, visibility/pointer-events bilan boshqariladi. */}
+          <div className={`tk-sel-pop ${selOpen ? 'is-open' : ''} ${selAnim ? 'is-anim' : ''}`}>
+            <div className="px-3 pb-2.5 pt-0.5 max-w-[1240px] mx-auto">
+              <div role="group" aria-label="order-type" className="flex items-center gap-1 rounded-full bg-[var(--hdr-chip)] p-1">
+                {ORDER_MODES.map(m => {
+                  const on = mode === m
+                  return (
+                    <button key={m} aria-pressed={on}
+                      onClick={() => chooseMode(m)}
+                      className={`press focus-ring flex flex-1 items-center justify-center gap-1.5 h-8 rounded-full px-3 text-[12px] font-extrabold whitespace-nowrap transition-colors ${on ? 'bg-[var(--hdr-chip-on)] text-[var(--hdr-chip-on-ink)]' : 'text-white active:bg-white/10'}`}>
+                      {m === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
+                      {m === 'delivery' ? t.fcDel : t.fcPick}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -565,7 +603,7 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
       )}
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} switchTo={() => { setDelOpen(false); setPickOpen(true) }} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} switchTo={() => { setPickOpen(false); setDelOpen(true) }} />
-      <Drawer open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <LangSheet open={langOpen} onClose={() => setLangOpen(false)} />
       {askOpen && (
         <InitialChoiceModal
           open
@@ -581,6 +619,8 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
     </>
   )
 }
+
+const ORDER_MODES = ['delivery', 'pickup'] as const
 
 /* ---------- rejim almashtirish: Profile ekranida yashaydi (headerdan ko'chirildi) ---------- */
 export function ModeSwitcher() {
@@ -682,27 +722,39 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
 }) {
   const { t } = useStore()
   const [open, setOpen] = useState(false)
-  const [closing, setClosing] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
   const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({})
-  const searching = open || closing
+  const inputRef = useRef<HTMLInputElement>(null)
+  const kbT = useRef<number | null>(null)
 
-  /* Qidiruv inputi fokusda = klaviatura ko'tarilgan: navbar va suzuvchi
-     boshqaruvlar sirg'alib yashiriladi (html[data-kb]); blur bo'lgach qaytadi. */
+  /* Klaviatura ko'tarilganda navbar va suzuvchi boshqaruvlar yashiriladi
+     (html[data-kb]). BU endi birinchi kadrda emas, ochilish animatsiyasi
+     tugagach (230ms) qo'llanadi — aks holda navbar yashirilishi bilan bir
+     vaqtda reflow sodir bo'ladi va sakrash sezilar edi. */
   const setKb = (on: boolean) => {
     try { if (on) document.documentElement.dataset.kb = '1'; else delete document.documentElement.dataset.kb } catch {}
   }
+  /* Ochish: input doim DOM'da — fokus SINXRON, tap handler ICHIDA.
+     iOS/Android klaviaturasi shu sababli kechikmaydi. */
+  const openSearch = () => {
+    haptic()
+    setOpen(true)
+    try { inputRef.current?.focus({ preventScroll: true } as FocusOptions) } catch {}
+    if (kbT.current) window.clearTimeout(kbT.current)
+    kbT.current = window.setTimeout(() => setKb(true), 230)
+  }
   const closeSearch = () => {
     setQ('')
+    try { inputRef.current?.blur() } catch {}
     setKb(false)
-    setClosing(true)
-    window.setTimeout(() => { setOpen(false); setClosing(false) }, 190)
+    if (kbT.current) { window.clearTimeout(kbT.current); kbT.current = null }
+    setOpen(false)
   }
-  useEffect(() => () => setKb(false), [])
+  useEffect(() => () => { if (kbT.current) window.clearTimeout(kbT.current); setKb(false) }, [])
 
   // faol kategoriya stripda ko'rinadigan joyda turadi
   useEffect(() => {
-    if (searching || !active) return
+    if (open || !active) return
     const align = () => {
       const strip = stripRef.current
       const el = chipRefs.current[active]
@@ -743,27 +795,19 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
     const chipUnobs = chips.map(c => { const el = chipRefs.current[c.id]; if (el) ro.observe(el) })
     document.fonts?.ready?.then(align).catch(() => {})
     return () => { ro.disconnect(); window.clearTimeout(t); window.clearTimeout(t0); void chipUnobs }
-  }, [active, searching, chips.length])
+  }, [active, open, chips.length])
 
   return (
     <div>
       <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
-        {searching ? (
-          <div className={`flex items-center gap-1.5 ${closing ? 'tk-search-exit' : 'tk-search-enter'}`}>
-            <div className="relative flex-1 min-w-0">
-              <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
-                onFocus={() => setKb(true)} onBlur={() => setKb(false)}
-                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
-              <button onClick={closeSearch} aria-label="close-search"
-                className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
-                <IcX s={14} />
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 tk-search-enter">
-            <button onClick={() => setOpen(true)} aria-label={t.search} aria-expanded={false}
+        {/* O'ZGARMAS balandlikdagi bitta quti: ikkala holat ham SHU joyda.
+            Qator almashinuvi remountsiz — header va sahifa balandligi
+            hech qachon o'zgarmaydi (sakrash yo'q). */}
+        <div className="relative h-[38px]">
+          {/* 1-qatlam: qidiruv tugmasi + kategoriya chiplari.
+              Ochilganda fade + tepaga siljish (faqat transform/opacity). */}
+          <div className={`tk-search-row absolute inset-0 flex items-center gap-2 ${open ? 'is-out' : ''}`} aria-hidden={open || undefined}>
+            <button onClick={openSearch} aria-label={t.search} aria-expanded={open} tabIndex={open ? -1 : undefined}
               className="tk-search-btn press focus-ring flex-none flex items-center justify-center gap-2 h-[38px] w-[38px] lg:w-auto lg:px-4 rounded-full">
               <IcSearch s={17} />
               <span className="hidden lg:inline text-[14px] font-medium">{t.search}</span>
@@ -771,14 +815,31 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
             <div ref={stripRef} className="min-w-0 flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar" role="tablist" aria-label={t.menuT}>
               {chips.map(c => (
                 <button key={c.id} ref={el => { chipRefs.current[c.id] = el }} role="tab" aria-selected={active === c.id}
-                  onClick={() => onSelect(c.id)}
+                  onClick={() => onSelect(c.id)} tabIndex={open ? -1 : undefined}
                   className={`press focus-ring flex-none h-[38px] px-3.5 rounded-full text-[13.5px] font-bold whitespace-nowrap transition-colors ${active === c.id ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
                   {c.label}
                 </button>
               ))}
             </div>
           </div>
-        )}
+          {/* 2-qatlam: qidiruv maydoni. Doim DOM'da, faqat transform/opacity/
+              clip-path bilan ko'rinadi — qidiruv tugmasi inputga aylanib ochiladi.
+              Hech qanday width/height animatsiyasi yo'q, sahifa ta'sirlanmaydi. */}
+          <div className={`tk-search-field absolute inset-0 flex items-center gap-1.5 ${open ? 'is-in' : ''}`} aria-hidden={!open || undefined}>
+            <div className="relative flex-1 min-w-0">
+              <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
+                tabIndex={open ? undefined : -1}
+                onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); closeSearch() } }}
+                onBlur={() => setKb(false)}
+                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full h-[38px] pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
+              <button onClick={closeSearch} aria-label="close-search" tabIndex={open ? undefined : -1}
+                className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
+                <IcX s={14} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )

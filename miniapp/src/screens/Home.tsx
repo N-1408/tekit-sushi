@@ -16,7 +16,7 @@ function HomeSkeleton() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-7">
             {Array.from({ length: 6 }).map((_, i) => (
               <div key={i} className="space-y-2">
-                <div className="skel aspect-[4/3]" />
+                <div className="skel aspect-square" />
                 <div className="skel h-4 w-3/4" />
                 <div className="skel h-9" />
               </div>
@@ -32,7 +32,7 @@ function Section({ id, title, items }: { id?: string; title: string; items: Prod
   if (!items.length) return null
   const list = items
   return (
-    <section id={id} className="mt-7">
+    <section id={id} className="mt-7" style={{ scrollMarginTop: 'calc(var(--hdr-h, 0px) + 8px)' }}>
       <div className="px-4 lg:px-6 pt-2 pb-1.5">
         <h2 className="text-[26px] lg:text-[34px] font-extrabold tracking-tight leading-none">{title}</h2>
       </div>
@@ -51,8 +51,18 @@ function useCatalogTracking(ids: string[], paused: boolean) {
   const navRef = React.useRef<HTMLDivElement>(null)
   const [active, setActive] = React.useState<string | null>(null)
   const lockRef = React.useRef<string | null>(null)
-  const rafRef = React.useRef(0)
+  const animRef = React.useRef<{ cancel: () => void } | null>(null)
+  const resumeT = React.useRef(0)
   const idsKey = ids.join('|')
+
+  /* Yopishqoq header blokining PASTKI chizig'i: onSelect va computeActive
+     BIR XIL chegara bilan ishlaydi (avvalgi xato shu edida edi — ikki xil
+     hisob, shuning uchun chip boshqasini ko'rsatardi). Order-type overlayi
+     bu o'lchovga KIRMAYDI: u absolute, blok balandligini o'zgartirmaydi. */
+  const getStickyBottom = React.useCallback(() => {
+    const nav = navRef.current
+    return nav ? nav.getBoundingClientRect().bottom : 0
+  }, [])
 
   /* Faol kategoriya har skroll hodisasida (rAF bilan cheklangan) hisoblanadi:
      IntersectionObserver moslashtirilmaydigan holatlarda (sarlavha yig'ilib
@@ -61,8 +71,7 @@ function useCatalogTracking(ids: string[], paused: boolean) {
     if (lockRef.current) return
     const list = idsKey ? idsKey.split('|') : []
     if (!list.length) { setActive(null); return }
-    const nav = navRef.current
-    const boundary = (nav ? nav.getBoundingClientRect().bottom : 0) + 1
+    const boundary = getStickyBottom() + 1
     let cur: string | null = null
     for (const id of list) {
       const el = document.getElementById(SEC(id))
@@ -73,45 +82,88 @@ function useCatalogTracking(ids: string[], paused: boolean) {
     const doc = document.documentElement
     if (window.innerHeight + window.scrollY >= doc.scrollHeight - 2) cur = list[list.length - 1]
     setActive(prev => (prev === cur ? prev : cur))
-  }, [idsKey])
+  }, [idsKey, getStickyBottom])
 
+  /* Foydalanuvchi aralashuvi: touch/pointer/wheel/keyboard — animatsiya darhol
+     to'xtaydi, foydalanuvchi g'olib bo'ladi. Har biri bir marta eshitiladi. */
+  const USER_EVENTS = ['touchstart', 'pointerdown', 'wheel', 'keydown']
+  const listenUser = (fn: () => void) => {
+    const h = () => fn()
+    USER_EVENTS.forEach(ev => window.addEventListener(ev, h, { capture: true, passive: true } as AddEventListenerOptions))
+    return () => { USER_EVENTS.forEach(ev => window.removeEventListener(ev, h, { capture: true } as EventListenerOptions)) }
+  }
   const onSelect = React.useCallback((id: string) => {
     const el = document.getElementById(SEC(id))
     if (!el) return
-    const nav = navRef.current
-    // Pinlangan to'liq header balandligi: --hdr-h (ResizeObserver), bo'lmasa o'lchov
-    const navH = (() => {
-      const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hdr-h'))
-      if (Number.isFinite(v) && v > 0) return v
-      return nav ? nav.offsetHeight : 0
-    })()
-    // Pinlangan holatdagi yuqori ofset (sat): computed top var() ni PX ga hal qiladi
-    const pinTop = nav ? (parseFloat(getComputedStyle(nav).top) || 0) : 0
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    // programmatik skroll davomida kuzatuv bloklanadi; yakunlangach haqiqiy joy bilan kelishiladi
+    // Avvalgi animatsiyani to'xtat (tez ketma-ket bosishlar)
+    if (animRef.current) { animRef.current.cancel(); animRef.current = null }
+    window.clearTimeout(resumeT.current)
+    // Faol chip DARHOL belgilanadi; kuzatuv (scroll-spy) animatsiya davomida bloklangan
     lockRef.current = id
     setActive(id)
-    window.scrollTo({
-      top: Math.max(0, el.getBoundingClientRect().top + window.scrollY - navH - pinTop - 10),
-      behavior: reduced ? 'auto' : 'smooth',
-    })
-    cancelAnimationFrame(rafRef.current)
-    const t0 = performance.now()
-    let last = -1
-    let stable = 0
-    const tick = () => {
-      const y = window.scrollY
-      if (y === last) stable++
-      else { stable = 0; last = y }
-      if (stable >= 3 || performance.now() - t0 > 900) {
+
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    /* Maqsad HAR KADRDA qayta o'qiladi: yuqorida rasm/skelet yuklanib joy
+       siljisa ham aynan maqsadga boradi. Sarlavha header ostiga AYNAN tekislanadi
+       (top == chegara), shuning uchun computeActive ham shu chipni ko'rsatadi. */
+    const readTarget = () => {
+      const bottom = getStickyBottom()
+      return Math.max(0, el.getBoundingClientRect().top + window.scrollY - bottom + 1)
+    }
+    const scheduleResume = () => {
+      // Faol chip saqlanadi: kuzatuv faqat keyingi FOYDALANUVCHI harakatida yoki
+      // xavfsizlik taymeri (1.2s) bilan davom etadi
+      let off2: () => void = () => {}
+      const resume = () => {
+        window.clearTimeout(resumeT.current); off2()
         lockRef.current = null
         computeActive()
-        return
       }
-      rafRef.current = requestAnimationFrame(tick)
+      off2 = listenUser(resume)
+      resumeT.current = window.setTimeout(resume, 1200)
     }
-    rafRef.current = requestAnimationFrame(tick)
-  }, [computeActive])
+    let raf = 0
+    let done = false
+    let off = () => {}
+    const interrupt = () => {
+      if (done) return
+      done = true
+      cancelAnimationFrame(raf)
+      off()
+      animRef.current = null
+      scheduleResume()
+    }
+    const finish = () => {
+      if (done) return
+      done = true
+      window.scrollTo(0, readTarget())
+      off()
+      animRef.current = null
+      scheduleResume()
+    }
+    if (reduced) {
+      window.scrollTo(0, readTarget())
+      finish()
+      return
+    }
+    const startY = window.scrollY
+    const dist0 = Math.abs(readTarget() - startY)
+    // Masofaga mos davomiylik (380-750ms), ease-in-out kub
+    const dur = Math.min(750, Math.max(380, 380 + dist0 * 0.18))
+    const easeInOut = (x: number) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2)
+    const t0 = performance.now()
+    const tick = (now: number) => {
+      if (done) return
+      const p = Math.min(1, (now - t0) / dur)
+      const y = startY + (readTarget() - startY) * easeInOut(p)
+      window.scrollTo(0, y)
+      if (p < 1) raf = requestAnimationFrame(tick)
+      else finish()
+    }
+    off = listenUser(interrupt)
+    raf = requestAnimationFrame(tick)
+    animRef.current = { cancel: interrupt }
+  }, [computeActive, getStickyBottom])
 
   React.useEffect(() => {
     if (paused) { setActive(null); return }
