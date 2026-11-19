@@ -627,7 +627,7 @@ export function CityBanner() {
     <>
       <div ref={wrapRef} className="fixed left-1/2 -translate-x-1/2 z-[45] w-[calc(100%-24px)] max-w-[420px]" style={{ top: 'calc(124px + var(--sat))' }}>
       <div className="flex items-center gap-3 bg-[var(--panel)] border border-[var(--line2)] rounded-2xl px-4 py-3 shadow-[0_18px_44px_-14px_rgba(0,0,0,.6)]">
-        <span className="text-[#29A8E0] shrink-0"><IcPin /></span>
+        <span className="text-[var(--acc)] shrink-0"><IcPin /></span>
         <div className="flex-1 text-[14px] font-bold text-[var(--ink)] leading-snug">{t.cityNote}</div>
         <button onClick={() => { try { localStorage.setItem('tk-city-ok', '1') } catch {}; setOk(true) }}
           className="press shrink-0 bg-[var(--chip-on)] text-[var(--chip-on-ink)] text-[13.5px] font-extrabold px-3.5 py-2 rounded-xl active:scale-95 transition-transform">
@@ -651,7 +651,7 @@ export function SearchChips({ q, setQ }: { q: string; setQ: (s: string) => void 
           <div className="flex items-center gap-1.5">
             <div className="relative flex-1 min-w-0">
               <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
-                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
+                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
               <button onClick={() => { setOpen(false); setQ('') }} aria-label="close-search"
                 className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
@@ -753,7 +753,7 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
             <div className="relative flex-1 min-w-0">
               <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
                 onFocus={() => setKb(true)} onBlur={() => setKb(false)}
-                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[#29A8E0] focus:ring-2 focus:ring-[#29A8E0]/15" />
+                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
               <button onClick={closeSearch} aria-label="close-search"
                 className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
@@ -868,7 +868,7 @@ export function HeroSlider() {
               <div className="absolute inset-0 bg-gradient-to-r from-[#0B1220]/85 via-[#0B1220]/40 to-transparent" />
               <div className="relative h-full flex items-end lg:items-center pl-5 lg:pl-10 pr-4 lg:pr-6 pb-4 lg:pb-0">
                 <div className="max-w-[75%] lg:max-w-[55%]">
-                  <span className="inline-block bg-[#29A8E0] text-white px-2.5 py-1 rounded-full text-[10px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
+                  <span className="inline-block bg-[var(--acc)] text-white px-2.5 py-1 rounded-full text-[10px] lg:text-[11.5px] font-extrabold uppercase tracking-[0.14em]">{(t as any)[sl.b]}</span>
                   <div className="mt-2 lg:mt-3.5 text-[20px] lg:text-[34px] font-extrabold leading-[1.1] tracking-tight text-white">{(t as any)[sl.ti]}</div>
                   <div className="mt-1.5 text-[11.5px] lg:text-[14px] font-medium text-white/75 leading-snug">{(t as any)[sl.s]}</div>
                 </div>
@@ -1160,7 +1160,7 @@ export function Empty({ emoji, title, sub, action }: { emoji?: string; title: st
     <div className="py-14 text-center">
       <div className="relative w-28 h-28 mx-auto">
         <div className="absolute -inset-4 rounded-full bg-navy-soft/70 blur-2xl opacity-80" />
-        <div className="relative tekit-pattern w-28 h-28 rounded-[30px] grid place-items-center text-white shadow-[0_16px_34px_-14px_rgba(10,33,148,.45)]"><IcPlate /></div>
+        <div className="relative tekit-pattern w-28 h-28 rounded-[30px] grid place-items-center text-white shadow-[0_16px_34px_-14px_rgba(15,30,154,.45)]"><IcPlate /></div>
       </div>
       <div className="mt-5 text-[17px] font-extrabold">{title}</div>
       {sub && <div className="mt-1.5 text-[14px] font-medium text-[var(--mut2)] max-w-[300px] mx-auto leading-relaxed">{sub}</div>}
@@ -1175,7 +1175,7 @@ export function BigButton({ children, onClick, disabled, ghost, type }: {
   return (
     <button type={type} onClick={onClick} disabled={disabled}
       className={`press w-full py-4 rounded-2xl text-[16px] font-extrabold flex items-center justify-center gap-2 transition-all
-        ${ghost ? 'bg-[var(--bg2)] text-[var(--ink)] border border-navy-line' : 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)]'} disabled:opacity-40`}>
+        ${ghost ? 'bg-[var(--bg2)] text-[var(--ink)] border border-navy-line' : 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_10px_22px_-8px_rgba(15,30,154,.6)]'} disabled:opacity-40`}>
       {children}
     </button>
   )
@@ -1437,7 +1437,7 @@ function SaucePicker({ sauces, qtyOf, setQty, onShow }: {
   return (
     <div>
       <div className="flex items-center gap-1.5 text-[13.5px] font-extrabold text-[var(--ink)]">
-        <span className="text-[#29A8E0]"><IcSauce s={15} /></span> {t.sAddSauces}
+        <span className="text-[var(--acc)]"><IcSauce s={15} /></span> {t.sAddSauces}
       </div>
       <div className="mt-2.5 flex flex-col gap-1">
         {sauces.map(sa => {
@@ -2035,7 +2035,7 @@ export function ScrollTop() {
       const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' })
     }} aria-label="up"
-      className="floating-quick press w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] bg-white border border-black/10 text-[#0A2194] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] hover:bg-[#F1F5F9] active:scale-95 transition-[transform,background-color] cursor-pointer">
+      className="floating-quick press w-[var(--float-size)] h-[var(--float-size)] shrink-0 rounded-[18px] bg-white border border-black/10 text-[var(--brand-blue)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] hover:bg-[#F1F5F9] active:scale-95 transition-[transform,background-color] cursor-pointer">
       <IcTop s={20} />
     </button>
   )
@@ -2069,7 +2069,7 @@ export function GiftProgress() {
             <circle cx="28" cy="28" r={R} fill="none" stroke="var(--line2)" strokeWidth="3" />
             <circle cx="28" cy="28" r={R} fill="none" stroke="var(--promo)" strokeWidth="3" strokeLinecap="round" strokeDasharray={C} strokeDashoffset={C * (1 - pct)} style={{ transition: 'stroke-dashoffset .5s cubic-bezier(.32,.72,0,1)' }} />
           </svg>
-          <span className="w-[44px] h-[44px] rounded-full bg-[var(--sheet)] border border-[var(--line)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] transition-colors duration-300" style={{ color: done ? 'var(--promo-deep)' : '#29A8E0' }}>
+          <span className="w-[44px] h-[44px] rounded-full bg-[var(--sheet)] border border-[var(--line)] grid place-items-center shadow-[0_10px_24px_-10px_rgba(0,0,0,.35)] transition-colors duration-300" style={{ color: done ? 'var(--promo-deep)' : 'var(--acc)' }}>
             <IcTruck s={18} />
           </span>
         </button>
@@ -2082,9 +2082,9 @@ export function GiftProgress() {
             <div className="relative w-16 h-16 mx-auto">
               <svg width="64" height="64" viewBox="0 0 64 64" className="-rotate-90">
                 <circle cx="32" cy="32" r={R2} fill="none" stroke="var(--line2)" strokeWidth="5" />
-                <circle cx="32" cy="32" r={R2} fill="none" stroke="#29A8E0" strokeWidth="5" strokeLinecap="round" strokeDasharray={C2} strokeDashoffset={C2 * (1 - pct)} style={{ transition: 'stroke-dashoffset .6s cubic-bezier(.32,.72,0,1)' }} />
+                <circle cx="32" cy="32" r={R2} fill="none" stroke="var(--acc)" strokeWidth="5" strokeLinecap="round" strokeDasharray={C2} strokeDashoffset={C2 * (1 - pct)} style={{ transition: 'stroke-dashoffset .6s cubic-bezier(.32,.72,0,1)' }} />
               </svg>
-              <span className="absolute inset-0 grid place-items-center text-[#29A8E0]"><IcTruck s={24} /></span>
+              <span className="absolute inset-0 grid place-items-center text-[var(--acc)]"><IcTruck s={24} /></span>
             </div>
             {left > 0 ? (
               <>

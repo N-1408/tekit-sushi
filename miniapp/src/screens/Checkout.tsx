@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore, pName } from '../lib/store'
+import { API_BASE } from '../lib/api'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
 import { TopBar, BigButton, IcTruck, IcCheck, IcPin, IcStore, IcChevR, IcCash, IcCard } from '../components/ui'
@@ -65,7 +66,7 @@ export default function Checkout() {
     const loc = await requestLocation()
     if (!loc) { setLocBusy(false); setLocMsg(t.obLocFail); return }
     try {
-      const r = await fetch(`/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
+      const r = await fetch(`${API_BASE}/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
       const j = r.ok ? await r.json() : null
       if (j?.ok && j.addr) { setAddr(j.addr); setLocMsg(t.obLocOk) }
       else setLocMsg(t.obLocFail)
@@ -80,7 +81,7 @@ export default function Checkout() {
     if (query.length < 3) { setSugs([]); return }
     sugT.current = setTimeout(async () => {
       try {
-        const r = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`)
+        const r = await fetch(`${API_BASE}/api/geocode?q=${encodeURIComponent(query)}`)
         const j = await r.json()
         setSugs(j?.results || [])
       } catch { setSugs([]) }
@@ -108,7 +109,7 @@ export default function Checkout() {
     if (!c) return
     setPromoBusy(true); setPromoMsg('')
     try {
-      const r = await fetch(`/api/promo?code=${encodeURIComponent(c)}`)
+      const r = await fetch(`${API_BASE}/api/promo?code=${encodeURIComponent(c)}`)
       if (r.ok) { const j = await r.json(); setPromoPct(j.percent); setPromoMsg(`${t.promoOk} · −${j.percent}%`) }
       else { setPromoPct(0); setPromoMsg(t.promoInvalid) }
     } catch { setPromoMsg(t.promoInvalid) }
@@ -165,7 +166,7 @@ export default function Checkout() {
     setBusy(false)
   }
 
-  const chip = (on: boolean) => `press flex-1 py-2.5 rounded-xl text-[13px] font-bold border transition-all ${on ? 'bg-navy text-white border-navy shadow-[0_4px_12px_-4px_rgba(10,33,148,.4)]' : 'bg-[var(--panel)] text-[var(--ink)] border-[var(--line2)]'}`
+  const chip = (on: boolean) => `press flex-1 py-2.5 rounded-xl text-[13px] font-bold border transition-all ${on ? 'bg-navy text-white border-navy shadow-[0_4px_12px_-4px_rgba(15,30,154,.4)]' : 'bg-[var(--panel)] text-[var(--ink)] border-[var(--line2)]'}`
   const input = "w-full bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 placeholder:text-[var(--mut2)]"
 
   return (
@@ -205,7 +206,7 @@ export default function Checkout() {
               <Line label={t.pickWhen}>
                 <button onClick={() => setPickOpen(true)}
                   className="press focus-ring w-full text-left bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 flex items-center gap-3 active:scale-[.99] transition-transform">
-                  <span className={`w-9 h-9 rounded-xl grid place-items-center shrink-0 ${pickup ? 'bg-navy text-white' : 'bg-navy-soft text-[#29A8E0]'}`}><IcStore s={16} /></span>
+                  <span className={`w-9 h-9 rounded-xl grid place-items-center shrink-0 ${pickup ? 'bg-navy text-white' : 'bg-navy-soft text-[var(--acc)]'}`}><IcStore s={16} /></span>
                   <span className="flex-1 min-w-0">
                     <span className="block text-[15px] font-bold text-[var(--ink)] truncate">{pickup ? pickupSummary(t, pickup, ff.branches, lang) : t.pickNeed}</span>
                     <span className="block text-[13px] font-semibold text-[var(--mut2)]">{pickup ? t.pickChange : t.pickBranch}</span>
@@ -231,14 +232,14 @@ export default function Checkout() {
                   )}
                 </div>
                 <button onClick={detectLoc} disabled={locBusy}
-                  className="press mt-2 w-full py-3 rounded-xl bg-navy-soft text-[#29A8E0] text-[14px] font-bold flex items-center justify-center gap-2 disabled:opacity-60">
+                  className="press mt-2 w-full py-3 rounded-xl bg-navy-soft text-[var(--acc)] text-[14px] font-bold flex items-center justify-center gap-2 disabled:opacity-60">
                   {locBusy ? <span className="w-3.5 h-3.5 border-2 border-navy/30 border-t-navy rounded-full animate-spin" /> : (
                     <IcPin s={15} />
                   )}
                   {locBusy ? t.obLocDetecting : t.obLocBtn}
                 </button>
                 <button onClick={() => setMapOpen(true)}
-                  className="press mt-2 w-full py-3 rounded-xl bg-navy-soft text-[#29A8E0] text-[14px] font-bold flex items-center justify-center gap-2">
+                  className="press mt-2 w-full py-3 rounded-xl bg-navy-soft text-[var(--acc)] text-[14px] font-bold flex items-center justify-center gap-2">
                   <IcPin s={15} />
                   {t.mapBtn}
                 </button>
@@ -305,7 +306,7 @@ export default function Checkout() {
                     <span className={`text-[14px] font-extrabold ${dFee > 0 ? 'text-[var(--ink)]' : 'text-emerald-600'}`}>{dFee > 0 ? `${fmt(dFee)} UZS` : t.free}</span>
                   </div>
                   <div className="mt-2.5 h-[7px] rounded-full bg-[var(--line2)] overflow-hidden">
-                    <div className="h-full rounded-full bg-gradient-to-r from-[#0A2194] to-[#29A8E0] transition-all duration-700" style={{ width: `${Math.round(Math.min(1, sum / threshold) * 100)}%` }} />
+                    <div className="h-full rounded-full bg-gradient-to-r from-[var(--brand-blue)] to-[var(--acc-on-dark)] transition-all duration-700" style={{ width: `${Math.round(Math.min(1, sum / threshold) * 100)}%` }} />
                   </div>
                   <div className={`mt-1.5 text-[12.5px] font-semibold ${dFee > 0 ? 'text-[var(--mut2)]' : 'text-emerald-600'}`}>{dFee > 0 ? `${t.fdLeft.replace('{x}', fmt(threshold - sum))} · ${t.fdTo}` : t.fdDone}</div>
                 </div>

@@ -77,7 +77,7 @@ export default function Orders({ variant = 'page' }: { variant?: 'page' | 'panel
     const shown = o.items.slice(0, 3)
     const rest = o.items.length - shown.length
     return (
-      <div className="bg-[var(--panel)] border border-navy-line rounded-[20px] p-4 shadow-[0_2px_10px_-6px_rgba(10,33,148,.15)]">
+      <div className="bg-[var(--panel)] border border-navy-line rounded-[20px] p-4 shadow-[0_2px_10px_-6px_rgba(15,30,154,.15)]">
         <div className="flex items-center justify-between">
           <span className="text-[15px] font-extrabold">#{o.oid}</span>
           <span className="text-[11px] font-semibold text-[var(--mut2)]">{ago(o.at, t)}</span>

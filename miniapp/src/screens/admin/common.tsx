@@ -97,7 +97,7 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
           <input value={input} onChange={e => setInput(e.target.value)} type="password"
             className="mt-4 w-full bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-[var(--btn)]" placeholder="••••••••" />
           <button onClick={async () => { const ok = await verify(input); if (ok) { setKey(input); haptic('success') } else { setErr('x'); haptic('error') } }}
-            className="press mt-3 w-full py-4 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15.5px] font-extrabold shadow-[0_10px_22px_-8px_rgba(10,33,148,.6)] active:scale-[.98] transition-transform">
+            className="press mt-3 w-full py-4 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15.5px] font-extrabold shadow-[0_10px_22px_-8px_rgba(15,30,154,.6)] active:scale-[.98] transition-transform">
             {t.login}
           </button>
           {err && <div className="mt-2 text-center text-[12.5px] font-bold a-bad-text">{t.wrongPass}</div>}
@@ -144,7 +144,7 @@ export function Btn({ children, onClick, kind = 'primary', disabled, small }: {
   children: React.ReactNode; onClick?: () => void; kind?: 'primary' | 'ghost' | 'danger' | 'soft'; disabled?: boolean; small?: boolean
 }) {
   const cls = {
-    primary: 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]',
+    primary: 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_8px_18px_-8px_rgba(15,30,154,.55)]',
     ghost: 'bg-[var(--panel)] text-navy-ink border border-navy-line',
     soft: 'bg-navy-soft text-navy-ink',
     danger: 'bg-[rgba(239,68,68,.12)] a-bad-text border border-[rgba(239,68,68,.35)]',
@@ -161,7 +161,7 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
   return createPortal(
     <div className="fixed inset-0 z-50">
       <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="anim-sheet absolute inset-x-0 bottom-0 bg-paper rounded-t-[26px] px-5 pt-3 shadow-[0_-18px_40px_-20px_rgba(10,33,148,.35)]"
+      <div className="anim-sheet absolute inset-x-0 bottom-0 bg-paper rounded-t-[26px] px-5 pt-3 shadow-[0_-18px_40px_-20px_rgba(15,30,154,.35)]"
         style={{ paddingBottom: 'calc(20px + var(--sab))' }}>
         <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line2)]" />
         <div className="text-[17px] font-extrabold">{title}</div>
@@ -172,7 +172,7 @@ export function Modal({ open, onClose, title, children }: { open: boolean; onClo
 
 export function StatTile({ label, value, accent, sub }: { label: string; value: string; accent?: boolean; sub?: string }) {
   return (
-    <div className={`rounded-[20px] p-4 ${accent ? 'tekit-pattern text-white shadow-[0_12px_28px_-12px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] border border-navy-line'}`}>
+    <div className={`rounded-[20px] p-4 ${accent ? 'tekit-pattern text-white shadow-[0_12px_28px_-12px_rgba(15,30,154,.5)]' : 'bg-[var(--panel)] border border-navy-line'}`}>
       <div className={`text-[11.5px] font-bold uppercase tracking-wide ${accent ? 'text-white/75' : 'text-[var(--mut)]'}`}>{label}</div>
       <div className="mt-1.5 text-[21px] font-extrabold tracking-tight leading-none">{value}</div>
       {sub && <div className={`mt-1 text-[11.5px] font-semibold ${accent ? 'text-white/75' : 'text-[var(--mut)]'}`}>{sub}</div>}
@@ -224,7 +224,7 @@ function AdminSidebar() {
           const act = on(it.to)
           return (
             <button key={it.id} onClick={() => { if (!act) { haptic(); nav(it.to) } }}
-              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-[13.5px] font-extrabold transition-colors ${act ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_8px_18px_-8px_rgba(10,33,148,.55)]' : 'text-[var(--mut3)] hover:bg-navy-soft'}`}>
+              className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-2xl text-[13.5px] font-extrabold transition-colors ${act ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_8px_18px_-8px_rgba(15,30,154,.55)]' : 'text-[var(--mut3)] hover:bg-navy-soft'}`}>
               <span className={act ? 'text-[var(--btn-ink)]' : 'text-[var(--mut)]'}>{it.icon}</span>
               <span className="flex-1 text-left">{it.label}</span>
               {it.id === 'orders' && !!pending && (

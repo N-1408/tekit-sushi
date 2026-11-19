@@ -1,11 +1,5 @@
-import { Pool } from 'pg';
-import crypto from 'crypto';
-import { cors, rateLimit, verifyInitData, failGuard, recordFail } from './_verify.js';
-let pool;
-function getPool() {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
-  return pool;
-}
+import { getPool } from './_db.js';import crypto from 'crypto';
+import { cors, rateLimit, verifyInitData, failGuard, recordFail, safeEqual } from './_verify.js';
 let ensured;
 async function ensureSchema() {
   if (!ensured) {
@@ -18,9 +12,9 @@ async function ensureSchema() {
 async function isAdmin(req) {
   const key = req.headers['x-admin-key'] || '';
   if (key) {
-    if (failGuard(req, 'pw')) return false;
-    if (key === process.env.ADMIN_PASSWORD) return true;
-    recordFail(req, 'pw');
+    if (await failGuard(req, 'pw')) return false;
+    if (safeEqual(key, process.env.ADMIN_PASSWORD)) return true;
+    await recordFail(req, 'pw');
     return false;
   }
   const u = verifyInitData(req.headers['x-init-data']);
@@ -34,7 +28,7 @@ export default async function handler(req, res) {
   cors(res, 'POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false });
-  if (!rateLimit(req, 'upl', 10, 10 * 60 * 1000)) return res.status(429).json({ ok: false, error: 'Juda ko\u02bbp urinish' });
+  if (!(await rateLimit(req, 'upl', 10, 10 * 60 * 1000))) return res.status(429).json({ ok: false, error: 'Juda ko\u02bbp urinish' });
   if (!(await isAdmin(req))) return res.status(401).json({ ok: false, error: 'auth' });
   if (!await ensureSchema()) return res.status(500).json({ ok: false, error: 'DB xato' });
   try {
@@ -47,6 +41,7 @@ export default async function handler(req, res) {
     await getPool().query('INSERT INTO menu_imgs (id, mime, data) VALUES ($1,$2,$3)', [id, mime, buf]);
     return res.status(200).json({ ok: true, id });
   } catch (e) {
-    return res.status(500).json({ ok: false, error: e?.message });
+    console.error('upload error', e?.message);
+    return res.status(500).json({ ok: false, error: 'Server xatosi' });
   }
 }

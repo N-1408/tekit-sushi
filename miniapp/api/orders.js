@@ -1,10 +1,4 @@
-import { Pool } from 'pg';
-import { tgUserFrom, cors } from './_verify.js';
-let pool;
-function getPool() {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
-  return pool;
-}
+import { getPool } from './_db.js';import { tgUserFrom, cors } from './_verify.js';
 export default async (req, res) => {
   cors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();

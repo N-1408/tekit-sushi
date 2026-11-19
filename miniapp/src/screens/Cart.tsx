@@ -99,7 +99,7 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
                     haptic()
                     for (const it of myOrders[0].items) { const p = products.find(x => x.id === it.id); if (p) add(it.id, it.q) }
                     nav('/')
-                  }} className="press py-2.5 rounded-xl bg-navy-soft text-[#29A8E0] text-[13px] font-bold">{t.repeatOrder}</button>
+                  }} className="press py-2.5 rounded-xl bg-navy-soft text-[var(--acc)] text-[13px] font-bold">{t.repeatOrder}</button>
                 ) : null}
               </div>
             } />

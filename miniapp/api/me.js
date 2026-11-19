@@ -1,12 +1,5 @@
-import pg from 'pg';
+import { getPool } from './_db.js';
 import { tgUserFrom, cors } from './_verify.js';
-let pool = null;
-function getPool() {
-  if (!pool && process.env.DATABASE_URL) {
-    pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 3, ssl: { rejectUnauthorized: false } });
-  }
-  return pool;
-}
 /* GET  /api/me  → foydalanuvchi mavjudligi, roli va profili (serverdan).
  * POST /api/me  → profilni saqlash (onboarding yoki manzil o'zgarishi).
  * Mini ilova ochilishida darhol chaqiriladi: profil shu yerdan qaytadi,

@@ -1,6 +1,7 @@
 import React from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+import { API_BASE } from '../lib/api'
 import { haptic } from '../lib/tg'
 import { IcChevL, IcLocate } from './ui'
 
@@ -37,7 +38,7 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
         L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(m)
         const icon = L.divIcon({
           className: '',
-          html: '<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:#0A2194;border:3px solid #fff;box-shadow:0 6px 14px rgba(10,33,148,.45)"></div>',
+          html: '<div style="width:26px;height:26px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);background:var(--brand-blue);border:3px solid #fff;box-shadow:0 6px 14px rgba(15,30,154,.45)"></div>',
           iconSize: [26, 26],
           iconAnchor: [13, 26],
         })
@@ -73,7 +74,7 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
     if (busy) return
     setBusy(true)
     try {
-      const r = await fetch(`/api/geocode?lat=${pt.lat}&lon=${pt.lon}`)
+      const r = await fetch(`${API_BASE}/api/geocode?lat=${pt.lat}&lon=${pt.lon}`)
       const j = await r.json().catch(() => null)
       haptic('medium')
       onPick(j?.ok && j.addr ? j.addr : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`, pt.lat, pt.lon)

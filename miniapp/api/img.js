@@ -1,10 +1,4 @@
-import { Pool } from 'pg';
-import { cors } from './_verify.js';
-let pool;
-function getPool() {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
-  return pool;
-}
+import { getPool } from './_db.js';import { cors } from './_verify.js';
 let ensured;
 async function ensureSchema() {
   if (!ensured) {
@@ -28,6 +22,7 @@ export default async function handler(req, res) {
     res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     return res.status(200).send(Buffer.from(row.data));
   } catch (e) {
-    return res.status(500).json({ ok: false, error: e?.message });
+    console.error('img error', e?.message);
+    return res.status(500).json({ ok: false, error: 'Server xatosi' });
   }
 }

@@ -164,7 +164,7 @@ function Body() {
     <div className="pb-28 lg:pb-10">
       <AdminTopBar title={t.aTabO} right={
         <button onClick={toggleMute} aria-label={muted ? t.aSoundOn : t.aSoundOff} title={muted ? t.aSoundOn : t.aSoundOff}
-          className={`press w-9 h-9 rounded-xl grid place-items-center border transition-colors ${muted ? 'bg-[var(--panel)] border-navy-line text-[var(--ink3)]' : 'bg-[var(--btn)] text-[var(--btn-ink)] border-[var(--btn)] shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]'}`}>
+          className={`press w-9 h-9 rounded-xl grid place-items-center border transition-colors ${muted ? 'bg-[var(--panel)] border-navy-line text-[var(--ink3)]' : 'bg-[var(--btn)] text-[var(--btn-ink)] border-[var(--btn)] shadow-[0_6px_14px_-6px_rgba(15,30,154,.5)]'}`}>
           {muted ? bellOn : bellOff}
         </button>
       } />
@@ -180,7 +180,7 @@ function Body() {
         </button>
         {STATUSES.map(s => (
           <button key={s} onClick={() => setFilter(s)}
-            className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === s ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
+            className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${filter === s ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(15,30,154,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
             {t['st_' + s]} {counts[s] || 0}
           </button>
         ))}
@@ -236,7 +236,7 @@ function Body() {
 
             {/* Desktop / tablet: table */}
             <div className="hidden lg:block px-8 mt-4 max-w-[1200px] mx-auto">
-              <div className="bg-[var(--panel)] border border-navy-line rounded-[22px] overflow-hidden shadow-[0_2px_14px_-8px_rgba(10,33,148,.15)]">
+              <div className="bg-[var(--panel)] border border-navy-line rounded-[22px] overflow-hidden shadow-[0_2px_14px_-8px_rgba(15,30,154,.15)]">
                 <div className="grid grid-cols-[110px_minmax(0,1.1fr)_minmax(0,1.3fr)_110px_120px_250px] gap-4 px-5 py-3 border-b border-navy-line bg-paper text-[10px] font-extrabold uppercase tracking-[0.12em] text-[var(--mut)]">
                   <div>{t.aColNo}</div>
                   <div>{t.aColCust}</div>

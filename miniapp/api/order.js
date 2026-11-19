@@ -1,20 +1,8 @@
-import { Pool } from 'pg';
-import { cors, rateLimit } from './_verify.js';
+import { getPool } from './_db.js';import { cors, rateLimit, tgUserFrom } from './_verify.js';
 import { createDelivery, quoteDelivery, cityOf, TASHKENT_RE } from './_delivery.js';
 import { notifyUser } from './_notify.js';
 import { BRANCH_IDS, pickupCfgFrom, readSettings, tkNow } from './_fulfillment.js';
 
-let pool;
-function getPool() {
-  if (!pool) {
-    pool = new Pool({
-      connectionString: process.env.DATABASE_URL,
-      ssl: { rejectUnauthorized: false },
-      max: 3,
-    });
-  }
-  return pool;
-}
 
 let promoEnsured;
 function ensurePromo() {
@@ -66,7 +54,7 @@ export default async (req, res) => {
   cors(res, 'POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'POST only' });
-  if (!rateLimit(req, 'order', 5, 10 * 60 * 1000)) return res.status(429).json({ ok: false, error: 'Juda ko\u02bbp urinish' });
+  if (!(await rateLimit(req, 'order', 5, 10 * 60 * 1000))) return res.status(429).json({ ok: false, error: 'Juda ko\u02bbp urinish' });
 
   if (!process.env.DATABASE_URL) {
     return res.status(503).json({ ok: false, error: 'DB sozlanmagan' });
@@ -75,6 +63,10 @@ export default async (req, res) => {
   try {
     await ensureSchema();
     const o = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
+    // X-Init-Data kelsa tg_user_id faqat tekshirilgan Telegram ID dan olinadi
+    // (so'rov tanasidagi ID ishonchsiz). Sarlavha yo'q bo'lsa eski xatti-harakat.
+    const vu = tgUserFrom(req);
+    const tgId = vu ? String(vu.id) : (o.tg_user_id != null ? String(o.tg_user_id) : null);
     if (!o || !o.items || !o.name || !o.phone) {
       return res.status(400).json({ ok: false, error: 'Kerakli maydonlar yetishmaydi' });
     }
@@ -235,7 +227,7 @@ export default async (req, res) => {
        ON CONFLICT (client_ref) DO NOTHING
        RETURNING id, created_at`,
       [
-        o.tg_user_id || null,
+        tgId,
         name,
         phone,
         o.address || null,
@@ -279,12 +271,12 @@ export default async (req, res) => {
         }
       } catch (de) { console.error('delivery adapter', de?.message); }
       // Mijozga Telegram xabari (bepul, SMS o'rniga)
-      if (o.tg_user_id) {
+      if (tgId) {
         const lines = cleanItems.map(i => `• ${(o.items || []).find(x => x && x.id === i.id)?.title || i.id} ×${i.q}`).join('\n');
         const payTxt = o.payment === 'cash'
           ? (changeAmount ? `Naqd pul, qaytim ${changeAmount.toLocaleString('ru-RU')} so'm` : 'Naqd pul')
           : 'Kartaga o\u02bbtkazish';
-        void notifyUser(o.tg_user_id, `<b>Buyurtma #${row.id} qabul qilindi</b>\n${lines}\n\nJami: ${grandTotal.toLocaleString('ru-RU')} so'm${deliveryFee ? `\nYetkazib berish: ${deliveryFee.toLocaleString('ru-RU')} so'm` : ''}\nTo'lov: ${payTxt}\n\nTasdiqlash haqida alohida xabar beramiz. Rahmat! \u2764\uFE0F`).catch(() => {});
+        void notifyUser(tgId, `<b>Buyurtma #${row.id} qabul qilindi</b>\n${lines}\n\nJami: ${grandTotal.toLocaleString('ru-RU')} so'm${deliveryFee ? `\nYetkazib berish: ${deliveryFee.toLocaleString('ru-RU')} so'm` : ''}\nTo'lov: ${payTxt}\n\nTasdiqlash haqida alohida xabar beramiz. Rahmat! \u2764\uFE0F`).catch(() => {});
       }
     }
     return res.status(201).json({ ok: true, order_id: row.id, created_at: row.created_at, total: grandTotal, grand_total: grandTotal, delivery_fee: deliveryFee, duplicate });

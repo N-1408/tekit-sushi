@@ -32,7 +32,7 @@ export default function Product() {
         </div>
         {p.weight ? (
           <div className="mt-3 flex items-center gap-1.5 bg-[var(--panel)] border border-navy-line rounded-xl px-3 py-2.5 w-fit">
-            <span className="text-[#29A8E0]"><IcScale /></span>
+            <span className="text-[var(--acc)]"><IcScale /></span>
             <span className="text-[13px] font-bold">{p.weight}</span>
           </div>
         ) : null}
@@ -49,9 +49,9 @@ export default function Product() {
         {p.cat !== 'sous' && sauces.length > 0 && (
           <div className="mt-4 bg-navy-soft/60 rounded-3xl p-3.5">
             <div className="flex items-center gap-2.5">
-              <span className="w-8 h-8 rounded-full bg-[var(--panel)] border border-navy-line grid place-items-center text-[#29A8E0] shrink-0"><IcSauce /></span>
+              <span className="w-8 h-8 rounded-full bg-[var(--panel)] border border-navy-line grid place-items-center text-[var(--acc)] shrink-0"><IcSauce /></span>
               <div className="flex-1 min-w-0">
-                <div className="text-[13.5px] font-extrabold text-[#29A8E0] leading-tight">{t.sAsk}</div>
+                <div className="text-[13.5px] font-extrabold text-[var(--acc)] leading-tight">{t.sAsk}</div>
                 <div className="text-[10.5px] font-semibold text-[var(--mut2)] leading-tight mt-0.5">{t.sSub}</div>
               </div>
             </div>

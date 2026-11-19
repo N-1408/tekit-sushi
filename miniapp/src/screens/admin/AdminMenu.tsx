@@ -56,14 +56,14 @@ function Body() {
  <div className="flex gap-2 px-4 mt-3 overflow-x-auto no-scrollbar">
  {catsWith.map(c => (
  <button key={c.slug} onClick={() => nav(`/admin/menu/${c.slug}`)}
- className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${cur === c.slug ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
+ className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all ${cur === c.slug ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(15,30,154,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
  {(c as any)['title_' + lang] || c.title_uz} · {countIn(c.slug)}
  {c.sale_active && c.sale_percent > 0 && <span className="ml-1 text-[10px]">%</span>}
  </button>
  ))}
  {spicyCount > 0 && (
  <button onClick={() => nav('/admin/menu/spicy')}
- className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all inline-flex items-center gap-1.5 ${cur === 'spicy' ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(10,33,148,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
+ className={`press shrink-0 px-3.5 py-2 rounded-xl text-[12.5px] font-extrabold transition-all inline-flex items-center gap-1.5 ${cur === 'spicy' ? 'bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(15,30,154,.5)]' : 'bg-[var(--panel)] text-[var(--mut)] border border-navy-line'}`}>
  <IcChili s={13} /> {t.catNames.spicy} · {spicyCount}
  </button>
  )}

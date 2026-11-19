@@ -5,7 +5,7 @@ export const TGA: any = (window as any).Telegram?.WebApp
 /* ---------- mavzu: maxsus Telegram tema moduli (lib/theme.ts) ----------
  * Telegram.WebApp.colorScheme + themeParams + themeChanged bir joydan
  * o'qiladi; mustaqil saytda brauzer sozlamasi (prefers-color-scheme). */
-import { applyTheme, resolveTheme, initThemeWatch } from './theme'
+import { applyTheme, resolveTheme, initThemeWatch, BRAND_BLUE } from './theme'
 export {
   applyTheme, resolveTheme, changeTheme, currentTheme, subscribeTheme,
   onSystemThemeChange, initThemeWatch, THEME_BG,
@@ -25,8 +25,8 @@ export function initTelegram() {
   // Birinchi bo'yoqdan oldin xrom rangi: ko'k header oq chiziqsiz ko'rinadi
   try {
     if (TGA.platform === 'ios' || TGA.platform === 'android') {
-      TGA.setHeaderColor?.('#0F1E9A')
-      TGA.setBackgroundColor?.('#0F1E9A')
+      TGA.setHeaderColor?.(BRAND_BLUE)
+      TGA.setBackgroundColor?.(BRAND_BLUE)
     }
   } catch {}
   const applyInsets = () => {
@@ -81,6 +81,11 @@ export function initTelegram() {
 
 export function tgUser(): { id: number; first_name?: string; username?: string; photo_url?: string } | null {
   return TGA?.initDataUnsafe?.user || null
+}
+
+/* Server tekshiruvi uchun xom initData (X-Init-Data sarlavhasi) */
+export function tgInitData(): string | null {
+  return typeof TGA?.initData === 'string' && TGA.initData ? TGA.initData : null
 }
 
 export function requestLocation(): Promise<{ lat: number; lon: number } | null> {

@@ -1,3 +1,5 @@
+import { safeEqual } from './_verify.js';
+
 // Yetkazib berish adapter qatlami: DELIVERY_PROVIDER = own | millennium | noor
 // Millennium va Noor shartnomasidan keyin faqat env to'ldiriladi:
 //   MILLENNIUM_API_URL, MILLENNIUM_TOKEN
@@ -53,7 +55,7 @@ export async function createDelivery(order) {
 
 export function checkDeliveryWebhookSecret(secret) {
   const expected = process.env.DELIVERY_WEBHOOK_SECRET;
-  return expected && secret === expected;
+  return !!expected && safeEqual(secret, expected);
 }
 
 // Yetkazib berish narxi: Millennium/Noor API so'rovi (shartnoma + env to'ldirilgach avtomatik ishlaydi).
