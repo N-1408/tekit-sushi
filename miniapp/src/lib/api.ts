@@ -49,3 +49,38 @@ export async function adminSetStatus(id: number, status: string) {
   const j = await r.json()
   return j.ok === true
 }
+
+/* Telegram orqali admin kirish (Telegram Login, OIDC) */
+export async function adminSession(): Promise<boolean> {
+  try {
+    const r = await fetch(`${API_BASE}/api/auth?action=me`)
+    if (!r.ok) return false
+    return ((await r.json()) as any)?.ok === true
+  } catch { return false }
+}
+
+export async function tgLogin(code: string, verifier: string, redirectUri: string): Promise<{ ok: boolean; pending?: boolean }> {
+  const r = await fetch(`${API_BASE}/api/auth`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'tg-login', code, code_verifier: verifier, redirect_uri: redirectUri }),
+  })
+  return (await r.json().catch(() => ({ ok: false }))) as { ok: boolean; pending?: boolean }
+}
+
+/* Ruxsatlar sahifasi: adminlar + tasdiqlanmagan so'rovlar */
+export async function adminAccess(): Promise<{ admins: any[]; requests: any[] } | null> {
+  const r = await fetch(`${API_BASE}/api/auth?action=access`, { headers: { 'X-Admin-Key': KEY() } })
+  if (!r.ok) return null
+  const j = await r.json()
+  return { admins: j.admins || [], requests: j.requests || [] }
+}
+
+export async function adminAccessDecide(tgId: number, approve: boolean): Promise<boolean> {
+  const r = await fetch(`${API_BASE}/api/auth`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Key': KEY() },
+    body: JSON.stringify({ action: 'access-decide', tg_id: tgId, approve }),
+  })
+  if (r.status === 401) throw new Error('unauthorized')
+  const j = await r.json().catch(() => ({ ok: false }))
+  return j.ok === true
+}
