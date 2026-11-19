@@ -1194,15 +1194,15 @@ export function QtyStepper({ q, onInc, onDec, min = 1, size = 'md', full, classN
     : size === 'lg'
     ? { box: 'p-1.5 gap-2 rounded-[16px]', btn: 'w-11 h-11 rounded-[13px]', ic: 18, txt: 'text-[16px]' }
     : { box: 'p-1 gap-1.5 rounded-[14px]', btn: 'w-9 h-9 rounded-[11px]', ic: 15, txt: 'text-[15px]' }
-  const btn = `press focus-ring ${cfg.btn} grid place-items-center bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] hover:bg-navy-soft disabled:opacity-35 disabled:pointer-events-none active:scale-90 transition-transform cursor-pointer`
+  const btn = `press focus-ring ${cfg.btn} grid place-items-center bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] [@media(hover:hover)]:hover:bg-navy-soft disabled:opacity-35 disabled:pointer-events-none active:scale-90 transition-transform cursor-pointer`
   return (
     <div onClick={e => e.stopPropagation()}
       className={`shrink-0 flex items-center bg-[var(--soft)] border border-[var(--line2)] ${cfg.box} ${full ? 'w-full justify-between' : ''} ${className || ''}`}>
-      <button type="button" onClick={onDec} disabled={q <= min} aria-label="minus" className={btn}>
+      <button type="button" onClick={e => { onDec(); e.currentTarget.blur() }} disabled={q <= min} aria-label="minus" className={btn}>
         <IcMinus s={cfg.ic} />
       </button>
       <span className={`${cfg.txt} font-extrabold text-[var(--ink)] min-w-[2ch] text-center tabular-nums`}>{q}</span>
-      <button type="button" onClick={onInc} aria-label="plus" className={btn}>
+      <button type="button" onClick={e => { onInc(); e.currentTarget.blur() }} disabled={q <= min} aria-label="plus" className={btn}>
         <IcPlus s={cfg.ic} />
       </button>
     </div>
