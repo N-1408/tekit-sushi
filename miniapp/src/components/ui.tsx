@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, startTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useStore, pName, pImg, CATS, isSpicy, type Product } from '../lib/store'
@@ -324,7 +324,7 @@ export function ThemeToggle({ variant = 'default', className }: { variant?: 'def
   const [theme, setThemeL] = useState<ThemeMode>(() => currentTheme())
   useEffect(() => subscribeTheme(setThemeL), [])
   const cls = className ?? (variant === 'header'
-    ? 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-white/[.16] text-white hover:bg-white/[.24] active:scale-95 transition-colors shrink-0'
+    ? 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-[var(--hdr-chip)] text-white hover:bg-[var(--hdr-chip-hover)] active:scale-95 transition-colors shrink-0'
     : 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)] active:scale-95 transition-colors shrink-0')
   return (
     <AnimatedThemeToggler
@@ -459,6 +459,27 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
   const [pickOpen, setPickOpen] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
   const [selOpen, setSelOpen] = useState(false)
+  const [selAnim, setSelAnim] = useState(false)
+  const selAnimT = useRef<number | null>(null)
+  // Panel ochilishi/yopilishi FAQAT transform/opacity (overlay) — sahifa qayta joylashmaydi.
+  // will-change faqat animatsiya davomida: state + taymer bilan yoqiladi/o'chiriladi.
+  const toggleSel = () => {
+    haptic()
+    setSelOpen(v => !v)
+    setSelAnim(true)
+    if (selAnimT.current) window.clearTimeout(selAnimT.current)
+    selAnimT.current = window.setTimeout(() => setSelAnim(false), 280)
+  }
+  useEffect(() => () => { if (selAnimT.current) window.clearTimeout(selAnimT.current) }, [])
+  /* Variant tanlash: panel DARHOL yopiladi, mos modal (manzil/filial) ochiladi;
+     setMode (butun ilova qayta renderi) startTransition ichida — animatsiya kutmaydi.
+     Tanlangan variantni yana bosish ham modalni ochadi (manzilni o'zgartirish uchun). */
+  const chooseMode = (m: 'delivery' | 'pickup') => {
+    haptic('medium')
+    setSelOpen(false)
+    if (m === 'delivery') setDelOpen(true); else setPickOpen(true)
+    startTransition(() => setMode(m))
+  }
   const [askState, setAskState] = useState(() => {
     try { return !localStorage.getItem('tk-onboarded') } catch { return true }
   })
@@ -532,32 +553,32 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
               <IcBurger s={20} />
             </button>
             <div className="min-w-0 justify-self-center max-w-full">
-              <button onClick={() => { haptic(); setSelOpen(v => !v) }} aria-expanded={selOpen}
-                className="press focus-ring flex items-center gap-1.5 h-9 pl-3.5 pr-2.5 rounded-full bg-white/[.16] text-[13px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0 max-w-full">
+              <button onClick={toggleSel} aria-expanded={selOpen}
+                className="press focus-ring flex items-center gap-1.5 h-9 pl-3.5 pr-2.5 rounded-full bg-[var(--hdr-chip)] text-[13px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0 max-w-full">
                 <span className="truncate">{mode === 'delivery' ? t.fcDel : mode === 'pickup' ? t.fcPick : t.orderType}</span>
                 <span className={`transition-transform duration-150 shrink-0 ${selOpen ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
               </button>
             </div>
             <div className="justify-self-end"><ThemeToggle variant="header" /></div>
           </div>
-          {/* Tanlov paneli: grid-rows 0fr/1fr texnikasi bilan silliq ochiladi-yopiladi,
-              remountsiz, prefers-reduced-motion hurmat qilinadi */}
-          <div className={`tk-sel-wrap ${selOpen ? 'is-open' : ''}`}>
-            <div>
-              <div className="px-3 pb-2 max-w-[1240px] mx-auto">
-                <div role="group" aria-label="order-type" className="flex items-center gap-1 rounded-full bg-white/[.16] p-1">
-                  {(['delivery', 'pickup'] as const).map(m => {
-                    const on = mode === m
-                    return (
-                      <button key={m} aria-pressed={on}
-                        onClick={() => { haptic('medium'); setMode(m); setSelOpen(false) }}
-                        className={`press focus-ring flex flex-1 items-center justify-center gap-1.5 h-8 rounded-full px-3 text-[12px] font-extrabold whitespace-nowrap transition-colors ${on ? 'bg-white text-[var(--brand-blue)]' : 'text-white active:bg-white/10'}`}>
-                        {m === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
-                        {m === 'delivery' ? t.fcDel : t.fcPick}
-                      </button>
-                    )
-                  })}
-                </div>
+          {/* Tanlov paneli: OVERLAY — header ostida mutlaq joylashadi, faqat
+              transform/opacity bilan animatsiya qilinadi, header balandligi
+              O'ZGARMAYDI va sahifa qayta joylashmaydi (iOS/Android silliq).
+              Remountsiz: doim DOM'da, visibility/pointer-events bilan boshqariladi. */}
+          <div className={`tk-sel-pop ${selOpen ? 'is-open' : ''} ${selAnim ? 'is-anim' : ''}`}>
+            <div className="px-3 pb-2.5 pt-0.5 max-w-[1240px] mx-auto">
+              <div role="group" aria-label="order-type" className="flex items-center gap-1 rounded-full bg-[var(--hdr-chip)] p-1">
+                {ORDER_MODES.map(m => {
+                  const on = mode === m
+                  return (
+                    <button key={m} aria-pressed={on}
+                      onClick={() => chooseMode(m)}
+                      className={`press focus-ring flex flex-1 items-center justify-center gap-1.5 h-8 rounded-full px-3 text-[12px] font-extrabold whitespace-nowrap transition-colors ${on ? 'bg-[var(--hdr-chip-on)] text-[var(--hdr-chip-on-ink)]' : 'text-white active:bg-white/10'}`}>
+                      {m === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
+                      {m === 'delivery' ? t.fcDel : t.fcPick}
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -581,6 +602,8 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
     </>
   )
 }
+
+const ORDER_MODES = ['delivery', 'pickup'] as const
 
 /* ---------- rejim almashtirish: Profile ekranida yashaydi (headerdan ko'chirildi) ---------- */
 export function ModeSwitcher() {
@@ -682,27 +705,39 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
 }) {
   const { t } = useStore()
   const [open, setOpen] = useState(false)
-  const [closing, setClosing] = useState(false)
   const stripRef = useRef<HTMLDivElement>(null)
   const chipRefs = useRef<Record<string, HTMLButtonElement | null>>({})
-  const searching = open || closing
+  const inputRef = useRef<HTMLInputElement>(null)
+  const kbT = useRef<number | null>(null)
 
-  /* Qidiruv inputi fokusda = klaviatura ko'tarilgan: navbar va suzuvchi
-     boshqaruvlar sirg'alib yashiriladi (html[data-kb]); blur bo'lgach qaytadi. */
+  /* Klaviatura ko'tarilganda navbar va suzuvchi boshqaruvlar yashiriladi
+     (html[data-kb]). BU endi birinchi kadrda emas, ochilish animatsiyasi
+     tugagach (230ms) qo'llanadi — aks holda navbar yashirilishi bilan bir
+     vaqtda reflow sodir bo'ladi va sakrash sezilar edi. */
   const setKb = (on: boolean) => {
     try { if (on) document.documentElement.dataset.kb = '1'; else delete document.documentElement.dataset.kb } catch {}
   }
+  /* Ochish: input doim DOM'da — fokus SINXRON, tap handler ICHIDA.
+     iOS/Android klaviaturasi shu sababli kechikmaydi. */
+  const openSearch = () => {
+    haptic()
+    setOpen(true)
+    try { inputRef.current?.focus({ preventScroll: true } as FocusOptions) } catch {}
+    if (kbT.current) window.clearTimeout(kbT.current)
+    kbT.current = window.setTimeout(() => setKb(true), 230)
+  }
   const closeSearch = () => {
     setQ('')
+    try { inputRef.current?.blur() } catch {}
     setKb(false)
-    setClosing(true)
-    window.setTimeout(() => { setOpen(false); setClosing(false) }, 190)
+    if (kbT.current) { window.clearTimeout(kbT.current); kbT.current = null }
+    setOpen(false)
   }
-  useEffect(() => () => setKb(false), [])
+  useEffect(() => () => { if (kbT.current) window.clearTimeout(kbT.current); setKb(false) }, [])
 
   // faol kategoriya stripda ko'rinadigan joyda turadi
   useEffect(() => {
-    if (searching || !active) return
+    if (open || !active) return
     const align = () => {
       const strip = stripRef.current
       const el = chipRefs.current[active]
@@ -743,27 +778,19 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
     const chipUnobs = chips.map(c => { const el = chipRefs.current[c.id]; if (el) ro.observe(el) })
     document.fonts?.ready?.then(align).catch(() => {})
     return () => { ro.disconnect(); window.clearTimeout(t); window.clearTimeout(t0); void chipUnobs }
-  }, [active, searching, chips.length])
+  }, [active, open, chips.length])
 
   return (
     <div>
       <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
-        {searching ? (
-          <div className={`flex items-center gap-1.5 ${closing ? 'tk-search-exit' : 'tk-search-enter'}`}>
-            <div className="relative flex-1 min-w-0">
-              <input autoFocus value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
-                onFocus={() => setKb(true)} onBlur={() => setKb(false)}
-                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full py-2.5 pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
-              <button onClick={closeSearch} aria-label="close-search"
-                className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
-                <IcX s={14} />
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 tk-search-enter">
-            <button onClick={() => setOpen(true)} aria-label={t.search} aria-expanded={false}
+        {/* O'ZGARMAS balandlikdagi bitta quti: ikkala holat ham SHU joyda.
+            Qator almashinuvi remountsiz — header va sahifa balandligi
+            hech qachon o'zgarmaydi (sakrash yo'q). */}
+        <div className="relative h-[38px]">
+          {/* 1-qatlam: qidiruv tugmasi + kategoriya chiplari.
+              Ochilganda fade + tepaga siljish (faqat transform/opacity). */}
+          <div className={`tk-search-row absolute inset-0 flex items-center gap-2 ${open ? 'is-out' : ''}`} aria-hidden={open || undefined}>
+            <button onClick={openSearch} aria-label={t.search} aria-expanded={open} tabIndex={open ? -1 : undefined}
               className="tk-search-btn press focus-ring flex-none flex items-center justify-center gap-2 h-[38px] w-[38px] lg:w-auto lg:px-4 rounded-full">
               <IcSearch s={17} />
               <span className="hidden lg:inline text-[14px] font-medium">{t.search}</span>
@@ -771,14 +798,31 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
             <div ref={stripRef} className="min-w-0 flex-1 flex items-center gap-2 overflow-x-auto no-scrollbar" role="tablist" aria-label={t.menuT}>
               {chips.map(c => (
                 <button key={c.id} ref={el => { chipRefs.current[c.id] = el }} role="tab" aria-selected={active === c.id}
-                  onClick={() => onSelect(c.id)}
+                  onClick={() => onSelect(c.id)} tabIndex={open ? -1 : undefined}
                   className={`press focus-ring flex-none h-[38px] px-3.5 rounded-full text-[13.5px] font-bold whitespace-nowrap transition-colors ${active === c.id ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
                   {c.label}
                 </button>
               ))}
             </div>
           </div>
-        )}
+          {/* 2-qatlam: qidiruv maydoni. Doim DOM'da, faqat transform/opacity/
+              clip-path bilan ko'rinadi — qidiruv tugmasi inputga aylanib ochiladi.
+              Hech qanday width/height animatsiyasi yo'q, sahifa ta'sirlanmaydi. */}
+          <div className={`tk-search-field absolute inset-0 flex items-center gap-1.5 ${open ? 'is-in' : ''}`} aria-hidden={!open || undefined}>
+            <div className="relative flex-1 min-w-0">
+              <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder={t.search} aria-label={t.search}
+                tabIndex={open ? undefined : -1}
+                onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); closeSearch() } }}
+                onBlur={() => setKb(false)}
+                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full h-[38px] pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
+              <button onClick={closeSearch} aria-label="close-search" tabIndex={open ? undefined : -1}
+                className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
+                <IcX s={14} />
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   )
