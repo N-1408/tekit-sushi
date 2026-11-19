@@ -79,6 +79,12 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   max-height: calc(100vh - var(--sat, 0px) - 28px);
   max-height: calc(100dvh - var(--sat, 0px) - 28px);
 }
+/* Mahsulot modali: har qurilmada aynan ekran balandligining 70%ida ochiladi
+   (kontent ichida aylanadi); tk-sheet-cap tepadagi xavfsiz zonani saqlaydi. */
+.tk-sheet-70 {
+  height: 70vh;
+  height: 70dvh;
+}
 .app-h { height: 100dvh; }
 
 /* katakana brand pattern (navy bg, white outline wordmarks) */
@@ -340,11 +346,12 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
 .tk-search-enter { animation: tkRowIn .22s cubic-bezier(.32, .72, 0, 1) both; }
 .tk-search-exit { animation: tkRowOut .18s ease-in both; pointer-events: none; }
 
-/* Suzuvchi qatorlar: mavjud left-o'tishiga qo'shimcha (keyingi qoidalar ustunlik qiladi) */
+/* Suzuvchi qatorlar: mavjud left-o'tishiga qo'shimcha (keyingi qoidalar ustunlik qiladi).
+   BEPUL YETKAZIB BERISH va SAVAT doim ko'rinadi, joyida qotadi: skroll yo'nalishi
+   bo'yicha yashirish olib tashlandi (data-floats qoidasi bekor). */
 .floating-row-left { transition: left .3s cubic-bezier(.23, 1, .32, 1),
   transform .34s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; }
 .floating-row-right { transition: transform .34s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; }
-html[data-floats='1'] .floating-row-right { transform: translateY(calc(100% + 44px)); opacity: 0; pointer-events: none; }
 
 .tk-tabbar { transition: transform .34s cubic-bezier(.32, .72, 0, 1), opacity .3s ease; }
 
