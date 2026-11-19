@@ -340,7 +340,7 @@ export function ThemeToggle({ variant = 'default', className }: { variant?: 'def
   const [theme, setThemeL] = useState<ThemeMode>(() => currentTheme())
   useEffect(() => subscribeTheme(setThemeL), [])
   const cls = className ?? (variant === 'header'
-    ? 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-[var(--hdr-chip)] text-white hover:bg-[var(--hdr-chip-hover)] active:scale-95 transition-colors shrink-0'
+    ? 'focus-ring press grid place-items-center w-11 h-11 rounded-full bg-[var(--hdr-chip)] text-white hover:bg-[var(--hdr-chip-hover)] active:scale-95 transition-colors shrink-0'
     : 'focus-ring press grid place-items-center w-10 h-10 rounded-full bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)] active:scale-95 transition-colors shrink-0')
   return (
     <AnimatedThemeToggler
@@ -551,7 +551,7 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
         <header ref={hdrRef} className="relative z-[31] text-white">
           <div className="tk-brand-wrap max-w-[1240px] mx-auto">
             <div>
-              <div className="flex items-center justify-center px-4 pt-1 pb-0.5">
+              <div className="flex items-center justify-center px-4 pt-1.5 pb-1">
                 <button onClick={() => nav('/')} aria-label="Tekit Sushi"
                   className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
                   <img src="/logo-light.png" alt="Tekit Sushi" width={34} height={34}
@@ -563,15 +563,15 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
           </div>
           {/* 2-qator: 3 ustunli grid — chapda burger, MARKAZDA buyurtma turi,
               o'ngda tema almashtirgich. Pill ekranning aniq o'rtasida turadi. */}
-          <div className="grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-0.5 pb-1.5 max-w-[1240px] mx-auto">
+          <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-1 pb-2.5 max-w-[1240px] mx-auto">
             {/* Chapda til tugmasi: o'ngdagi tema tugmasi bilan bir xil o'lcham/uslub */}
             <button onClick={() => { haptic(); setLangOpen(true) }} aria-label={t.language} aria-haspopup="dialog"
-              className="press focus-ring w-10 h-10 justify-self-start grid place-items-center rounded-full bg-[var(--hdr-chip)] active:scale-95 transition-transform">
-              <FlagOf l={lang} s={20} />
+              className="press focus-ring w-11 h-11 justify-self-start grid place-items-center rounded-full bg-[var(--hdr-chip)] active:scale-95 transition-transform">
+              <FlagOf l={lang} s={22} />
             </button>
             <div className="min-w-0 justify-self-center max-w-full">
               <button onClick={toggleSel} aria-expanded={selOpen}
-                className="press focus-ring flex items-center gap-1.5 h-9 pl-3.5 pr-2.5 rounded-full bg-[var(--hdr-chip)] text-[13px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0 max-w-full">
+                className="press focus-ring flex items-center gap-1.5 h-10 pl-4 pr-3 rounded-full bg-[var(--hdr-chip)] text-[14px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0 max-w-full">
                 <span className="truncate">{mode === 'delivery' ? t.fcDel : mode === 'pickup' ? t.fcPick : t.orderType}</span>
                 <span className={`transition-transform duration-150 shrink-0 ${selOpen ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
               </button>
@@ -737,9 +737,13 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
   /* Ochish: input doim DOM'da — fokus SINXRON, tap handler ICHIDA.
      iOS/Android klaviaturasi shu sababli kechikmaydi. */
   const openSearch = () => {
-    haptic()
     setOpen(true)
-    try { inputRef.current?.focus({ preventScroll: true } as FocusOptions) } catch {}
+    /* Klaviatura avtomatik ochilsin: maydon ochilgach yana bir necha marta
+       fokus beriladi — birinchi urinish yashirin qatlamga tushib qolsa ham
+       keyingisi klaviaturani ochadi. */
+    const focusInput = () => { try { inputRef.current?.focus({ preventScroll: true } as FocusOptions) } catch {} }
+    focusInput()
+    requestAnimationFrame(() => { focusInput(); window.setTimeout(focusInput, 90) })
     if (kbT.current) window.clearTimeout(kbT.current)
     kbT.current = window.setTimeout(() => setKb(true), 230)
   }
@@ -799,16 +803,16 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
 
   return (
     <div>
-      <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2">
+      <div className="max-w-[1240px] mx-auto px-4 lg:px-6 py-2.5">
         {/* O'ZGARMAS balandlikdagi bitta quti: ikkala holat ham SHU joyda.
             Qator almashinuvi remountsiz — header va sahifa balandligi
             hech qachon o'zgarmaydi (sakrash yo'q). */}
-        <div className="relative h-[38px]">
+        <div className="relative h-[40px]">
           {/* 1-qatlam: qidiruv tugmasi + kategoriya chiplari.
               Ochilganda fade + tepaga siljish (faqat transform/opacity). */}
-          <div className={`tk-search-row absolute inset-0 flex items-center gap-2 ${open ? 'is-out' : ''}`} aria-hidden={open || undefined}>
+          <div className={`tk-search-row absolute inset-0 flex items-center gap-2.5 ${open ? 'is-out' : ''}`} aria-hidden={open || undefined}>
             <button onClick={openSearch} aria-label={t.search} aria-expanded={open} tabIndex={open ? -1 : undefined}
-              className="tk-search-btn press focus-ring flex-none flex items-center justify-center gap-2 h-[38px] w-[38px] lg:w-auto lg:px-4 rounded-full">
+              className="tk-search-btn press focus-ring flex-none flex items-center justify-center gap-2 h-[40px] w-[40px] lg:w-auto lg:px-4 rounded-full">
               <IcSearch s={17} />
               <span className="hidden lg:inline text-[14px] font-medium">{t.search}</span>
             </button>
@@ -816,7 +820,7 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
               {chips.map(c => (
                 <button key={c.id} ref={el => { chipRefs.current[c.id] = el }} role="tab" aria-selected={active === c.id}
                   onClick={() => onSelect(c.id)} tabIndex={open ? -1 : undefined}
-                  className={`press focus-ring flex-none h-[38px] px-3.5 rounded-full text-[13.5px] font-bold whitespace-nowrap transition-colors ${active === c.id ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
+                  className={`press focus-ring flex-none h-[40px] px-4 rounded-full text-[14px] font-bold whitespace-nowrap transition-colors ${active === c.id ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)]'}`}>
                   {c.label}
                 </button>
               ))}
@@ -831,7 +835,7 @@ export function CatalogNav({ q, setQ, chips, active, onSelect }: {
                 tabIndex={open ? undefined : -1}
                 onKeyDown={e => { if (e.key === 'Escape') { e.preventDefault(); closeSearch() } }}
                 onBlur={() => setKb(false)}
-                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full h-[38px] pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
+                className="w-full bg-[var(--panel)] border border-[var(--line2)] rounded-full h-[40px] pl-11 pr-11 text-[15px] font-medium text-[var(--ink)] placeholder:text-[var(--mut2)] outline-none focus:border-[var(--acc)] focus:ring-2 focus:ring-[var(--acc-ring)]" />
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-[var(--mut2)]"><IcSearch /></span>
               <button onClick={closeSearch} aria-label="close-search" tabIndex={open ? undefined : -1}
                 className="press focus-ring absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 grid place-items-center text-[var(--mut2)] active:scale-90 transition-transform">
@@ -1048,7 +1052,9 @@ export function SpicyBadge({ size = 24, className }: { size?: number; className?
   )
 }
 
-export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
+/* React.memo: kategoriya almashganda Home qayta render bo'lsa ham propsi
+   o'zgarmagan kartalar qayta chizilmaydi — ro'yxatdagi "qotish" shundan edi. */
+export const ProductCard = React.memo(function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const { cart, add, setQty, lang, t, openP } = useStore()
   const imgRef = useRef<HTMLImageElement | null>(null) // savatga uchish animatsiyasi manbasi
   const desk = useIsDesktop()
@@ -1117,7 +1123,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
       </div>
     </article>
   )
-}
+})
 
 export function Sheet({ open, onClose, title, children, foot }: {
   open: boolean; onClose: () => void; title: string; children: React.ReactNode; foot?: React.ReactNode
