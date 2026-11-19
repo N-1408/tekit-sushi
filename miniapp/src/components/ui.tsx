@@ -566,8 +566,8 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
           <div className="grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-0.5 pb-1.5 max-w-[1240px] mx-auto">
             {/* Chapda til tugmasi: o'ngdagi tema tugmasi bilan bir xil o'lcham/uslub */}
             <button onClick={() => { haptic(); setLangOpen(true) }} aria-label={t.language} aria-haspopup="dialog"
-              className="press focus-ring w-10 h-10 justify-self-start grid place-items-center rounded-full bg-[var(--hdr-chip)] text-white active:scale-95 transition-transform">
-              <IcGlobe s={20} />
+              className="press focus-ring w-10 h-10 justify-self-start grid place-items-center rounded-full bg-[var(--hdr-chip)] active:scale-95 transition-transform">
+              <FlagOf l={lang} s={20} />
             </button>
             <div className="min-w-0 justify-self-center max-w-full">
               <button onClick={toggleSel} aria-expanded={selOpen}
