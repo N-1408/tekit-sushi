@@ -9,17 +9,21 @@ export type Product = {
   t_uz: string; t_ru: string; t_en: string
   d_uz: string; d_ru: string; d_en: string
   pcs: number; weight?: string; hit?: boolean
+  spicy?: boolean | null
   kcal?: number | null; protein?: number | null; fat?: number | null; carbs?: number | null
   active?: boolean
   old_price?: number | null; sale_percent?: number; sale_active?: boolean
 }
 export const PRODUCTS: Product[] = menu as Product[]
 
-/* Achchiq bo'limi: menyuda alohida 'spicy' belgisi yo'q — mahsulot nomlari
-   bo'yicha aniqlanadi (chili, spaysi, kimchi, o'tkir). Uchala til nomlari
-   birgalikda tekshiriladi, shuning uchun til almashtirsa ham ishlaydi. */
+/* Achchiq bo'limi: admin panelda 'spicy' belgisi bor — u qat'iy hukmron.
+   Eski qatorlarda belgi hali yo'q (null), shuning uchun nom bo'yicha aniqlanadi
+   (chili, spaysi, kimchi, o'tkir). Uchala til nomlari birgalikda tekshiriladi,
+   shuning uchun til almashtirsa ham ishlaydi. */
 const SPICY_RE = /chili|spaysi|spicy|achchiq|kimchi|кимчи|спайси|остр/i
 export function isSpicy(p: Product): boolean {
+  if (p.spicy === true) return true
+  if (p.spicy === false) return false
   return SPICY_RE.test(`${p.t_uz || ''} ${p.t_ru || ''} ${p.t_en || ''}`)
 }
 
