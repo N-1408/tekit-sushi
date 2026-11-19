@@ -79,7 +79,12 @@ function useCatalogTracking(ids: string[], paused: boolean) {
     const el = document.getElementById(SEC(id))
     if (!el) return
     const nav = navRef.current
-    const navH = nav ? nav.offsetHeight : 0
+    // Pinlangan to'liq header balandligi: --hdr-h (ResizeObserver), bo'lmasa o'lchov
+    const navH = (() => {
+      const v = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hdr-h'))
+      if (Number.isFinite(v) && v > 0) return v
+      return nav ? nav.offsetHeight : 0
+    })()
     // Pinlangan holatdagi yuqori ofset (sat): computed top var() ni PX ga hal qiladi
     const pinTop = nav ? (parseFloat(getComputedStyle(nav).top) || 0) : 0
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
@@ -162,7 +167,7 @@ export default function Home() {
   const wide = useWideScreen()
   // Yo'nalishga sezgir brend qatori: pastga skroll — yig'iladi, yuqoriga —
   // darhol qaytadi (faqat tepada emas, istalgan joyda). Kategoriyalar qatori qoladi.
-  const { hidden: brandHidden, atTop: scrolledTop } = useScrollHide()
+  const { atTop: scrolledTop } = useScrollHide()
   const { navRef, active, onSelect } = useCatalogTracking(chips.map(c => c.id), searching)
 
   // Kategoriya qatori balandligi: yopishqoq bo'lim sarlavhalari uning OSTIDA
@@ -172,6 +177,19 @@ export default function Home() {
     const el = catRef.current
     if (!el) return
     const set = () => { try { document.documentElement.style.setProperty('--catnav-h', el.offsetHeight + 'px') } catch { /* noop */ } }
+    set()
+    const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(set) : null
+    ro?.observe(el)
+    document.fonts?.ready?.then(set).catch(() => {})
+    return () => { ro?.disconnect() }
+  }, [])
+
+  // BUTUN header bloki balandligi (--hdr-h): logo + burger/qator + panel
+  // (ochilganda) + chips. ResizeObserver bilan har o'zgarishda yangilanadi.
+  React.useEffect(() => {
+    const el = navRef.current
+    if (!el) return
+    const set = () => { try { document.documentElement.style.setProperty('--hdr-h', el.offsetHeight + 'px') } catch { /* noop */ } }
     set()
     const ro = typeof ResizeObserver === 'function' ? new ResizeObserver(set) : null
     ro?.observe(el)
@@ -202,7 +220,7 @@ export default function Home() {
              paddingTop: var(--sat) bilan inset ostidan boshlanadi. */
           <div ref={navRef} className="sticky z-30 tk-hdr-sticky">
             <div className="tk-hdr-blue" style={{ paddingTop: 'var(--sat)' }}>
-              <Header collapsed={brandHidden} floating={scrolledTop && !brandHidden} />
+              <Header floating={scrolledTop} />
               <div ref={catRef}>{catalogNav}</div>
             </div>
           </div>
