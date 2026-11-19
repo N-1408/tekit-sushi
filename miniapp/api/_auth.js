@@ -1,4 +1,6 @@
 // Telegram orqali admin kirish (Telegram Login, OIDC).
+// NOTE: Hobby 12-funksiya limiti uchun alohida funksiya emas: _auth.js modul,
+// admin.js ichidan chaqiriladi (vercel.json: /api/auth -> /api/admin?type=auth).
 // Oqim: frontend oauth.telegram.org'ga yo'naltiriladi → Telegram code bilan
 // qaytadi → shu yerda code id_token'ga almashtiriladi (client secret bilan),
 // imzo JWKS orqali tekshiriladi → admin bo'lsa sessiya cookie qo'yiladi,
@@ -124,7 +126,7 @@ const cut = (v, n) => {
   return s ? s.slice(0, n) : null;
 };
 
-export default async (req, res) => {
+export async function handleAuth(req, res) {
   cors(res, 'GET, POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
   const p = getPool();

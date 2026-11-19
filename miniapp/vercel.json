@@ -19,6 +19,10 @@
       "destination": "/api/branches?type=quote"
     },
     {
+      "source": "/api/auth",
+      "destination": "/api/admin?type=auth"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }

@@ -2,6 +2,7 @@ import { getPool } from './_db.js';import { createDelivery } from './_delivery.j
 import { notifyUser } from './_notify.js';
 import { tgUserFrom, cors, failGuard, recordFail, safeEqual } from './_verify.js';
 import { readSession } from './_session.js';
+import { handleAuth } from './_auth.js';
 async function check(req) {
   // Admin sessiyasi (Telegram Login orqali): cookie bazadagi roliga qarab tekshiriladi
   const sess = readSession(req);
@@ -172,6 +173,7 @@ export default async (req, res) => {
   const P = getPool();
 
   if (req.method === 'GET') {
+    if (req.query && req.query.type === 'auth') return handleAuth(req, res);
     if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
     const action = str(req.query.action || 'orders', 20);
     try {
@@ -250,6 +252,7 @@ export default async (req, res) => {
   }
 
   if (req.method === 'POST') {
+    if (req.query && req.query.type === 'auth') return handleAuth(req, res);
     if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
     try {
       const b = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;

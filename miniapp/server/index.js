@@ -60,6 +60,10 @@ app.all('/api/delivery-quote', (req, res) => {
   req.query = { ...req.query, type: 'quote' };
   return call('branches', req, res, '/api/branches?type=quote');
 });
+app.all('/api/auth', (req, res) => {
+  req.query = { ...req.query, type: 'auth' };
+  return call('admin', req, res, '/api/admin?type=auth');
+});
 app.all('/api/:name', (req, res) => {
   const name = String(req.params.name);
   if (!handlers[name]) return res.status(404).json({ ok: false, error: 'not found' });
