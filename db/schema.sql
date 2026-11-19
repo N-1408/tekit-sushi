@@ -79,7 +79,8 @@ CREATE TABLE IF NOT EXISTS menu_items (
   sale_active  BOOLEAN DEFAULT false,
   sale_percent INT DEFAULT 0,
   sale_price   INT,
-  kcal INT, protein INT, fat INT, carbs INT
+  kcal INT, protein INT, fat INT, carbs INT,
+  spicy BOOLEAN,                             -- NULL = eski qator (nom bo'yicha aniqlanadi)
 );
 
 -- ============ rasmlar (upload.js yuklaydi, img.js ko'rsatadi) ============
