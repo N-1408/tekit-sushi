@@ -150,6 +150,13 @@ export const IcBurger = ({ s = 18 }: { s?: number }) => (
   </svg>
 )
 
+/* Globus: til almashtirish (headerdagi chap tugma). IcBurger bilan bir xil uslub. */
+export const IcGlobe = ({ s = 18 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 1.333C4.318 1.333 1.333 4.318 1.333 8s2.985 6.667 6.667 6.667 6.667-2.985 6.667-6.667S11.682 1.333 8 1.333Zm4.974 6H10.94a10.6 10.6 0 0 0-.584-2.827c.734.243 1.375.617 1.863 1.101a5.32 5.32 0 0 1 .755 1.726ZM8 2.667c.443 0 1.06.753 1.453 2.06.18.61.314 1.303.395 2.058H6.152c.081-.755.214-1.448.395-2.058C6.94 3.42 7.557 2.667 8 2.667ZM3.026 7.333a5.32 5.32 0 0 1 .755-1.726c.488-.484 1.13-.858 1.863-1.101A10.6 10.6 0 0 0 5.06 7.333H3.026Zm0 1.334H5.06c.057 1.024.252 1.98.584 2.827-.734-.243-1.375-.617-1.863-1.101a5.32 5.32 0 0 1-.755-1.726ZM8 13.333c-.443 0-1.06-.753-1.453-2.06a9.29 9.29 0 0 1-.395-2.058h3.696a9.29 9.29 0 0 1-.395 2.058c-.393 1.307-1.01 2.06-1.453 2.06Zm2.356-2.24c.332-.846.527-1.802.584-2.826h2.034a5.32 5.32 0 0 1-.755 1.726c-.488.484-1.13.858-1.863 1.1Z"/>
+  </svg>
+)
+
 export const IcHome = ({ s = 18 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
     <path d="M7.49 1.45c.3-.24.72-.24 1.02 0l5.55 4.48c.38.31.61.78.61 1.27v5.9c0 .94-.76 1.7-1.7 1.7h-2.35v-3.02c0-1.06-.86-1.92-1.92-1.92s-1.92.86-1.92 1.92V14.8H3.83a1.7 1.7 0 0 1-1.7-1.7V7.2c0-.49.23-.96.61-1.27Z" />
@@ -289,8 +296,28 @@ const FLAGS: Record<string, (p: { s?: number }) => React.ReactElement> = { uz: F
 const FlagOf = ({ l, s = 15 }: { l: string; s?: number }) => { const F = FLAGS[l] || FlagUZ; return <F s={s} /> }
 const LANG_NAME: Record<string, string> = { uz: "O'zbekcha", ru: 'Русский', en: 'English' }
 
-export function LangPicker({ dark }: { dark?: boolean }) {
+/* Til tanlash pastki oynasi: bayroq + nom, joriy tilda belgi.
+   LangPicker (Profil) va mobil headerdagi til tugmasi birgalikda ishlatadi. */
+export function LangSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { t, lang, setLang } = useStore()
+  return (
+    <Sheet open={open} onClose={onClose} title={t.language}>
+      <div className="space-y-2 pb-2">
+        {(['uz', 'ru', 'en'] as const).map(l => (
+          <button key={l} onClick={() => { setLang(l); haptic(); onClose() }}
+            className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)] border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(0,0,0,.3)]' : 'bg-[var(--panel)] border-navy-line'}`}>
+            <FlagOf l={l} s={22} />
+            <span className="text-[15px] font-extrabold flex-1">{LANG_NAME[l]}</span>
+            {lang === l && <IcCheck s={18} />}
+          </button>
+        ))}
+      </div>
+    </Sheet>
+  )
+}
+
+export function LangPicker({ dark }: { dark?: boolean }) {
+  const { lang } = useStore()
   const [open, setOpen] = React.useState(false)
   return (
     <>
@@ -298,18 +325,7 @@ export function LangPicker({ dark }: { dark?: boolean }) {
         className={`press flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[12px] font-extrabold active:scale-95 transition-transform ${dark ? 'bg-[var(--panel)] text-[var(--ink)]' : 'bg-navy-soft text-navy-ink'}`}>
         <FlagOf l={lang} s={15} />{lang.toUpperCase()}
       </button>
-      <Sheet open={open} onClose={() => setOpen(false)} title={t.language}>
-        <div className="space-y-2 pb-2">
-          {(['uz', 'ru', 'en'] as const).map(l => (
-            <button key={l} onClick={() => { setLang(l); haptic(); setOpen(false) }}
-              className={`press w-full flex items-center gap-3 px-4 py-3 rounded-2xl border text-left transition-all ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)] border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(0,0,0,.3)]' : 'bg-[var(--panel)] border-navy-line'}`}>
-              <FlagOf l={l} s={22} />
-              <span className="text-[15px] font-extrabold flex-1">{LANG_NAME[l]}</span>
-              {lang === l && <IcCheck s={18} />}
-            </button>
-          ))}
-        </div>
-      </Sheet>
+      <LangSheet open={open} onClose={() => setOpen(false)} />
     </>
   )
 }
@@ -457,7 +473,7 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
   const nav = useNavigate()
   const [delOpen, setDelOpen] = useState(false)
   const [pickOpen, setPickOpen] = useState(false)
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [langOpen, setLangOpen] = useState(false)
   const [selOpen, setSelOpen] = useState(false)
   const [selAnim, setSelAnim] = useState(false)
   const selAnimT = useRef<number | null>(null)
@@ -548,9 +564,10 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
           {/* 2-qator: 3 ustunli grid — chapda burger, MARKAZDA buyurtma turi,
               o'ngda tema almashtirgich. Pill ekranning aniq o'rtasida turadi. */}
           <div className="grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-0.5 pb-1.5 max-w-[1240px] mx-auto">
-            <button onClick={() => { haptic(); setMenuOpen(true) }} aria-label={t.menuT} aria-haspopup="dialog"
-              className="press focus-ring w-10 h-10 -ml-1.5 justify-self-start grid place-items-center rounded-xl text-white active:scale-95 transition-transform">
-              <IcBurger s={20} />
+            {/* Chapda til tugmasi: o'ngdagi tema tugmasi bilan bir xil o'lcham/uslub */}
+            <button onClick={() => { haptic(); setLangOpen(true) }} aria-label={t.language} aria-haspopup="dialog"
+              className="press focus-ring w-10 h-10 justify-self-start grid place-items-center rounded-full bg-[var(--hdr-chip)] text-white active:scale-95 transition-transform">
+              <IcGlobe s={20} />
             </button>
             <div className="min-w-0 justify-self-center max-w-full">
               <button onClick={toggleSel} aria-expanded={selOpen}
@@ -586,7 +603,7 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
       )}
       <DeliveryModal open={delOpen} onClose={() => setDelOpen(false)} switchTo={() => { setDelOpen(false); setPickOpen(true) }} />
       <PickupModal open={pickOpen} onClose={() => setPickOpen(false)} switchTo={() => { setPickOpen(false); setDelOpen(true) }} />
-      <Drawer open={menuOpen} onClose={() => setMenuOpen(false)} />
+      <LangSheet open={langOpen} onClose={() => setLangOpen(false)} />
       {askOpen && (
         <InitialChoiceModal
           open
