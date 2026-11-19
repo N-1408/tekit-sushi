@@ -19,7 +19,7 @@ export type ThemeMode = 'dark' | 'light'
 export const THEME_BG: Record<ThemeMode, string> = { dark: '#0F1720', light: '#F6F7FB' }
 
 /* Brend ko'k: Telegram xromi mobil qurilmalarda shu rangda turadi, temadan qat'i nazar */
-export const BRAND_BLUE = '#29A8E0'
+export const BRAND_BLUE = '#0F1E9A'
 
 /* themeParams faqat hex rang beradi; boshqa qiymat (bo'sh, tema nomi) e'tiborga olinmaydi */
 const isHex = (v: unknown): v is string => typeof v === 'string' && /^#[0-9a-fA-F]{6}$/.test(v)

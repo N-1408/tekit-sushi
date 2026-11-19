@@ -19,7 +19,7 @@ html{ background:var(--bg); }@tailwind base;
   --btn:#E9EDF1; --btn-ink:#101821; --chip-on:#FFFFFF; --chip-on-ink:#0F1720; --ok:#34D399;
 }
 :root { --sat: max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
-:root { --brand-blue: #29A8E0; }
+:root { --brand-blue: #0F1E9A; }
 html { -webkit-tap-highlight-color: transparent; }
 html, body { overscroll-behavior-y: none; }
 body {

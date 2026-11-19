@@ -25,8 +25,8 @@ export function initTelegram() {
   // Birinchi bo'yoqdan oldin xrom rangi: ko'k header oq chiziqsiz ko'rinadi
   try {
     if (TGA.platform === 'ios' || TGA.platform === 'android') {
-      TGA.setHeaderColor?.('#29A8E0')
-      TGA.setBackgroundColor?.('#29A8E0')
+      TGA.setHeaderColor?.('#0F1E9A')
+      TGA.setBackgroundColor?.('#0F1E9A')
     }
   } catch {}
   const applyInsets = () => {

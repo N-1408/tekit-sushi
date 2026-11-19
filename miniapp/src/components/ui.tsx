@@ -501,10 +501,10 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
                   <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
                 </button>
                 <div className="flex items-center gap-1.5 shrink-0">
-                  <button onClick={() => { haptic(); setCartPanelOpen(false); setProfilePanelOpen(false); setCheckoutPanelOpen(false); setOrdersPanelOpen(true) }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                  <button onClick={() => { haptic(); setCartPanelOpen(false); setProfilePanelOpen(false); setOrdersPanelOpen(true) }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
                     <IcBag s={16} />{t.tabOrders}
                   </button>
-                  <button onClick={() => { haptic(); setCartPanelOpen(false); setOrdersPanelOpen(false); setCheckoutPanelOpen(false); setProfilePanelOpen(true) }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
+                  <button onClick={() => { haptic(); setCartPanelOpen(false); setOrdersPanelOpen(false); setProfilePanelOpen(true) }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
                     <IcUser s={16} />{t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
                   </button>
                   <HeaderLang />
@@ -538,7 +538,7 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
               <IcBurger s={20} />
             </button>
             {mode ? (
-              <button onClick={() => { haptic(); setSelOpen(v => !v) }} aria-haspopup="radiogroup" aria-expanded={selOpen}
+              <button onClick={() => { haptic(); setSelOpen(v => !v) }} aria-expanded={selOpen}
                 className="press focus-ring flex items-center gap-1.5 h-9 pl-3.5 pr-2.5 rounded-full bg-white/[.16] text-[13px] font-extrabold text-white active:scale-[.97] transition-transform max-w-[62%]">
                 <span className="truncate">{mode === 'delivery' ? t.fcDel : t.fcPick}</span>
                 <span className={`transition-transform duration-150 shrink-0 ${selOpen ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
