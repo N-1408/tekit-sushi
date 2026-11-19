@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { useStore } from '../../lib/store'
 import { tgUser, haptic, useNativeBack } from '../../lib/tg'
-import { authHeaders } from '../../lib/admin'
+import { adminSession } from '../../lib/api'
+import { authHeaders, tgOAuthStart, tgOAuthConfigured, tgOAuthFinish } from '../../lib/admin'
 
 export type AdminData = {
   orders: any[]; stats: any; cats: any[]; items: any[]; promos: any[]
@@ -32,6 +33,8 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
   const [input, setInput] = React.useState('')
   const [err, setErr] = React.useState('')
   const { t } = useStore()
+  const [sessOk, setSessOk] = React.useState(false)
+  const [tgState, setTgState] = React.useState<'' | 'pending' | 'fail'>('')
   const [data, setData] = React.useState<AdminData | null>(() => {
     try { const v = localStorage.getItem('tk-admin-data'); return v ? JSON.parse(v) : null } catch { return null }
   })
@@ -51,6 +54,21 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
     if (!key) { setErr(''); return }
     verify(key).then(ok => { if (!ok) { try { localStorage.removeItem('tk-admin') } catch {}; setKey('') } })
   }, [roleOk, key, verify])
+
+  // Brauzer sessiyasi (Telegram Login cookie) va OAuth qaytishi
+  React.useEffect(() => {
+    let alive = true
+    tgOAuthFinish().then((res) => {
+      if (!alive) return
+      if (res === 'ok') setSessOk(true)
+      else if (res) setTgState(res)
+    })
+    adminSession().then((ok) => { if (alive && ok) setSessOk(true) })
+    return () => { alive = false }
+  }, [])
+  React.useEffect(() => {
+    if (sessOk) refresh()
+  }, [sessOk, refresh])
 
   const update = React.useCallback((patch: Partial<AdminData>) => {
     setData(d => {
@@ -78,16 +96,30 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
     refresh()
   }, [refresh])
 
+  const H = React.useCallback(() => (sessOk && !key && !roleOk ? {} : authHeaders(key, role, uid)), [sessOk, key, role, uid])
+  const refreshSess = React.useCallback(async () => {
+    try {
+      const r = await fetch('/api/admin?action=bootstrap', { headers: H() })
+      if (!r.ok) return
+      const j = await r.json()
+      if (j?.ok) {
+        const n: AdminData = { orders: j.orders || [], stats: j.stats || null, cats: j.cats || [], items: j.items || [], promos: j.promos || [] }
+        setData(n)
+        try { localStorage.setItem('tk-admin-data', JSON.stringify(n)) } catch {}
+      }
+    } catch {}
+  }, [H])
+
   const ctx: AdminCtx = {
     key, roleOk, uid,
-    h: () => authHeaders(key, role, uid),
-    ready: !!key || roleOk,
+    h: H,
+    ready: !!key || roleOk || sessOk,
     data: data || EMPTY_DATA,
-    update, refresh,
+    update, refresh: sessOk ? refreshSess : refresh,
     refreshRole: () => {},
   }
 
-  const authed = !!key || roleOk || (wasOk && !roleReady)
+  const authed = !!key || roleOk || sessOk || (wasOk && !roleReady)
   if (!authed) {
     return (
       <div className="pb-28">
@@ -101,6 +133,19 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
             {t.login}
           </button>
           {err && <div className="mt-2 text-center text-[12.5px] font-bold a-bad-text">{t.wrongPass}</div>}
+          {tgOAuthConfigured() && !tgUser() && (
+            <>
+              <div className="mt-4 flex items-center gap-3 text-[11px] font-bold text-[var(--mut)]">
+                <span className="h-px flex-1 bg-[var(--line2)]" /><span>yoki</span><span className="h-px flex-1 bg-[var(--line2)]" />
+              </div>
+              <button onClick={() => tgOAuthStart()}
+                className="press mt-3 w-full py-4 rounded-2xl bg-[var(--panel)] text-navy-ink border border-navy-line text-[15px] font-extrabold active:scale-[.98] transition-transform">
+                {t.aTgLogin}
+              </button>
+            </>
+          )}
+          {tgState === 'pending' && <div className="mt-3 text-center text-[12.5px] font-bold">{t.aTgPending}</div>}
+          {tgState === 'fail' && <div className="mt-2 text-center text-[12.5px] font-bold a-bad-text">{t.aTgErr}</div>}
         </div>
       </div>
     )
@@ -187,6 +232,7 @@ const TAB_ICON: Record<string, JSX.Element> = {
   promos: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1" /><path d="M12 8v13" /><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7" /><path d="M7.5 8a2.5 2.5 0 0 1 0-5C9.5 3 11 5 12 8c1-3 2.5-5 4.5-5a2.5 2.5 0 0 1 0 5" /></svg>,
   customers: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" /></svg>,
   dash: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 20V10" /><path d="M10 20V4" /><path d="M16 20v-7" /><path d="M22 20H2" /></svg>,
+  access: <svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>,
 }
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -210,6 +256,7 @@ function AdminSidebar() {
     { id: 'promos', to: '/admin/promos', label: t.aTabP, icon: TAB_ICON.promos },
     { id: 'dash', to: '/admin/dash', label: t.aTabD, icon: TAB_ICON.dash },
     { id: 'customers', to: '/admin/customers', label: t.aTabC, icon: TAB_ICON.customers },
+    { id: 'access', to: '/admin/access', label: t.aTabA, icon: TAB_ICON.access },
   ]
   const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
   return (
@@ -254,6 +301,7 @@ function AdminTabBar() {
     { id: 'promos', to: '/admin/promos', label: t.aTabP, icon: 'promos' },
     { id: 'dash', to: '/admin/dash', label: t.aTabD, icon: 'dash' },
     { id: 'customers', to: '/admin/customers', label: t.aTabC, icon: 'customers' },
+    { id: 'access', to: '/admin/access', label: t.aTabA, icon: 'access' },
   ]
   const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
   return (
