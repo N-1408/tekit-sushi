@@ -20,7 +20,6 @@ import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, useIsWide,
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 import { TGA } from './lib/tg'
-import { useScrollHide } from './lib/scrollHide'
 
 /* Boot splash: server foydalanuvchini tekshirguncha (Telegram sessiyasida) */
 function BootSplash() {
@@ -168,21 +167,9 @@ export default function App() {
 
   const wide = !isAdmin && !loc.pathname.startsWith('/p/')
 
-  /* Skroll yo'nalishi: pastga qaralganda suzuvchi savat va sovg'a halqasi
-     sirg'alib yashiriladi, yuqoriga yoki tepada qayta ko'rinadi
-     (html[data-floats]; CSS o'tishlari index.cssda). */
-    // Skroll gisterezisi: pastga — yashirish, yuqoriga — qayta ko'rsatish.
-  // (html[data-floats]; CSS o'tishlari index.cssda.)
-  const { hidden: floatsHidden } = useScrollHide()
-  const isWide = useIsWide()
-  React.useEffect(() => {
-    const el = document.documentElement
-    // Desktopda suzuvchi qator (sovg'a halqasi + savat) doim ko'rinadi:
-    // skroll-yashirish faqat mobilda ishlaydi.
-    if (floatsHidden && !isWide) el.dataset.floats = '1'
-    else delete el.dataset.floats
-    return () => { delete el.dataset.floats }
-  }, [floatsHidden, isWide, loc.pathname])
+  /* Bepul yetkazib berish halqasi va suzuvchi savat DOIM ko'rinadi va joyida
+     qotadi: skroll yo'nalishi bo'yicha yashirish (html[data-floats]) bekor
+     qilindi — foydalanuvchi talabi, 2026-11-20. */
 
   return (
     <>

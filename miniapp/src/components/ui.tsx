@@ -5,7 +5,7 @@ import { useStore, pName, pImg, CATS, isSpicy, type Product } from '../lib/store
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode, TGA } from '../lib/tg'
-import { beginAddToCartAnim } from '../lib/addAnim'
+import { beginAddToCartAnim, flyProductToCart } from '../lib/addAnim'
 import { AnimatedThemeToggler } from './magicui/animated-theme-toggler'
 import MapPicker from './MapPicker'
 import { DeliveryModal, PickupModal, InitialChoiceModal } from './Fulfillment'
@@ -1050,7 +1050,7 @@ export function SpicyBadge({ size = 24, className }: { size?: number; className?
 
 export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const { cart, add, setQty, lang, t, openP } = useStore()
-  // Mobil: '+' savatga qo'shmaydi — popapni ochadi. Desktopda eskicha savatga qo'shiladi.
+  const imgRef = useRef<HTMLImageElement | null>(null) // savatga uchish animatsiyasi manbasi
   const desk = useIsDesktop()
   const q = cart.find((l: any) => l.id === p.id)?.q ?? 0
   const inCart = q > 0
@@ -1072,7 +1072,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
   const onAdd = (el?: HTMLElement | null) => {
     add(p.id); haptic('medium'); setOk(true)
     const res = beginAddToCartAnim(el)
-    if (res) setAnim(res.k)
+    if (res) { setAnim(res.k); flyProductToCart(imgRef.current) }
     if (okTimer.current) window.clearTimeout(okTimer.current)
     okTimer.current = window.setTimeout(() => { setOk(false); setAnim(null) }, 810)
   }
@@ -1081,7 +1081,7 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
       className="anim-up cursor-pointer relative flex flex-col h-full"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
       <div className={`relative aspect-square rounded-[12px] overflow-hidden bg-[var(--sheet)] shrink-0 ${inCart ? 'ring-1 ring-inset ring-[var(--chip-on)]/45' : ''}`}>
-        <img src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+        <img ref={imgRef} src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         {wtxt && <span className="absolute bottom-2 left-2 bg-black/45 text-white text-[11px] font-bold px-2 py-1 rounded-[8px] backdrop-blur-[2px]">{wtxt}</span>}
         {isSpicy(p) && <SpicyBadge size={26} className="absolute top-2 right-2 tk-spicy-ember bg-black/40 backdrop-blur-[2px] shadow-sm" />}
         {inCart && !desk && (
@@ -1100,13 +1100,14 @@ export function ProductCard({ p, i = 0 }: { p: Product; i?: number }) {
             </>
           )}
         </div>
-        {/* Qo'shish tasdig'i ko'rinib bo'lgach miqdor boshqaruvi chiqadi */}
-        {inCart && !ok && desk ? (
+        {/* Bosilanda popap OCHILMAYDI: darhol savatga qo'shadi (rasmi suzuvchi savatga uchadi);
+            tasdiq ko'rinib bo'lgach miqdor boshqaruvi chiqadi. Batafsil ma'lumot uchun kartochkaning o'zi bosiladi */}
+        {inCart && !ok ? (
           <QtyStepper full className="mt-1.5" q={q} min={0}
             onDec={() => { setQty(p.id, q - 1); haptic('light') }}
             onInc={() => { add(p.id); haptic('medium') }} />
         ) : (
-          <button onClick={e => { e.stopPropagation(); if (desk) onAdd(e.currentTarget); else { haptic('light'); openP(p) } }}
+          <button onClick={e => { e.stopPropagation(); onAdd(e.currentTarget) }}
             className={`press mt-1.5 relative overflow-hidden w-full h-[44px] rounded-[12px] flex items-center justify-center gap-2 text-[15px] font-extrabold active:scale-[.98] transition-transform ${ok && anim != null ? 'tk-add-active' : ''} ${sale ? 'bg-[var(--promo-deep)] text-white hover:brightness-110' : 'bg-[var(--btn)] text-[var(--btn-ink)]'}`}>
             {ok ? (anim != null ? null : <span className="add-ok grid place-items-center"><IcCheck s={17} /></span>) : <IcBag s={17} />}
             <span className="tk-add-label">{t.cardAdd}</span>
@@ -1263,7 +1264,9 @@ export function QtyStepper({ q, onInc, onDec, min = 1, size = 'md', full, classN
         <IcMinus s={cfg.ic} />
       </button>
       <span className={`${cfg.txt} font-extrabold text-[var(--ink)] min-w-[2ch] text-center tabular-nums`}>{q}</span>
-      <button type="button" onClick={e => { onInc(); e.currentTarget.blur() }} disabled={q <= min} aria-label="plus" className={btn}>
+      {/* "+": yuqori chegarasi yo'q, shuning uchun hech qachon o'chmaydi
+          (miqdor 0 ga tushganda ham ishlashi kerak) */}
+      <button type="button" onClick={e => { onInc(); e.currentTarget.blur() }} aria-label="plus" className={btn}>
         <IcPlus s={cfg.ic} />
       </button>
     </div>
@@ -1476,7 +1479,7 @@ export function ProductPriceBar({ q, total, onInc, onDec, onAdd, onCloseEmpty, e
         {anim != null && <CartJourney k={anim} />}
         <span className="tk-add-label relative flex flex-col items-center justify-center leading-none px-2">
           <span className="flex items-center gap-1.5 whitespace-nowrap">
-            <IcNavCart s={18} />
+            <IcBag s={18} />
             <span className="text-[13.5px] font-extrabold">{label}</span>
           </span>
           <span className="mt-1 text-[16px] font-extrabold tabular-nums whitespace-nowrap">
@@ -1749,6 +1752,10 @@ function ImgOrPlate({ src, alt }: { src: string; alt: string }) {
    tepada doim xira zona qoladi va Telegramning Back/v/… tugmalari hech qachon
    varaq ustiga tushmaydi. Sudrash dastagi varaqaning tashqarisida, uning
    tepasida turadi va harakat yo'nalishiga qarab "v"/"^" bo'lib bukiladi. ---------- */
+/* Dastakning dam holati: 0 (tekis) emas, yengil egri chiziq — namunadagi
+   uslub. Sudrashda bu qiymatdan kattaroq bukiladi. */
+const REST_BEND = 6
+
 function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void }) {
   const m = useProductModal(p)
   const [enter, setEnter] = useState(false)
@@ -1793,7 +1800,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     // ochilish animatsiyasida dastak o'rtasi TEPAGA bukiladi, keyin tekislanadi
     if (reducedMotion.current) return
     setBend(-14)
-    const t = window.setTimeout(() => setBend(0), 520)
+    const t = window.setTimeout(() => setBend(REST_BEND), 520)
     return () => window.clearTimeout(t)
   }, [])
   useEffect(() => { const id = window.setTimeout(() => setEnter(true), 16); return () => window.clearTimeout(id) }, [])
@@ -1819,8 +1826,8 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     setDrag(false)
     if (dy > 110) { doClose(); return }
     setDy(0)
-    // yopilmadi: varaq orqaga ko'tariladi — dastak TEPAGA bukiladi, keyin tekislanadi
-    if (!reducedMotion.current) { setBend(-10); window.setTimeout(() => setBend(0), 260) }
+    // yopilmadi: varaq orqaga ko'tariladi — dastak TEPAGA bukiladi, keyin dam holatiga qaytadi
+    if (!reducedMotion.current) { setBend(-10); window.setTimeout(() => setBend(REST_BEND), 260) }
   }
   /* Sarlavha zonasidan pastga sudrab yopish */
   const down = useRef<{ y: number } | null>(null)
@@ -1840,7 +1847,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     setDrag(false)
     if (d > 110) { doClose(); return }
     setDy(0)
-    if (!reducedMotion.current) { setBend(-10); window.setTimeout(() => setBend(0), 260) }
+    if (!reducedMotion.current) { setBend(-10); window.setTimeout(() => setBend(REST_BEND), 260) }
   }
   const bgDown = useRef<{ x: number; y: number } | null>(null)
   /* Popap qaysi sahifada ochilgani: yopilganda skrollni faqat shu sahifada qaytaramiz */
@@ -1920,14 +1927,17 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
           style={{ touchAction: 'none' }}
           className="absolute bottom-full left-1/2 z-10 h-11 w-16 -translate-x-1/2 flex flex-col items-center justify-end pb-1 cursor-grab active:cursor-grabbing">
           <span className="relative block h-[5px] w-[38px]" aria-hidden="true">
-            <span className="absolute left-0 top-0 h-[5px] w-[19px] rounded-full bg-white/90"
+            {/* Ikkala bo'lak o'rtada 2px ustma-ust tushadi va ichki uchlari
+                to'g'ri (faqat tashqi uchi yumaloq): tekis holatda bitta
+                uzluksiz chiziq ko'rinadi, egilganda "v"/"^" bo'lib bukiladi. */}
+            <span className="absolute left-0 top-0 h-[5px] w-[20px] rounded-l-full bg-white/90"
               style={{ transformOrigin: 'left center', transform: `rotate(${bend}deg)`, transition: 'transform .24s cubic-bezier(.32,.72,0,1)' }} />
-            <span className="absolute right-0 top-0 h-[5px] w-[19px] rounded-full bg-white/90"
+            <span className="absolute right-0 top-0 h-[5px] w-[20px] rounded-r-full bg-white/90"
               style={{ transformOrigin: 'right center', transform: `rotate(${-bend}deg)`, transition: 'transform .24s cubic-bezier(.32,.72,0,1)' }} />
           </span>
         </div>
         <div ref={panelRef} role="dialog" aria-modal="true" aria-label={pName(p, m.lang)}
-          className="tk-sheet-cap relative flex flex-col bg-[var(--sheet)] rounded-t-[22px] shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none">
+          className="tk-sheet-cap tk-sheet-70 relative flex flex-col bg-[var(--sheet)] rounded-t-[22px] shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none">
           {/* tepa: sudrab yopish zonasi (ko'rinadigan dastak varaqaning ustida) */}
           <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
             style={{ touchAction: 'none' }}
