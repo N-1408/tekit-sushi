@@ -5,7 +5,7 @@ export const TGA: any = (window as any).Telegram?.WebApp
 /* ---------- mavzu: maxsus Telegram tema moduli (lib/theme.ts) ----------
  * Telegram.WebApp.colorScheme + themeParams + themeChanged bir joydan
  * o'qiladi; mustaqil saytda brauzer sozlamasi (prefers-color-scheme). */
-import { applyTheme, resolveTheme, initThemeWatch, BRAND_BLUE } from './theme'
+import { applyTheme, resolveTheme, initThemeWatch, HEADER_BG } from './theme'
 export {
   applyTheme, resolveTheme, changeTheme, currentTheme, subscribeTheme,
   onSystemThemeChange, initThemeWatch, THEME_BG,
@@ -22,11 +22,12 @@ export function initTelegram() {
   try { initThemeWatch() } catch {}
   try { TGA.disableVerticalSwipes?.() } catch {}
   try { TGA.requestFullscreen?.() } catch {}
-  // Birinchi bo'yoqdan oldin xrom rangi: ko'k header oq chiziqsiz ko'rinadi
+  // Birinchi bo'yoqdan oldin xrom rangi: header joriy mavzuning rangida ko'rinadi
   try {
     if (TGA.platform === 'ios' || TGA.platform === 'android') {
-      TGA.setHeaderColor?.(BRAND_BLUE)
-      TGA.setBackgroundColor?.(BRAND_BLUE)
+      const hdr = HEADER_BG[resolveTheme()]
+      TGA.setHeaderColor?.(hdr)
+      TGA.setBackgroundColor?.(hdr)
     }
   } catch {}
   const applyInsets = () => {
