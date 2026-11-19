@@ -1,7 +1,6 @@
 import React from 'react'
 import { useStore, pName, CATS, inCat, type Product } from '../lib/store'
 import { Header, CatalogNav, CityBanner, HeroSlider, ProductCard } from '../components/ui'
-import { useScrollHide } from '../lib/scrollHide'
 
 const SEC = (id: string) => `cat-${id}`
 
@@ -217,9 +216,6 @@ export default function Home() {
     .map(c => ({ id: c.id, label: (c as any)[lang] || t.catNames[c.id] })), [products, lang, t])
 
   const wide = useWideScreen()
-  // Yo'nalishga sezgir brend qatori: pastga skroll — yig'iladi, yuqoriga —
-  // darhol qaytadi (faqat tepada emas, istalgan joyda). Kategoriyalar qatori qoladi.
-  const { atTop: scrolledTop } = useScrollHide()
   const { navRef, active, onSelect } = useCatalogTracking(chips.map(c => c.id), searching)
 
   // Kategoriya qatori balandligi: yopishqoq bo'lim sarlavhalari uning OSTIDA
@@ -251,10 +247,9 @@ export default function Home() {
 
   return (
     <div className="pb-28 lg:pb-12">
-      {/* Bitta sticky blok: mobil — brend qatori (skroll bo'lganda silliq
-          yig'iladi, faqat logo qatori ko'chib ketadi) + burger/qidiruv/kategoriyalar
-          birgalikda safe-zone chegarasida (sat) pinlanadi. Blok oqim o'rnidan
-          yuqorida render bo'lgani uchun pastdagi kontent sat bilan kompensatsiya. */}
+      {/* Bitta sticky blok: brend qatori + qidiruv/kategoriyalar birgalikda
+          safe-zone chegarasida (sat) pinlanadi. Blok oqim o'rnidan yuqorida
+          render bo'lgani uchun pastdagi kontent sat bilan kompensatsiya. */}
       {(() => {
         const catalogNav = <CatalogNav q={q} setQ={setQ} chips={chips} active={searching ? null : active} onSelect={onSelect} />
         return wide ? (
@@ -272,7 +267,7 @@ export default function Home() {
              paddingTop: var(--sat) bilan inset ostidan boshlanadi. */
           <div ref={navRef} className="sticky z-30 tk-hdr-sticky">
             <div className="tk-hdr-blue" style={{ paddingTop: 'var(--sat)' }}>
-              <Header floating={scrolledTop} />
+              <Header />
               <div ref={catRef}>{catalogNav}</div>
             </div>
           </div>

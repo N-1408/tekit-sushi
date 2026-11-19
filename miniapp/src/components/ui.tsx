@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, startTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useStore, pName, pImg, CATS, isSpicy, type Product } from '../lib/store'
+import { useStore, pName, pImg, isSpicy, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
 import { haptic, useNativeBack, tgUser, currentTheme, subscribeTheme, changeTheme, type ThemeMode, TGA } from '../lib/tg'
@@ -390,85 +390,10 @@ function HeaderLang() {
   )
 }
 
-/* ---------- hamburger menyu ---------- */
-export function Drawer({ open, onClose }: { open: boolean; onClose: () => void }) {
-  const { t, lang, setLang, user } = useStore()
-  const nav = useNavigate()
-  const loc = useLocation()
-  const activeCat = loc.pathname.startsWith('/cat/') ? loc.pathname.slice(5) : null
-  useEffect(() => {
-    if (!open) return
-    const prev = document.body.style.overflow
-    const prevFocus = document.activeElement as HTMLElement | null
-    document.body.style.overflow = 'hidden'
-    const on = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
-    window.addEventListener('keydown', on)
-    return () => {
-      document.body.style.overflow = prev
-      window.removeEventListener('keydown', on)
-      try { prevFocus?.focus?.() } catch {}
-    }
-  }, [open, onClose])
-  if (!open) return null
-  return createPortal(
-    <div className="fixed inset-0 z-[70]" role="dialog" aria-modal="true" aria-label={t.menuT}>
-      <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px] anim-fade" onClick={onClose} />
-      <aside className="absolute left-0 top-0 bottom-0 w-[302px] lg:w-[340px] bg-[var(--bg2)] text-[var(--ink)] flex flex-col anim-drawer shadow-2xl"
-        style={{ paddingTop: 'calc(16px + var(--sat))', paddingBottom: 'calc(16px + var(--sab))' }}>
-        <div className="flex items-center justify-between px-5">
-          <div className="flex items-center gap-2.5">
-            <BrandLogo size={40} />
-            <span className="text-[15px] font-extrabold tracking-[0.08em]">TEKIT SUSHI</span>
-          </div>
-          <button onClick={onClose} className="press w-9 h-9 rounded-xl bg-[var(--panel)] grid place-items-center text-[var(--mut2)] active:scale-95 transition-transform"><IcX /></button>
-        </div>
-
-        <div className="px-5 mt-4 flex gap-2">
-          {(['uz', 'ru', 'en'] as const).map(l => (
-            <button key={l} onClick={() => { setLang(l); haptic('light') }}
-              className={`press flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[13px] font-extrabold transition-colors ${lang === l ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'bg-[var(--panel)] text-[var(--mut2)] active:scale-95'}`}>
-              <FlagOf l={l} s={15} />{l.toUpperCase()}
-            </button>
-          ))}
-        </div>
-
-        <div className="px-5 mt-5 mb-1.5 text-[11px] uppercase tracking-[0.14em] text-[var(--mut2)] font-extrabold">{t.menuT}</div>
-        <nav className="flex-1 overflow-y-auto no-scrollbar px-3">
-          {CATS.map(c => (
-            <button key={c.id} onClick={() => { haptic(); onClose(); nav(`/cat/${c.id}`) }}
-              className={`press w-full flex items-center justify-between px-3 py-3 rounded-xl text-[15.5px] font-bold transition-colors ${activeCat === c.id ? 'bg-[var(--soft)] text-[var(--ink)]' : 'text-[var(--ink)] active:bg-[var(--panel)]'}`}>
-              {(c as any)[lang] || t.catNames[c.id]}
-              <span className="text-[var(--line2)]"><IcChevR /></span>
-            </button>
-          ))}
-        </nav>
-
-        <div className="px-5 pt-3 mt-2 border-t border-[var(--line)] space-y-0.5">
-          <button onClick={() => { onClose(); nav('/orders') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)] active:opacity-70">
-            <IcBag /> {t.tabOrders}
-          </button>
-          <button onClick={() => { onClose(); nav('/profile') }} className="press w-full flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)] active:opacity-70">
-            <IcUser /> {t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
-          </button>
-          <a href="tel:+998951550549" className="flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)]">
-            <IcCash /> {t.ctPhoneVal}
-          </a>
-          <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer" className="flex items-center gap-2.5 py-2.5 text-[14.5px] font-bold text-[var(--ink)]">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M21.9 4.6 18.9 19c-.2 1-.8 1.2-1.7.8l-4.6-3.4-2.2 2.1c-.25.25-.45.45-.9.45l.3-4.6L18.2 6.8c.35-.3-.1-.5-.55-.2L7.7 13.1l-4.4-1.4c-1-.3-1-1 .2-1.45L20.6 3.3c.8-.3 1.5.2 1.3 1.3Z" /></svg>
-            {t.ctTgVal}
-          </a>
-        </div>
-      </aside>
-    </div>,
-    document.body
-  )
-}
-
 /* ---------- bosh sahifa headeri: FAQAT logo + nom.
    Barcha ikonkalar (yetkazish/olib-ketish, til, tema, profil) Profile
-   ekraniga ko'chirildi. Skroll bo'lganda brend qatori silliq yig'iladi
-   (slide, yo'qolmaydi); kategoriyalar qatori o'z joyida pinlangan qoladi. ---------- */
-export function Header({ collapsed = false, floating = false }: { collapsed?: boolean; floating?: boolean }) {
+   ekraniga ko'chirildi. ---------- */
+export function Header() {
   const { t, lang, setLang, user, ob, mode, setMode } = useStore()
   const nav = useNavigate()
   const [delOpen, setDelOpen] = useState(false)
@@ -499,7 +424,7 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
   const [askState, setAskState] = useState(() => {
     try { return !localStorage.getItem('tk-onboarded') } catch { return true }
   })
-  const isWide = useIsWide()
+  const isWide = useIsDesktop()
   const hdrRef = useRef<HTMLElement | null>(null)
   // Panel ochiq bo'lsa: tashqariga bosilsa yoki Escape bosilsa yopiladi
   useEffect(() => {
@@ -521,11 +446,10 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
       {isWide ? (
         /* KENG ekran (lg+): eskicha brend qatori — o'z ko'rinishi saqlanadi */
         <header className="relative z-[31] text-[var(--ink)]">
-          <div className={`tk-brand-wrap max-w-[1240px] mx-auto ${collapsed ? 'is-hidden' : ''}`}>
+          <div className="tk-brand-wrap max-w-[1240px] mx-auto">
             <div>
               <div className="flex items-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2 justify-between">
                 <button onClick={() => nav('/')} aria-label="Tekit Sushi"
-                  aria-hidden={collapsed || undefined} tabIndex={collapsed ? -1 : undefined}
                   className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
                   <BrandLogo size={36} />
                   <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
@@ -545,9 +469,8 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
         </header>
       ) : (
         /* MOBIL: Feed up uslubidagi yagona ko'k header.
-           1-qator: logo Telegram native tugmalari orasida markazda (oq).
-           2-qator: chapda burger (yon menyu), o'ngda buyurtma turi.
-           Yig'ilish silliq va remountsiz: faqat logo qatori yig'iladi. */
+           1-qator: logo markazda (oq).
+           2-qator: chapda til tugmasi, markazda buyurtma turi, o'ngda tema. */
         <header ref={hdrRef} className="relative z-[31] text-white">
           <div className="tk-brand-wrap max-w-[1240px] mx-auto">
             <div>
