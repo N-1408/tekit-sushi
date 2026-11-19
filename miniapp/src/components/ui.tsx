@@ -566,8 +566,8 @@ export function Header({ collapsed = false, floating = false }: { collapsed?: bo
           <div className="grid grid-cols-[1fr_auto_1fr] items-center px-3 pt-0.5 pb-1.5 max-w-[1240px] mx-auto">
             {/* Chapda til tugmasi: o'ngdagi tema tugmasi bilan bir xil o'lcham/uslub */}
             <button onClick={() => { haptic(); setLangOpen(true) }} aria-label={t.language} aria-haspopup="dialog"
-              className="press focus-ring w-10 h-10 justify-self-start grid place-items-center rounded-full bg-[var(--hdr-chip)] text-white active:scale-95 transition-transform">
-              <IcGlobe s={20} />
+              className="press focus-ring w-10 h-10 justify-self-start grid place-items-center rounded-full bg-[var(--hdr-chip)] active:scale-95 transition-transform">
+              <FlagOf l={lang} s={20} />
             </button>
             <div className="min-w-0 justify-self-center max-w-full">
               <button onClick={toggleSel} aria-expanded={selOpen}
@@ -1752,9 +1752,10 @@ function ImgOrPlate({ src, alt }: { src: string; alt: string }) {
    tepada doim xira zona qoladi va Telegramning Back/v/… tugmalari hech qachon
    varaq ustiga tushmaydi. Sudrash dastagi varaqaning tashqarisida, uning
    tepasida turadi va harakat yo'nalishiga qarab "v"/"^" bo'lib bukiladi. ---------- */
-/* Dastakning dam holati: 0 (tekis) emas, yengil egri chiziq — namunadagi
-   uslub. Sudrashda bu qiymatdan kattaroq bukiladi. */
+/* Dastakning dam holati: yengil egri chiziq (namunadagi uslub). Sudrashda
+   bu qiymatdan kattaroq bukiladi. bend darajasi -> SVG cho'kishiga (px). */
 const REST_BEND = 6
+const handleSag = (bend: number) => Math.max(-8, Math.min(8, bend * 0.6))
 
 function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void }) {
   const m = useProductModal(p)
@@ -1767,14 +1768,38 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   /* Sudrash dastagining "chevron" holati (daraja): 0 = tekis, musbat =
      o'rtasi PASTGA bukilgan (sudrab yopish/yopilish), manfiy = TEPAGA
      bukilgan (ochilish va orqaga qaytish). prefers-reduced-motion: doim tekis. */
-  const [bend, setBend] = useState(0)
+  const [bend, setBend] = useState(REST_BEND)
+  const bendRef = useRef(REST_BEND)
+  const bendRaf = useRef(0)
+  /* bend ni silliq o'tkazish: SVG 'd' CSS transition qilmaydi, shuning uchun
+     qisqa rAF tween (240ms, easeOutCubic). Sudrashda esa to'g'ridan-to'g'ri. */
+  const bendTo = (to: number, ms = 240) => {
+    window.cancelAnimationFrame(bendRaf.current)
+    if (reducedMotion.current) { bendRef.current = to; setBend(to); return }
+    const from = bendRef.current
+    const t0 = performance.now()
+    const step = (t: number) => {
+      const k = Math.min(1, (t - t0) / ms)
+      const e = 1 - Math.pow(1 - k, 3)
+      const v = from + (to - from) * e
+      bendRef.current = v
+      setBend(v)
+      if (k < 1) bendRaf.current = window.requestAnimationFrame(step)
+    }
+    bendRaf.current = window.requestAnimationFrame(step)
+  }
+  const bendSet = (v: number) => {
+    window.cancelAnimationFrame(bendRaf.current)
+    bendRef.current = v
+    setBend(v)
+  }
   const reducedMotion = useRef(false)
   /* Yopish: popap pastga silliq sirg'alib chiqadi (chiroyli exit), keyin o'chiriladi */
   const closingRef = useRef(false)
   const doClose = () => {
     if (closingRef.current) return
     closingRef.current = true
-    if (!reducedMotion.current) setBend(16)
+    if (!reducedMotion.current) bendTo(16, 200)
     setDrag(false); setDy(0); setClosing(true)
     window.setTimeout(onClose, 340)
   }
@@ -1799,9 +1824,9 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   useEffect(() => {
     // ochilish animatsiyasida dastak o'rtasi TEPAGA bukiladi, keyin tekislanadi
     if (reducedMotion.current) return
-    setBend(-14)
-    const t = window.setTimeout(() => setBend(REST_BEND), 520)
-    return () => window.clearTimeout(t)
+    bendSet(-14)
+    const t = window.setTimeout(() => bendTo(REST_BEND), 520)
+    return () => { window.clearTimeout(t); window.cancelAnimationFrame(bendRaf.current) }
   }, [])
   useEffect(() => { const id = window.setTimeout(() => setEnter(true), 16); return () => window.clearTimeout(id) }, [])
   /* Kontent eng tepasida yana pastga surilsa — popap yopiladi */
@@ -1816,7 +1841,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     if (st.engaged) {
       const v = Math.max(0, dyv - 8)
       setDy(v)
-      if (!reducedMotion.current) setBend(Math.min(16, v / 7))
+      if (!reducedMotion.current) bendSet(Math.min(16, v / 7))
     }
   }
   const sEnd = () => {
@@ -1827,7 +1852,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     if (dy > 110) { doClose(); return }
     setDy(0)
     // yopilmadi: varaq orqaga ko'tariladi — dastak TEPAGA bukiladi, keyin dam holatiga qaytadi
-    if (!reducedMotion.current) { setBend(-10); window.setTimeout(() => setBend(REST_BEND), 260) }
+    if (!reducedMotion.current) { bendSet(-10); window.setTimeout(() => bendTo(REST_BEND), 260) }
   }
   /* Sarlavha zonasidan pastga sudrab yopish */
   const down = useRef<{ y: number } | null>(null)
@@ -1837,7 +1862,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     const d = e.touches[0].clientY - down.current.y
     if (d > 0) {
       setDy(d)
-      if (!reducedMotion.current) setBend(Math.min(16, d / 7))
+      if (!reducedMotion.current) bendSet(Math.min(16, d / 7))
     }
   }
   const onEnd = (e: React.TouchEvent) => {
@@ -1847,7 +1872,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     setDrag(false)
     if (d > 110) { doClose(); return }
     setDy(0)
-    if (!reducedMotion.current) { setBend(-10); window.setTimeout(() => setBend(REST_BEND), 260) }
+    if (!reducedMotion.current) { bendSet(-10); window.setTimeout(() => bendTo(REST_BEND), 260) }
   }
   const bgDown = useRef<{ x: number; y: number } | null>(null)
   /* Popap qaysi sahifada ochilgani: yopilganda skrollni faqat shu sahifada qaytaramiz */
@@ -1926,18 +1951,18 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
         <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
           style={{ touchAction: 'none' }}
           className="absolute bottom-full left-1/2 z-10 h-11 w-16 -translate-x-1/2 flex flex-col items-center justify-end pb-1 cursor-grab active:cursor-grabbing">
-          <span className="relative block h-[5px] w-[38px]" aria-hidden="true">
-            {/* Ikkala bo'lak o'rtada 2px ustma-ust tushadi va ichki uchlari
-                to'g'ri (faqat tashqi uchi yumaloq): tekis holatda bitta
-                uzluksiz chiziq ko'rinadi, egilganda "v"/"^" bo'lib bukiladi. */}
-            <span className="absolute left-0 top-0 h-[5px] w-[20px] rounded-l-full bg-white/90"
-              style={{ transformOrigin: 'left center', transform: `rotate(${bend}deg)`, transition: 'transform .24s cubic-bezier(.32,.72,0,1)' }} />
-            <span className="absolute right-0 top-0 h-[5px] w-[20px] rounded-r-full bg-white/90"
-              style={{ transformOrigin: 'right center', transform: `rotate(${-bend}deg)`, transition: 'transform .24s cubic-bezier(.32,.72,0,1)' }} />
+          <span className="relative block h-[16px] w-[38px]" aria-hidden="true">
+            {/* BITTA butun egri chiziq (bitta SVG yo'lak, bo'laklarsiz):
+                bend — egilish darajasi. Musbat: o'rtasi pastga bukiladi ("v"),
+                manfiy: tepaga ("^"). Sag' (cho'kish) ±8px oralig'ida. */}
+            <svg width="38" height="16" viewBox="0 0 38 16" fill="none" aria-hidden="true">
+              <path d={`M 2.5 7 Q 19 ${7 + handleSag(bend)} 35.5 7`}
+                stroke="rgba(255,255,255,.92)" strokeWidth="5" strokeLinecap="round" />
+            </svg>
           </span>
         </div>
         <div ref={panelRef} role="dialog" aria-modal="true" aria-label={pName(p, m.lang)}
-          className="tk-sheet-cap tk-sheet-70 relative flex flex-col bg-[var(--sheet)] rounded-t-[22px] shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none">
+          className="tk-sheet-cap tk-sheet-vh relative flex flex-col bg-[var(--sheet)] rounded-t-[22px] shadow-[0_-20px_60px_rgba(10,15,50,.25)] overscroll-contain select-none">
           {/* tepa: sudrab yopish zonasi (ko'rinadigan dastak varaqaning ustida) */}
           <div onTouchStart={onDown} onTouchMove={onMove} onTouchEnd={onEnd} onTouchCancel={onEnd}
             style={{ touchAction: 'none' }}

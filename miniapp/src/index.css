@@ -11,6 +11,17 @@ html{ background:var(--bg); }@tailwind base;
   --mut:#5A6472; --mut2:#8A93A0; --mut3:#B4BCC9;
   --brand-blue:#0F1E9A; /* yagona brend manbasi: logodagi ko'k kit */
   --btn:var(--brand-blue); --btn-ink:#FFFFFF; --chip-on:var(--brand-blue); --chip-on-ink:#FFFFFF; --ok:#0E9F6E;
+  /* Mobil header yuzasi: yorug'likda brend ko'k; tunda qorong'i sirt (pastda) */
+  --hdr-bg: var(--brand-blue);
+  --hdr-chip: rgba(255,255,255,.16);
+  --hdr-chip-hover: rgba(255,255,255,.24);
+  --hdr-chip-line: rgba(255,255,255,.28);
+  --hdr-chip-on: #FFFFFF;
+  --hdr-chip-on-ink: var(--brand-blue);
+  --hdr-input-bg: #FFFFFF;
+  --hdr-input-ink: #10222E;
+  --hdr-input-ph: #5C7683;
+  --hdr-line: transparent;
   /* qorong'u fonda matn/ikonka uchun och ko'k (o'qiladigan) */
   --acc-on-dark:#29A8E0;
 }
@@ -20,6 +31,17 @@ html{ background:var(--bg); }@tailwind base;
   --ink:#F2F5F9; --ink2:#C7CFDB; --ink3:#A2A9C6;
   --mut:#8A93B8; --mut2:#6E7787; --mut3:#4A5270;
   --btn:#E9EDF1; --btn-ink:#101821; --chip-on:#FFFFFF; --chip-on-ink:#0F1720; --ok:#34D399;
+  /* Tunda header qorong'i sirt (--panel) — sahifa fonidan 1px chiziq bilan ajraladi */
+  --hdr-bg: #1B2330;
+  --hdr-chip: rgba(255,255,255,.10);
+  --hdr-chip-hover: rgba(255,255,255,.16);
+  --hdr-chip-line: rgba(255,255,255,.16);
+  --hdr-chip-on: var(--chip-on);
+  --hdr-chip-on-ink: var(--chip-on-ink);
+  --hdr-input-bg: var(--panel);
+  --hdr-input-ink: var(--ink);
+  --hdr-input-ph: var(--mut2);
+  --hdr-line: var(--line2);
 }
 :root { --sat: max(var(--tg-csa-top, 0px), calc(env(safe-area-inset-top, 0px) + var(--tg-extra, 0px))); --sab: max(var(--tg-csa-bottom, 0px), env(safe-area-inset-bottom, 0px)); }
 html { -webkit-tap-highlight-color: transparent; }
@@ -79,11 +101,11 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   max-height: calc(100vh - var(--sat, 0px) - 28px);
   max-height: calc(100dvh - var(--sat, 0px) - 28px);
 }
-/* Mahsulot modali: har qurilmada aynan ekran balandligining 70%ida ochiladi
+/* Mahsulot modali: har qurilmada aynan ekran balandligining 80%ida ochiladi
    (kontent ichida aylanadi); tk-sheet-cap tepadagi xavfsiz zonani saqlaydi. */
-.tk-sheet-70 {
-  height: 70vh;
-  height: 70dvh;
+.tk-sheet-vh {
+  height: 80vh;
+  height: 80dvh;
 }
 .app-h { height: 100dvh; }
 
@@ -110,6 +132,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 @keyframes spin { to { transform: rotate(360deg) } }
 .spin { animation: spin .8s linear infinite; }
 .press:active { transform: scale(.96); }
+.press, .tk-sel-pop, .tk-search-row, .tk-search-field { touch-action: manipulation; }
 
 /* hover faqat sichqoncha/sensorli panel bilan */
 @media (hover:hover) and (pointer:fine){
@@ -208,27 +231,36 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 .tk-brand-wrap.is-hidden { grid-template-rows: 0fr; opacity: 0; pointer-events: none; }
 .tk-brand-wrap > div { min-height: 0; overflow: hidden; }
 
-/* Headerdagi buyurtma-turi paneli: .tk-brand-wrap bilan bir xil grid-rows
-   0fr/1fr texnikasi — silliq ochilish/yopilish, layout sakramasdan */
-.tk-sel-wrap { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .28s cubic-bezier(.32,.72,0,1), opacity .2s ease; }
-.tk-sel-wrap.is-open { grid-template-rows: 1fr; opacity: 1; }
-.tk-sel-wrap > div { min-height: 0; overflow: hidden; }
+/* Headerdagi buyurtma-turi paneli: OVERLAY (header ostida, absolute).
+   FAQAT transform+opacity animatsiyasi — grid-rows kabi butun sahifa layoutini
+   majburlamaydi; header balandligi o'zgarmaydi, kontent surilmaydi.
+   visibility/pointer-events bilan boshqariladi, remount yo'q. */
+.tk-sel-pop { position: absolute; left: 0; right: 0; top: 100%; z-index: 32;
+  background: var(--hdr-bg); box-shadow: inset 0 -1px 0 var(--hdr-line);
+  border-radius: 0 0 18px 18px;
+  visibility: hidden; pointer-events: none; opacity: 0;
+  transform: translateY(-10px) scale(.98); transform-origin: 50% 0;
+  transition: transform .22s cubic-bezier(.32,.72,0,1), opacity .18s ease, visibility 0s .22s;
+  touch-action: manipulation; }
+.tk-sel-pop.is-open { visibility: visible; pointer-events: auto; opacity: 1; transform: none;
+  transition: transform .22s cubic-bezier(.32,.72,0,1), opacity .18s ease; }
+.tk-sel-pop.is-anim { will-change: transform, opacity; }
 
 /* ---------- brend ko'k header bloki (mobil): qidiruv + kategoriya chiplari
    ko'k fon ustida o'qiladigan bo'lishi uchun xuddi shu joyda qayta bo'yaladi.
    Ishlash (skroll, anchor, qidiruv) o'zgarmaydi — faqat ko'rinishi. ---------- */
-.tk-hdr-blue { background: var(--brand-blue); }
-.tk-hdr-blue .tk-search-btn { background: rgba(255,255,255,.16); border-color: rgba(255,255,255,.28); color: #fff; }
-.tk-hdr-blue .tk-search-btn:hover { color: #fff; background: rgba(255,255,255,.24); }
-.tk-hdr-blue [role='tablist'] > button { background: rgba(255,255,255,.14); color: rgba(255,255,255,.92); }
-.tk-hdr-blue [role='tablist'] > button:hover { background: rgba(255,255,255,.22); color: #fff; }
-.tk-hdr-blue [role='tablist'] > button[aria-selected='true'] { background: #fff; color: var(--brand-blue); }
-.tk-hdr-blue input { background: #fff; border-color: transparent; color: #10222E; }
-.tk-hdr-blue input::placeholder { color: #5C7683; }
-.tk-hdr-blue input:focus { border-color: rgba(255,255,255,.6); }
-.tk-hdr-blue input ~ button { color: #5C7683; }
+.tk-hdr-blue { background: var(--hdr-bg); box-shadow: inset 0 -1px 0 var(--hdr-line); }
+.tk-hdr-blue .tk-search-btn { background: var(--hdr-chip); border-color: var(--hdr-chip-line); color: #fff; }
+.tk-hdr-blue .tk-search-btn:hover { color: #fff; background: var(--hdr-chip-hover); }
+.tk-hdr-blue [role='tablist'] > button { background: var(--hdr-chip); color: rgba(255,255,255,.92); }
+.tk-hdr-blue [role='tablist'] > button:hover { background: var(--hdr-chip-hover); color: #fff; }
+.tk-hdr-blue [role='tablist'] > button[aria-selected='true'] { background: var(--hdr-chip-on); color: var(--hdr-chip-on-ink); }
+.tk-hdr-blue input { background: var(--hdr-input-bg); border-color: transparent; color: var(--hdr-input-ink); }
+.tk-hdr-blue input::placeholder { color: var(--hdr-input-ph); }
+.tk-hdr-blue input:focus { border-color: var(--hdr-chip-line); }
+.tk-hdr-blue input ~ button { color: var(--hdr-input-ph); }
 /* Ichki sahifalarning sarlavha paneli ham brend ko'k: Telegram xromi bilan uzluksiz */
-.tk-topbar-blue { background: var(--brand-blue); color: #fff; }
+.tk-topbar-blue { background: var(--hdr-bg); color: #fff; box-shadow: inset 0 -1px 0 var(--hdr-line); }
 .tk-topbar-blue > div { color: #fff; --line: rgba(255,255,255,.16); --mut2: rgba(255,255,255,.72); }
 
 /* savatga qo'shish tasdigi: ikonka urishi va tugma belgisi */
@@ -285,7 +317,7 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
   .anim-sheet, .anim-modal, .anim-modal-out, .anim-fade, .anim-drawer, .anim-up, .anim-page, .anim-pop { animation: none !important; }
   .cart-beat, .add-ok { animation: none !important; }
   .tk-brand-wrap { transition: none !important; }
-  .tk-sel-wrap { transition: none !important; }
+  .tk-sel-pop { transition: none !important; }
   .tk-j-cart { animation: none !important; }
   .tk-add-active .tk-add-label { animation: none !important; }
   .press:active { transform: none; }
@@ -330,12 +362,27 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
 @keyframes tkStripIn { from { opacity: 0; transform: translateY(10px) scale(.97) } to { opacity: 1; transform: none } }
 @keyframes tkStripOut { from { opacity: 1 } to { opacity: 0; transform: translateY(6px) scale(.98) } }
 
+/* Qidiruv tugmasi: shisha effektsiz (header yuzasi toza rang; blur animatsiya
+   qatlamida qimmat — Task 4 talabi) */
 .tk-search-btn { background: var(--glass); border: 1px solid var(--glass-line); color: var(--ink2);
-  -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%);
-  box-shadow: 0 6px 18px -10px rgba(16, 24, 33, .25);
   transition: color .2s ease, transform .25s cubic-bezier(.32, .72, 0, 1); }
 .tk-search-btn:hover { color: var(--ink); }
 .tk-search-btn:active { transform: scale(.94); }
+
+/* Qidiruv ochilishi: ikki qatlam, FAQAT transform/opacity/clip-path.
+   Hech qanday width/height/layout animatsiyasi yo'q. */
+.tk-search-row { opacity: 1; transform: none;
+  transition: opacity .18s ease, transform .22s cubic-bezier(.32, .72, 0, 1); }
+.tk-search-row.is-out { opacity: 0; transform: translateY(-6px); pointer-events: none; }
+.tk-search-field { opacity: 0; visibility: hidden; pointer-events: none;
+  transform: translateY(8px) scale(.97); transform-origin: 22px 50%;
+  clip-path: circle(30px at 22px 50%);
+  transition: opacity .18s ease, transform .22s cubic-bezier(.32, .72, 0, 1),
+    clip-path .22s cubic-bezier(.32, .72, 0, 1), visibility 0s .22s; }
+.tk-search-field.is-in { opacity: 1; visibility: visible; pointer-events: auto;
+  transform: none; clip-path: circle(150% at 22px 50%);
+  transition: opacity .18s ease, transform .22s cubic-bezier(.32, .72, 0, 1),
+    clip-path .22s cubic-bezier(.32, .72, 0, 1); }
 
 .tk-float-cart { background: var(--glass); border: 1.5px solid var(--btn); color: var(--btn);
   -webkit-backdrop-filter: blur(14px) saturate(150%); backdrop-filter: blur(14px) saturate(150%);
@@ -364,6 +411,7 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
 
 @media (prefers-reduced-motion: reduce) {
   .tk-search-enter, .tk-search-exit, .tk-flame, .tk-spicy-ember::after { animation: none; }
+  .tk-search-row, .tk-search-field { transition: none !important; }
   .floating-row-left, .floating-row-right, .tk-tabbar { transition: none; }
 }
 /* ---------- Admin panel: theme (light/dark) responsive state colors ---------- */
