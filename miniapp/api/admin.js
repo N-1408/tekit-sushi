@@ -3,6 +3,7 @@ import { notifyUser } from './_notify.js';
 import { tgUserFrom, cors, failGuard, recordFail, safeEqual } from './_verify.js';
 import { readSession } from './_session.js';
 import { handleAuth } from './_auth.js';
+import { handleIikoStatus } from './_iiko-status.js';
 async function check(req) {
   // Admin sessiyasi (Telegram Login orqali): cookie bazadagi roliga qarab tekshiriladi
   const sess = readSession(req);
@@ -166,6 +167,9 @@ async function buildStats(P, days) {
 export default async (req, res) => {
   cors(res, 'GET, POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
+  // Hobby rejada 12 funksiya limiti: auth va iiko-status alohida emas, shu yerda ichki yo'nalish
+  if (req.query && req.query.type === 'auth') return handleAuth(req, res);
+  if (req.query && req.query.type === 'iiko-status') return handleIikoStatus(req, res);
   if (!process.env.ADMIN_PASSWORD) return res.status(503).json({ ok: false, error: 'ADMIN_PASSWORD sozlanmagan' });
 
   const okSchema = await ensureSchema();
@@ -173,7 +177,6 @@ export default async (req, res) => {
   const P = getPool();
 
   if (req.method === 'GET') {
-    if (req.query && req.query.type === 'auth') return handleAuth(req, res);
     if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
     const action = str(req.query.action || 'orders', 20);
     try {
@@ -252,7 +255,6 @@ export default async (req, res) => {
   }
 
   if (req.method === 'POST') {
-    if (req.query && req.query.type === 'auth') return handleAuth(req, res);
     if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
     try {
       const b = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;

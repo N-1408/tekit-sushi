@@ -64,6 +64,10 @@ app.all('/api/auth', (req, res) => {
   req.query = { ...req.query, type: 'auth' };
   return call('admin', req, res, '/api/admin?type=auth');
 });
+app.all('/api/iiko-status', (req, res) => {
+  req.query = { ...req.query, type: 'iiko-status' };
+  return call('admin', req, res, '/api/admin?type=iiko-status');
+});
 app.all('/api/:name', (req, res) => {
   const name = String(req.params.name);
   if (!handlers[name]) return res.status(404).json({ ok: false, error: 'not found' });

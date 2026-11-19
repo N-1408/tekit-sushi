@@ -1,7 +1,7 @@
 // iiko Cloud API connection check. Diagnostika uchun: token, tashkilotlar,
+// NOTE: Hobby 12-funksiya limiti uchun alohida funksiya emas: admin.js ichidan chaqiriladi
+// (vercel.json: /api/iiko-status -> /api/admin?type=iiko-status).
 // terminal guruhlari. Hech qanday maxfiy qiymatni javobga chiqarmaydi.
-import { cors } from './_verify.js';
-
 const BASE = (process.env.IIKO_BASE_URL || 'https://api-ru.iiko.services').replace(/\/$/, '');
 
 function mask(v) { return v ? v.slice(0, 4) + '…' : null; }
@@ -20,9 +20,7 @@ async function post(path, token, body) {
   return { status: res.status, data };
 }
 
-export default async function handler(req, res) {
-  if (cors(req, res)) return;
-
+export async function handleIikoStatus(req, res) {
   const env = {
     iikoApiLoginSet: !!process.env.IIKO_API_LOGIN,
     iikoOrganizationIdSet: !!process.env.IIKO_ORGANIZATION_ID,

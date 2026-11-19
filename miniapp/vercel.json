@@ -23,6 +23,10 @@
       "destination": "/api/admin?type=auth"
     },
     {
+      "source": "/api/iiko-status",
+      "destination": "/api/admin?type=iiko-status"
+    },
+    {
       "source": "/((?!api/).*)",
       "destination": "/index.html"
     }
