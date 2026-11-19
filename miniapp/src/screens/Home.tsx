@@ -232,7 +232,7 @@ export default function Home() {
     return () => { ro?.disconnect() }
   }, [])
 
-  // BUTUN header bloki balandligi (--hdr-h): logo + burger/qator + panel
+  // BUTUN header bloki balandligi (--hdr-h): logo + qatorlar + panel
   // (ochilganda) + chips. ResizeObserver bilan har o'zgarishda yangilanadi.
   React.useEffect(() => {
     const el = navRef.current

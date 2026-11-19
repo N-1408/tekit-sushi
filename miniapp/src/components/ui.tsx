@@ -455,7 +455,7 @@ export function Header() {
       {isWide ? (
         /* KENG ekran (lg+): eskicha brend qatori — o'z ko'rinishi saqlanadi */
         <header className="relative z-[31] text-[var(--ink)]">
-          <div className="tk-brand-wrap max-w-[1240px] mx-auto">
+          <div className="max-w-[1240px] mx-auto">
             <div>
               <div className="flex items-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2 justify-between">
                 <button onClick={() => nav('/')} aria-label="Tekit Sushi"
@@ -481,7 +481,7 @@ export function Header() {
            1-qator: logo markazda (oq).
            2-qator: chapda til tugmasi, markazda buyurtma turi, o'ngda tema. */
         <header ref={hdrRef} className="relative z-[31] text-white">
-          <div className="tk-brand-wrap max-w-[1240px] mx-auto">
+          <div className="max-w-[1240px] mx-auto">
             <div>
               <div className="flex items-center justify-center px-4 pt-1.5 pb-1">
                 <button onClick={() => nav('/')} aria-label="Tekit Sushi"
@@ -493,7 +493,7 @@ export function Header() {
               </div>
             </div>
           </div>
-          {/* 2-qator: 3 ustunli grid — chapda burger, MARKAZDA buyurtma turi,
+          {/* 2-qator: 3 ustunli grid — chapda til tugmasi, MARKAZDA buyurtma turi,
               o'ngda tema almashtirgich. Pill ekranning aniq o'rtasida turadi. */}
           <div className="grid grid-cols-[1fr_auto_1fr] items-center px-4 pt-1 pb-2.5 max-w-[1240px] mx-auto">
             {/* Chapda til tugmasi: o'ngdagi tema tugmasi bilan bir xil o'lcham/uslub */}

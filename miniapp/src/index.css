@@ -139,7 +139,7 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
   .hov:hover{ background:var(--panel); }
 }
 
-/* yangi dizayn: hero slayder, drawer */
+/* yangi dizayn: hero slayder */
 .hero-bg { background: linear-gradient(115deg, #FFE9EC 0%, #FDF2F4 100%); }
 .wm { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='340' height='150'><text x='0' y='60' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.5' font-family='Arial'>TEKIT ティキット</text><text x='170' y='130' font-size='54' font-weight='800' fill='none' stroke='white' stroke-opacity='.5' font-family='Arial'>TEKIT ティキット</text></svg>"); background-size: 340px 150px; }
 @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
@@ -221,8 +221,6 @@ input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill {
 @keyframes tk-tab-pop { 0% { transform: scale(.82) } 55% { transform: scale(1.12) } 100% { transform: scale(1) } }
 /* Savat tugmasida pop yo'q: bosilganda ro'yxat darhol, jim ochiladi */
 .tk-tab-btn.no-pop.is-on .tk-tab-ico { animation: none; }
-
-.tk-brand-wrap > div { min-height: 0; }
 
 /* Headerdagi buyurtma-turi paneli: OVERLAY (header ostida, absolute).
    FAQAT transform+opacity animatsiyasi — grid-rows kabi butun sahifa layoutini
@@ -309,7 +307,6 @@ body[data-map-open='1'] .floating-quick { display: none !important; }
 @media (prefers-reduced-motion: reduce) {
   .anim-sheet, .anim-modal, .anim-modal-out, .anim-fade, .anim-up, .anim-page, .anim-pop { animation: none !important; }
   .cart-beat, .add-ok { animation: none !important; }
-  .tk-brand-wrap { transition: none !important; }
   .tk-sel-pop { transition: none !important; }
   .tk-j-cart { animation: none !important; }
   .tk-add-active .tk-add-label { animation: none !important; }
