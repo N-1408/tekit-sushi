@@ -1,3 +1,5 @@
+import { safeEqual } from './_verify.js';
+
 // To'lov adapter qatlami: PAYMENT_PROVIDER = manual | rhmt | payme
 // Shartnoma kelsa faqat env o'zgaradi: RHMT_STORE_ID, RHMT_TOKEN, PAYME_MERCHANT_ID, PAYME_KEY
 const APP_ORIGIN = process.env.APP_ORIGIN || '';
@@ -40,5 +42,5 @@ export async function createPayment(order) {
 // Webhook /api/webhook/payment dagi so'rovni tekshirish
 export function checkPaymentWebhookSecret(secret) {
   const expected = process.env.PAYMENT_WEBHOOK_SECRET;
-  return expected && secret === expected;
+  return !!expected && safeEqual(secret, expected);
 }

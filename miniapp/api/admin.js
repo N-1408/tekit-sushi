@@ -1,18 +1,12 @@
-import { Pool } from 'pg';
-import { createDelivery } from './_delivery.js';
+import { getPool } from './_db.js';import { createDelivery } from './_delivery.js';
 import { notifyUser } from './_notify.js';
-import { tgUserFrom, cors, failGuard, recordFail } from './_verify.js';
-let pool;
-function getPool() {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
-  return pool;
-}
+import { tgUserFrom, cors, failGuard, recordFail, safeEqual } from './_verify.js';
 async function check(req) {
   const key = req.headers['x-admin-key'] || '';
   if (key) {
-    if (failGuard(req, 'pw')) return false;
-    if (key === process.env.ADMIN_PASSWORD) return true;
-    recordFail(req, 'pw');
+    if (await failGuard(req, 'pw')) return false;
+    if (safeEqual(key, process.env.ADMIN_PASSWORD)) return true;
+    await recordFail(req, 'pw');
     return false;
   }
   const u = tgUserFrom(req);

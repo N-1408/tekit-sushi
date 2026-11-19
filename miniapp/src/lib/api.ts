@@ -1,5 +1,11 @@
 import type { MyOrder } from './store'
-import { tgUser } from './tg'
+import { tgUser, tgInitData } from './tg'
+
+/* Server tekshiruvi uchun imzo sarlavhasi (mavjud bo'lsa) */
+function authHeaders(): Record<string, string> {
+  const d = tgInitData()
+  return d ? { 'X-Init-Data': d } : {}
+}
 
 export async function postOrder(o: Omit<MyOrder, 'oid'> & { note?: string; when?: string }) {
   const u = tgUser()
@@ -7,7 +13,7 @@ export async function postOrder(o: Omit<MyOrder, 'oid'> & { note?: string; when?
     type: 'order', ...o, tg_user_id: u?.id ?? null,
     address: o.addr, delivery_type: o.mode, payment: o.pay, total: o.sum,
   }
-  const r = await fetch('/api/order', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+  const r = await fetch('/api/order', { method: 'POST', headers: { 'Content-Type': 'application/json', ...authHeaders() }, body: JSON.stringify(body) })
   if (!r.ok) throw new Error('order failed')
   const j = await r.json()
   return j as { ok: boolean; order_id: number; created_at: string }

@@ -1,12 +1,6 @@
-import { Pool } from 'pg';
-import { cors } from './_verify.js';
+import { getPool } from './_db.js';import { cors } from './_verify.js';
 import { checkPaymentWebhookSecret } from './_payment.js';
 
-let pool;
-function getPool() {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
-  return pool;
-}
 
 export const paymentHandler = async (req, res) => {
   cors(res, 'POST, OPTIONS');

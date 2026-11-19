@@ -1,15 +1,8 @@
-import pg from 'pg';
-
+import { getPool } from './_db.js';
+import { safeEqual } from './_verify.js';
 const TOKEN = process.env.BOT_TOKEN || '';
 const WEBAPP_URL = process.env.WEBAPP_URL || 'https://tekit-sushi-miniapp.vercel.app/';
 
-let pool = null;
-function getPool() {
-  if (!pool && process.env.DATABASE_URL) {
-    pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, max: 3, ssl: { rejectUnauthorized: false } });
-  }
-  return pool;
-}
 
 const T = {
   uz: {
@@ -215,7 +208,9 @@ async function handleUpdate(u) {
 
 export default async function handler(req, res) {
   const st = req.headers['x-telegram-bot-api-secret-token'] || '';
-  if (st !== (process.env.TELEGRAM_WEBHOOK_SECRET || 'tekitwebhook2026')) return res.status(401).json({ ok: false });
+  const expected = process.env.TELEGRAM_WEBHOOK_SECRET || 'tekitwebhook2026';
+  if (!process.env.TELEGRAM_WEBHOOK_SECRET) console.warn("TELEGRAM_WEBHOOK_SECRET o'rnatilmagan: kod ichidagi standart sir ishlatilmoqda — uni Vercel env'da o'rnatings");
+  if (!safeEqual(st, expected)) return res.status(401).json({ ok: false });
   if (req.method !== 'POST') { res.status(200).json({ ok: true, service: 'tekit-sushi-bot', token: !!TOKEN }); return; }
   try {
     const update = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});

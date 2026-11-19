@@ -1,12 +1,6 @@
-import { Pool } from 'pg';
-import { MENU_SEED } from './_menuSeed.js';
+import { getPool } from './_db.js';import { MENU_SEED } from './_menuSeed.js';
 import { cors } from './_verify.js';
 
-let pool;
-function getPool() {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
-  return pool;
-}
 
 const CAT_SEED = [
   { slug: 'hit', sort: 0, uz: 'Xitlar', ru: 'Хиты', en: 'Best sellers', emoji: '🔥' },

@@ -4,18 +4,11 @@
 // Hobby rejada bir deploymentga eng ko'pi bilan 12 ta serverless funksiya
 // ruxsat etilgani uchun delivery-quote shu faylga birlashtirildi; eski
 // /api/delivery-quote yo'li vercel.json rewrite orqali shu yerga keladi.
-import pg from 'pg'
+import { getPool } from './_db.js'
 import { cors, rateLimit } from './_verify.js'
 import { BRANCHES, pickupCfgFrom, deliveryCfgFrom, readSettings } from './_fulfillment.js'
 import { quoteDelivery, cityOf, TASHKENT_RE } from './_delivery.js'
 
-let pool
-function getPool() {
-  if (!pool && process.env.DATABASE_URL) {
-    pool = new pg.Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 })
-  }
-  return pool
-}
 
 export default async (req, res) => {
   cors(res)
@@ -56,11 +49,9 @@ async function quoteHandler(req, res) {
 
   let eta_minutes = null;
   try {
-    const P = (await import('pg')).default;
-    if (process.env.DATABASE_URL) {
-      const qpool = new P.Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 2 });
+    const qpool = getPool();
+    if (qpool) {
       eta_minutes = deliveryCfgFrom(await readSettings(qpool), process.env).eta_minutes;
-      await qpool.end().catch(() => {});
     }
   } catch { /* DB yo'q — eta null qoladi */ }
 

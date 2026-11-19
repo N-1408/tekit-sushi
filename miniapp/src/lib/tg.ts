@@ -83,6 +83,11 @@ export function tgUser(): { id: number; first_name?: string; username?: string; 
   return TGA?.initDataUnsafe?.user || null
 }
 
+/* Server tekshiruvi uchun xom initData (X-Init-Data sarlavhasi) */
+export function tgInitData(): string | null {
+  return typeof TGA?.initData === 'string' && TGA.initData ? TGA.initData : null
+}
+
 export function requestLocation(): Promise<{ lat: number; lon: number } | null> {
   return new Promise(resolve => {
     let done = false

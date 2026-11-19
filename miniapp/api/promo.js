@@ -1,11 +1,5 @@
-import { Pool } from 'pg';
-import { cors } from './_verify.js';
+import { getPool } from './_db.js';import { cors } from './_verify.js';
 
-let pool;
-function getPool() {
-  if (!pool) pool = new Pool({ connectionString: process.env.DATABASE_URL, ssl: { rejectUnauthorized: false }, max: 3 });
-  return pool;
-}
 let ensured;
 function ensureSchema() {
   if (!ensured) {
