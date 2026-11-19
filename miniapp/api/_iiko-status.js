@@ -33,11 +33,20 @@ export async function handleIikoStatus(req, res) {
   }
 
   // 1) Token: v1 birinchi, agar kalit faqat v2 bo'lsa v2 ga o'tamiz
-  let tok = await post('/api/1/access_token', null, { apiLogin: process.env.IIKO_API_LOGIN });
+  const v1 = await post('/api/1/access_token', null, { apiLogin: process.env.IIKO_API_LOGIN });
+  let tok = v1;
   let version = 'v1';
-  if (tok.status !== 200 || !tok.data || !tok.data.token) {
+  if (v1.status !== 200 || !v1.data || !v1.data.token) {
     const v2 = await post('/api/v2/access_token', null, { apiLogin: process.env.IIKO_API_LOGIN });
     if (v2.status === 200 && v2.data && v2.data.token) { tok = v2; version = 'v2'; }
+    else {
+      return res.status(200).json({
+        ok: false, stage: 'token', env,
+        error: 'iiko rejected the apiLogin on both v1 and v2 token endpoints',
+        v1: { httpStatus: v1.status, detail: v1.data && (v1.data.errorDescription || v1.data.description || JSON.stringify(v1.data)) || undefined },
+        v2: { httpStatus: v2.status, detail: v2.data && (v2.data.errorDescription || v2.data.description || JSON.stringify(v2.data)) || undefined },
+      });
+    }
   }
   if (tok.status !== 200 || !tok.data || !tok.data.token) {
     return res.status(200).json({
