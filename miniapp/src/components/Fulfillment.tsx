@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import Modal from './Modal'
 import { useStore, type PickupSel, type MyOrder, type Branch } from '../lib/store'
+import { API_BASE } from '../lib/api'
 import { requestLocation, haptic } from '../lib/tg'
 import MapPicker from './MapPicker'
 import { IcLocate, IcPin, IcCheck, IcStore, IcChevL, IcTruck, IcClock, IcInfo } from './ui'
@@ -188,7 +189,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
     let addr = `${loc.lat.toFixed(5)}, ${loc.lon.toFixed(5)}`
     let verified = false
     try {
-      const r = await fetch(`/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
+      const r = await fetch(`${API_BASE}/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
       const j = await r.json()
       if (j?.ok && j.addr) { addr = j.addr; verified = true }
     } catch { /* geokodlanmadi — kordinata ko'rsatiladi */ }

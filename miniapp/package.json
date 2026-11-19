@@ -3,10 +3,14 @@
   "private": true,
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "preview": "vite preview",
+    "start:server": "node server/index.js"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
+    "express": "^5.3.0",
     "leaflet": "^1.9.4",
     "pg": "^8.11.3",
     "react": "^18.3.1",

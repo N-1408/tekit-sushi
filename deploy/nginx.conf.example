@@ -1,0 +1,31 @@
+# Tekit Sushi — HTTPS reverse proxy namunasi (VPS uchun)
+# 1) server_name ni o'z domeningizga almashtiring (masalan tekit.uz)
+# 2) Sertifikat: certbot --nginx -d tekit.uz  (Let's Encrypt bepul)
+#    yoki quyidagi ssl_certificate yo'llarini haqiqiy sertifikatlarga almashtiring.
+# 3) Ilova: docker compose up -d (3000 portda) — nginx uni proksi qiladi.
+
+server {
+    listen 80;
+    server_name tekit.uz www.tekit.uz;
+    # Let's Encrypt uchun: certbot o'zi shu server blokiga yozadi
+    location /.well-known/acme-challenge/ { root /var/www/html; }
+    location / { return 301 https://$host$request_uri; }
+}
+
+server {
+    listen 443 ssl http2;
+    server_name tekit.uz www.tekit.uz;
+
+    ssl_certificate     /etc/letsencrypt/live/tekit.uz/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/tekit.uz/privkey.pem;
+
+    # Telegram webhook va API
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        client_max_body_size 5m;   # rasm yuklash (upload.js 1MB chegarasi + zaxira)
+    }
+}

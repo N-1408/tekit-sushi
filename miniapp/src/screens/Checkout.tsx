@@ -1,6 +1,7 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore, pName } from '../lib/store'
+import { API_BASE } from '../lib/api'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
 import { TopBar, BigButton, IcTruck, IcCheck, IcPin, IcStore, IcChevR, IcCash, IcCard } from '../components/ui'
@@ -65,7 +66,7 @@ export default function Checkout() {
     const loc = await requestLocation()
     if (!loc) { setLocBusy(false); setLocMsg(t.obLocFail); return }
     try {
-      const r = await fetch(`/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
+      const r = await fetch(`${API_BASE}/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
       const j = r.ok ? await r.json() : null
       if (j?.ok && j.addr) { setAddr(j.addr); setLocMsg(t.obLocOk) }
       else setLocMsg(t.obLocFail)
@@ -80,7 +81,7 @@ export default function Checkout() {
     if (query.length < 3) { setSugs([]); return }
     sugT.current = setTimeout(async () => {
       try {
-        const r = await fetch(`/api/geocode?q=${encodeURIComponent(query)}`)
+        const r = await fetch(`${API_BASE}/api/geocode?q=${encodeURIComponent(query)}`)
         const j = await r.json()
         setSugs(j?.results || [])
       } catch { setSugs([]) }
@@ -108,7 +109,7 @@ export default function Checkout() {
     if (!c) return
     setPromoBusy(true); setPromoMsg('')
     try {
-      const r = await fetch(`/api/promo?code=${encodeURIComponent(c)}`)
+      const r = await fetch(`${API_BASE}/api/promo?code=${encodeURIComponent(c)}`)
       if (r.ok) { const j = await r.json(); setPromoPct(j.percent); setPromoMsg(`${t.promoOk} · −${j.percent}%`) }
       else { setPromoPct(0); setPromoMsg(t.promoInvalid) }
     } catch { setPromoMsg(t.promoInvalid) }

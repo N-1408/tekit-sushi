@@ -1,5 +1,6 @@
 import React from 'react'
 import { useStore } from '../lib/store'
+import { API_BASE } from '../lib/api'
 import { tgUser, requestLocation, haptic } from '../lib/tg'
 import { IcPin } from '../components/ui'
 
@@ -31,7 +32,7 @@ export default function Onboarding() {
     const loc = await requestLocation()
     if (!loc) { setBusy(false); setLocState('fail'); haptic('error'); return }
     try {
-      const r = await fetch(`/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
+      const r = await fetch(`${API_BASE}/api/geocode?lat=${loc.lat}&lon=${loc.lon}`)
       const j = r.ok ? await r.json() : null
       setCoords(loc)
       if (j?.ok && j.addr) { setAddr(j.addr); setLocState('ok'); haptic('success') }

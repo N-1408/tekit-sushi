@@ -2,6 +2,7 @@ import React from 'react'
 import { useStore } from '../../lib/store'
 import { fmt } from '../../lib/money'
 import { AdminTopBar, AdminGate, useAdmin } from './common'
+import { API_BASE } from '../../lib/api'
 import type { AdminStat } from '../../lib/admin'
 
 export default function AdminDash() {
@@ -42,7 +43,7 @@ function Body() {
     if (!a.ready) return
     let dead = false
     setLocal(null)
-    fetch(`/api/admin?action=stats&days=${range}`, { headers: a.h() })
+    fetch(`${API_BASE}/api/admin?action=stats&days=${range}`, { headers: a.h() })
       .then(r => r.ok ? r.json() : null).then(j => {
         if (dead) return
         if (j?.ok) setLocal(j); else setErr('x')
