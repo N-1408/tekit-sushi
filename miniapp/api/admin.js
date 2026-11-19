@@ -1,7 +1,16 @@
 import { getPool } from './_db.js';import { createDelivery } from './_delivery.js';
 import { notifyUser } from './_notify.js';
 import { tgUserFrom, cors, failGuard, recordFail, safeEqual } from './_verify.js';
+import { readSession } from './_session.js';
 async function check(req) {
+  // Admin sessiyasi (Telegram Login orqali): cookie bazadagi roliga qarab tekshiriladi
+  const sess = readSession(req);
+  if (sess) {
+    try {
+      const r = await getPool().query('SELECT role FROM bot_users WHERE tg_id=$1', [sess.tg_id]);
+      return r.rows[0]?.role === 'admin';
+    } catch { return false; }
+  }
   const key = req.headers['x-admin-key'] || '';
   if (key) {
     if (await failGuard(req, 'pw')) return false;
