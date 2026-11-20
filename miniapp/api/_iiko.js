@@ -46,18 +46,46 @@ export async function orgList() {
   return Array.isArray(d) ? d : (d && Array.isArray(d.organizations) ? d.organizations : []);
 }
 
-export async function nomenclature(orgId) {
-  return call('/api/1/nomenclature?version=3', { organizationId: orgId, additionalData: ['imageLinks', 'itemDescription'] });
+// Nomenklatura v2: /api/1/nomenclature o'chirilgan (HTTP 410). Yangi kontrakt:
+// paginatsiyali /api/nomenclature/v2/product/list va /group/list.
+// Katalog API-kalit kontekstiga tegishli; narx = defaultSalePrice (kartochka bazaviy narxi).
+async function paged(path, responseField, idField, filters = []) {
+  const limit = 500, items = [], seen = new Set();
+  for (let offset = 0; offset < 250000;) {
+    const d = await call(path, { filters, limit, offset });
+    const page = Array.isArray(d && d[responseField]) ? d[responseField] : null;
+    if (!page) throw new Error(`iiko ${path}: noto'g'ri javob shakli`);
+    for (const it of page) {
+      const id = it && it[idField];
+      if (!id) throw new Error(`iiko ${path}: yozuvda ${idField} yo'q`);
+      if (seen.has(id)) throw new Error(`iiko ${path}: takroriy id`);
+      seen.add(id); items.push(it);
+    }
+    offset += page.length;
+    if (Number.isInteger(d.totalCount) && d.totalCount >= 0 && offset >= d.totalCount) return items;
+    if (!page.length) return items;
+  }
+  throw new Error(`iiko ${path}: juda ko'p yozuv`);
+}
+
+export async function catalogV2() {
+  const filters = [{ field: 'isDeleted', op: 'eq', value: false }];
+  const products = await paged('/api/nomenclature/v2/product/list', 'items', 'productId', filters);
+  let groups = [];
+  try {
+    groups = await paged('/api/nomenclature/v2/group/list', 'groups', 'groupId', filters);
+  } catch (e) {
+    if (String(e).includes('HTTP 401')) throw e;
+    // Guruhlar katalogi ixtiyoriy: bo'lmasa toifalarsiz davom etamiz
+    groups = [];
+  }
+  return { products, groups };
 }
 
 function priceOf(p) {
-  const s = Array.isArray(p.sizes) ? p.sizes[0] : null;
-  if (s && s.price !== undefined && s.price !== null) {
-    if (typeof s.price === 'number') return s.price;
-    if (typeof s.price.currentPrice === 'number') return s.price.currentPrice;
-    if (typeof s.price.price === 'number') return s.price.price;
-  }
-  return typeof p.price === 'number' ? p.price : null;
+  const v = p.defaultSalePrice;
+  const n = Number(v);
+  return v === null || v === undefined || v === '' || !Number.isFinite(n) ? null : n;
 }
 
 function slugify(s) {
@@ -67,119 +95,118 @@ function slugify(s) {
     .join('').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 }
 
-// Bir tashkilotning to'liq menyuini DB'ga yozadi (iiko IDlari bilan kalitlanadi).
-// Bizga xos ustunlar (tarjimalar, promo, sort, img) saqlanib qoladi: faqat
-// iiko beradigan maydonlar yangilanadi.
-export async function syncMenu(pool, orgIds, { activate = false } = {}) {
-  const results = [];
-  for (const orgId of orgIds) {
-    const nom = await nomenclature(orgId);
-    const cats = Array.isArray(nom.productCategories) ? nom.productCategories : [];
-    const groups = Array.isArray(nom.groups) ? nom.groups : [];
-    const products = (Array.isArray(nom.products) ? nom.products : []).filter((p) => !p.isDeleted && !p.isComponent);
-    const byId = new Map(products.map((p) => [p.id, p]));
-    const orgName = (nom.organization && (nom.organization.name || nom.organization.companyName)) || orgId.slice(0, 8);
+// Katalogni DB'ga yozadi (iiko IDlari bilan kalitlanadi). Bizga xos ustunlar
+// (tarjimalar, promo, sort, img, active/hit) saqlanib qoladi: faqat iiko
+// beradigan maydonlar yangilanadi. Yangi elementlar activate=true bo'lmasa
+// yashirin (active=false) keladi — mijozga ko'rinmaydi.
+export async function syncMenu(pool, { activate = false } = {}) {
+  const { products, groups } = await catalogV2();
+  const groupsById = new Map(groups.map((g) => [g.groupId, g]));
+  const byId = new Map(products.map((p) => [p.productId, p]));
+  const OK_TYPES = ['GOODS', 'DISH', 'PREPARED', 'SERVICE'];
+  const sellable = products.filter((p) => p.name && OK_TYPES.includes(p.type));
 
-    // 1) Kategoriyalar
-    const catJson = JSON.stringify(cats.map((c) => ({
-      slug: 'i_' + c.id, title_uz: c.name || '', title_ru: c.name || '', title_en: c.name || '', iiko_id: c.id,
-    })));
-    const catRes = await pool.query(
-      `INSERT INTO menu_categories (slug, title_uz, title_ru, title_en, active, source, iiko_id)
-       SELECT x.slug, x.title_uz, x.title_ru, x.title_en, true, 'iiko', x.iiko_id
-       FROM jsonb_to_recordset($1::jsonb) AS x(slug text, title_uz text, title_ru text, title_en text, iiko_id text)
-       ON CONFLICT (slug) DO UPDATE SET title_uz = EXCLUDED.title_uz, title_ru = EXCLUDED.title_ru,
-         title_en = EXCLUDED.title_en, source = 'iiko', iiko_id = EXCLUDED.iiko_id`,
-      [catJson]
-    );
-
-    // 2) Mahsulotlar
-    const itemJson = JSON.stringify(products.map((p) => {
-      const price = priceOf(p);
-      const name = p.name || '';
-      const desc = p.description || '';
-      return {
-        id: 'iiko_' + p.id,
-        slug: (slugify(name) || 'iiko') + '-' + p.id.slice(0, 6),
-        cat: p.productCategoryId ? 'i_' + p.productCategoryId : 'iiko-other',
-        price: price === null ? 0 : Math.round(price),
-        t_uz: name, t_ru: name, t_en: name,
-        d_uz: desc, d_ru: desc, d_en: desc,
-        iiko_id: p.id,
-        iiko_prices: { [orgId]: price === null ? null : Math.round(price) },
-      };
-    }));
-    const itemRes = await pool.query(
-      `INSERT INTO menu_items (id, slug, cat, price, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, source, iiko_id, iiko_prices)
-       SELECT x.id, x.slug, x.cat, x.price, x.t_uz, x.t_ru, x.t_en, x.d_uz, x.d_ru, x.d_en, 0, false, $2::boolean, 'iiko', x.iiko_id, x.iiko_prices
-       FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb)
-       ON CONFLICT (id) DO UPDATE SET
-         cat = EXCLUDED.cat, price = EXCLUDED.price,
-         t_uz = EXCLUDED.t_uz, t_ru = EXCLUDED.t_ru, t_en = EXCLUDED.t_en,
-         d_uz = EXCLUDED.d_uz, d_ru = EXCLUDED.d_ru, d_en = EXCLUDED.d_en,
-         iiko_prices = COALESCE(menu_items.iiko_prices, '{}'::jsonb) || EXCLUDED.iiko_prices`,
-      [itemJson, activate]
-    );
-
-    // 3) Modifikator guruhlari (souslar, qo'shimchalar)
-    const gRows = [], oRows = [], mRows = [];
-    for (const p of products) {
-      // Sodda modifikatorlar: bitta yashirin guruh
-      const mods = Array.isArray(p.modifiers) ? p.modifiers : [];
-      if (mods.length) {
-        const gid = 'ms_' + p.id;
-        gRows.push({ id: gid, title: null, min_qty: 0, max_qty: 0 });
-        mods.forEach((m, i) => {
-          const mp = byId.get(m.productId);
-          oRows.push({ id: 'o_' + gid + '_' + m.productId, group_id: gid, iiko_product_id: m.productId,
-            name: mp ? mp.name : '', price: mp ? (priceOf(mp) || 0) : 0, is_default: !!m.byDefault });
-          mRows.push({ item_id: 'iiko_' + p.id, group_id: gid, min_amount: m.minAmount, max_amount: m.maxAmount, sort: i });
-        });
-      }
-      // Murakkab guruhlar (itemGroupId)
-      const gms = Array.isArray(p.groupModifiers) ? p.groupModifiers : [];
-      gms.forEach((gm, gi) => {
-        if (!gm || !gm.itemGroupId) return;
-        const gid = 'm_' + gm.itemGroupId;
-        const gdef = groups.find((g) => g.id === gm.itemGroupId);
-        gRows.push({ id: gid, title: gdef ? gdef.name : null, min_qty: gm.minAmount ?? 0, max_qty: gm.maxAmount ?? 0 });
-        (gm.modifiers || []).forEach((m, i) => {
-          const mp = byId.get(m.productId);
-          oRows.push({ id: 'o_' + gid + '_' + m.productId, group_id: gid, iiko_product_id: m.productId,
-            name: mp ? mp.name : '', price: mp ? (priceOf(mp) || 0) : 0, is_default: !!m.byDefault });
-          mRows.push({ item_id: 'iiko_' + p.id, group_id: gid, min_amount: m.minAmount, max_amount: m.maxAmount, sort: gi * 100 + i });
-        });
-      });
-    }
-    const gRes = await pool.query(
-      `INSERT INTO menu_mod_groups (id, title, min_qty, max_qty)
-       SELECT x.id, x.title, x.min_qty, x.max_qty FROM jsonb_to_recordset($1::jsonb) AS x(id text, title text, min_qty int, max_qty int)
-       ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, min_qty = EXCLUDED.min_qty, max_qty = EXCLUDED.max_qty`,
-      [JSON.stringify(gRows)]
-    );
-    const oRes = await pool.query(
-      `INSERT INTO menu_mod_options (id, group_id, iiko_product_id, name, price, is_default)
-       SELECT x.id, x.group_id, x.iiko_product_id, x.name, x.price, x.is_default
-       FROM jsonb_to_recordset($1::jsonb) AS x(id text, group_id text, iiko_product_id text, name text, price int, is_default boolean)
-       ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, price = EXCLUDED.price, is_default = EXCLUDED.is_default`,
-      [JSON.stringify(oRows)]
-    );
-    const mRes = await pool.query(
-      `INSERT INTO menu_item_mod_groups (item_id, group_id, min_amount, max_amount, sort)
-       SELECT x.item_id, x.group_id, x.min_amount, x.max_amount, x.sort
-       FROM jsonb_to_recordset($1::jsonb) AS x(item_id text, group_id text, min_amount real, max_amount real, sort int)
-       ON CONFLICT (item_id, group_id) DO UPDATE SET min_amount = EXCLUDED.min_amount, max_amount = EXCLUDED.max_amount, sort = EXCLUDED.sort`,
-      [JSON.stringify(mRows)]
-    );
-
-    results.push({
-      orgId, name: orgName,
-      categories: catRes.rowCount || 0,
-      items: itemRes.rowCount || 0,
-      modifierGroups: gRes.rowCount || 0,
-      modifierOptions: oRes.rowCount || 0,
-      itemGroupLinks: mRes.rowCount || 0,
+  // 1) Toifalar: mahsulotning parentGroupId -> group nomi
+  const usedCats = new Set(sellable.map((p) => p.parentGroupId || ''));
+  const catRows = [];
+  for (const gid of usedCats) {
+    const gname = gid && groupsById.get(gid) ? groupsById.get(gid).name : 'Boshqa';
+    catRows.push({
+      slug: gid ? 'i_' + gid : 'iiko-other',
+      title_uz: gname, title_ru: gname, title_en: gname,
+      iiko_id: gid || null,
     });
   }
-  return results;
+  const catRes = await pool.query(
+    `INSERT INTO menu_categories (slug, title_uz, title_ru, title_en, active, source, iiko_id)
+     SELECT x.slug, x.title_uz, x.title_ru, x.title_en, true, 'iiko', x.iiko_id
+     FROM jsonb_to_recordset($1::jsonb) AS x(slug text, title_uz text, title_ru text, title_en text, iiko_id text)
+     ON CONFLICT (slug) DO UPDATE SET title_uz = EXCLUDED.title_uz, title_ru = EXCLUDED.title_ru,
+       title_en = EXCLUDED.title_en, source = 'iiko', iiko_id = EXCLUDED.iiko_id`,
+    [JSON.stringify(catRows)]
+  );
+
+  // 2) Mahsulotlar
+  const itemJson = sellable.map((p) => {
+    const price = priceOf(p) || 0;
+    return {
+      id: 'iiko_' + p.productId,
+      slug: (slugify(p.name) || 'iiko') + '-' + String(p.productId).slice(0, 6),
+      cat: p.parentGroupId ? 'i_' + p.parentGroupId : 'iiko-other',
+      price: Math.round(price),
+      t_uz: p.name, t_ru: p.name, t_en: p.name,
+      d_uz: p.description || '', d_ru: p.description || '', d_en: p.description || '',
+      iiko_id: p.productId,
+      iiko_prices: { default: Math.round(price) },
+    };
+  });
+  const itemRes = await pool.query(
+    `INSERT INTO menu_items (id, slug, cat, price, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, source, iiko_id, iiko_prices)
+     SELECT x.id, x.slug, x.cat, x.price, x.t_uz, x.t_ru, x.t_en, x.d_uz, x.d_ru, x.d_en, 0, false, $2::boolean, 'iiko', x.iiko_id, x.iiko_prices
+     FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb)
+     ON CONFLICT (id) DO UPDATE SET
+       cat = EXCLUDED.cat, price = EXCLUDED.price,
+       t_uz = EXCLUDED.t_uz, t_ru = EXCLUDED.t_ru, t_en = EXCLUDED.t_en,
+       d_uz = EXCLUDED.d_uz, d_ru = EXCLUDED.d_ru, d_en = EXCLUDED.d_en,
+       iiko_prices = COALESCE(menu_items.iiko_prices, '{}'::jsonb) || EXCLUDED.iiko_prices`,
+    [JSON.stringify(itemJson), activate]
+  );
+
+  // 3) Modifikatorlar: p.modifiers -> sodda yoki childModifiers bilan guruh
+  const gRows = [], oRows = [], mRows = [];
+  for (const p of sellable) {
+    const mods = Array.isArray(p.modifiers) ? p.modifiers : [];
+    mods.forEach((mod, gi) => {
+      const children = Array.isArray(mod.childModifiers) && mod.childModifiers.length ? mod.childModifiers : [mod];
+      const grouped = Array.isArray(mod.childModifiers) && mod.childModifiers.length > 0;
+      const gid = grouped && mod.modifierId ? 'm_' + mod.modifierId : 'ms_' + p.productId;
+      const gtitle = grouped ? (groupsById.get(mod.modifierId)?.name || null) : null;
+      gRows.push({ id: gid, title: gtitle, min_qty: Math.round(Number(mod.minimumAmount) || 0), max_qty: Math.round(Number(mod.maximumAmount) || 0) });
+      children.forEach((entry, i) => {
+        const target = byId.get(entry.modifierId);
+        oRows.push({
+          id: 'o_' + gid + '_' + entry.modifierId, group_id: gid, iiko_product_id: entry.modifierId,
+          name: target ? target.name : String(entry.modifierId || ''),
+          price: target ? Math.round(priceOf(target) || 0) : 0,
+          is_default: (Number(entry.defaultAmount) || 0) > 0,
+        });
+        mRows.push({
+          item_id: 'iiko_' + p.productId, group_id: gid,
+          min_amount: entry.minimumAmount ?? (entry.required ? 1 : 0),
+          max_amount: entry.maximumAmount ?? null,
+          sort: gi * 100 + i,
+        });
+      });
+    });
+  }
+  const gRes = await pool.query(
+    `INSERT INTO menu_mod_groups (id, title, min_qty, max_qty)
+     SELECT x.id, x.title, x.min_qty, x.max_qty FROM jsonb_to_recordset($1::jsonb) AS x(id text, title text, min_qty int, max_qty int)
+     ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, min_qty = EXCLUDED.min_qty, max_qty = EXCLUDED.max_qty`,
+    [JSON.stringify(gRows)]
+  );
+  const oRes = await pool.query(
+    `INSERT INTO menu_mod_options (id, group_id, iiko_product_id, name, price, is_default)
+     SELECT x.id, x.group_id, x.iiko_product_id, x.name, x.price, x.is_default
+     FROM jsonb_to_recordset($1::jsonb) AS x(id text, group_id text, iiko_product_id text, name text, price int, is_default boolean)
+     ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, price = EXCLUDED.price, is_default = EXCLUDED.is_default`,
+    [JSON.stringify(oRows)]
+  );
+  const mRes = await pool.query(
+    `INSERT INTO menu_item_mod_groups (item_id, group_id, min_amount, max_amount, sort)
+     SELECT x.item_id, x.group_id, x.min_amount, x.max_amount, x.sort
+     FROM jsonb_to_recordset($1::jsonb) AS x(item_id text, group_id text, min_amount real, max_amount real, sort int)
+     ON CONFLICT (item_id, group_id) DO UPDATE SET min_amount = EXCLUDED.min_amount, max_amount = EXCLUDED.max_amount, sort = EXCLUDED.sort`,
+    [JSON.stringify(mRows)]
+  );
+
+  return [{
+    source: 'nomenclature-v2',
+    name: 'iiko',
+    categories: catRes.rowCount || 0,
+    items: itemRes.rowCount || 0,
+    modifierGroups: gRes.rowCount || 0,
+    modifierOptions: oRes.rowCount || 0,
+    itemGroupLinks: mRes.rowCount || 0,
+  }];
 }

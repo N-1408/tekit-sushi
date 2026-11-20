@@ -4,7 +4,7 @@ import { tgUserFrom, cors, failGuard, recordFail, safeEqual } from './_verify.js
 import { readSession } from './_session.js';
 import { handleAuth } from './_auth.js';
 import { handleIikoStatus } from './_iiko-status.js';
-import { syncMenu, orgList } from './_iiko.js';
+import { syncMenu } from './_iiko.js';
 async function check(req) {
   // Admin sessiyasi (Telegram Login orqali): cookie bazadagi roliga qarab tekshiriladi
   const sess = readSession(req);
@@ -301,15 +301,9 @@ export default async (req, res) => {
 
       // ---- order status ----
       if (act === 'iiko_sync') {
-        let orgs = Array.isArray(b.orgs) ? b.orgs.map((x) => String(x).slice(0, 80)) : [];
-        if (!orgs.length) {
-          const ol = await orgList();
-          orgs = ol.map((o) => o.id);
-        }
-        if (!orgs.length) return res.status(200).json({ ok: false, error: 'no organizations' });
         let results;
         try {
-          results = await syncMenu(P, orgs, { activate: !!b.activate });
+          results = await syncMenu(P, { activate: !!b.activate });
         } catch (e) {
           console.error('iiko_sync', e && (e.stack || e.message || e));
           return res.status(200).json({ ok: false, error: String(e && e.message || e).slice(0, 400) });
