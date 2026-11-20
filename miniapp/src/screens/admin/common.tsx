@@ -235,15 +235,24 @@ export function Btn({ children, onClick, kind = 'primary', disabled, small }: {
 }
 
 export function Modal({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+  React.useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('keydown', onKey, true)
+    return () => document.removeEventListener('keydown', onKey, true)
+  }, [open, onClose])
   if (!open) return null
   return createPortal(
-    <div className="fixed inset-0 z-50">
+    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={title}>
       <div className="absolute inset-0 bg-black/45 backdrop-blur-[2px]" onClick={onClose} />
-      <div className="anim-sheet absolute inset-x-0 bottom-0 bg-paper rounded-t-[26px] px-5 pt-3 shadow-[0_-18px_40px_-20px_rgba(15,30,154,.35)]"
-        style={{ paddingBottom: 'calc(20px + var(--sab))' }}>
-        <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line2)]" />
-        <div className="text-[17px] font-extrabold">{title}</div>
-        <div className="mt-3">{children}</div>
+      <div className="absolute inset-0 flex items-end lg:items-center lg:justify-center pointer-events-none px-0 lg:px-4">
+        <div
+          className="anim-sheet pointer-events-auto w-full lg:w-[440px] bg-paper rounded-t-[26px] lg:rounded-[26px] px-5 pt-3 shadow-[0_-18px_40px_-20px_rgba(15,30,154,.35)] lg:shadow-[0_24px_60px_rgba(15,30,154,.28)]"
+          style={{ paddingBottom: 'calc(20px + var(--sab))' }}>
+          <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-[var(--line2)] lg:hidden" />
+          <div className="text-[17px] font-extrabold">{title}</div>
+          <div className="mt-3">{children}</div>
+        </div>
       </div>
     </div>, document.body)
 }
@@ -294,12 +303,15 @@ function AdminSidebar() {
   const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
   return (
     <aside className="hidden lg:flex fixed left-0 top-0 bottom-0 w-[248px] z-40 bg-[var(--panel)] border-r border-navy-line flex-col">
-      <div className="px-5 pt-5 pb-6 flex items-center gap-3">
-        <img src="/logo.png" className="w-10 h-10 rounded-xl bg-navy-soft" alt="" />
-        <div>
-          <div className="text-[15px] font-extrabold text-[var(--btn)] leading-tight">Tekit</div>
-          <div className="text-[10px] font-extrabold text-[var(--mut)] uppercase tracking-[0.18em] mt-0.5">Admin panel</div>
+      <div className="px-5 pt-5 pb-6 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <img src="/logo.png" className="w-10 h-10 rounded-xl bg-navy-soft" alt="" />
+          <div>
+            <div className="text-[15px] font-extrabold text-[var(--btn)] leading-tight">Tekit</div>
+            <div className="text-[10px] font-extrabold text-[var(--mut)] uppercase tracking-[0.18em] mt-0.5">Admin panel</div>
+          </div>
         </div>
+        <ThemeToggle />
       </div>
       <nav className="flex-1 px-3 space-y-1">
         {items.map(it => {
@@ -316,10 +328,7 @@ function AdminSidebar() {
           )
         })}
       </nav>
-      <div className="px-5 py-4 border-t border-navy-line flex items-center justify-between gap-2">
-        <span className="text-[10.5px] font-bold text-[var(--ink3)]">Tekit Sushi · v1.0</span>
-        <ThemeToggle />
-      </div>
+      <div className="px-5 py-4 text-[10.5px] font-bold text-[var(--ink3)]">Tekit Sushi · v1.0</div>
     </aside>
   )
 }

@@ -307,7 +307,13 @@ export default async (req, res) => {
           orgs = ol.map((o) => o.id);
         }
         if (!orgs.length) return res.status(200).json({ ok: false, error: 'no organizations' });
-        const results = await syncMenu(P, orgs, { activate: !!b.activate });
+        let results;
+        try {
+          results = await syncMenu(P, orgs, { activate: !!b.activate });
+        } catch (e) {
+          console.error('iiko_sync', e && (e.stack || e.message || e));
+          return res.status(200).json({ ok: false, error: String(e && e.message || e).slice(0, 400) });
+        }
         await P.query(
           "INSERT INTO settings (key, value) VALUES ('iiko_last_sync', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
           [JSON.stringify({ at: new Date().toISOString(), results })]
