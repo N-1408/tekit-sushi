@@ -62,9 +62,17 @@ export async function handleIikoStatus(req, res) {
 
   // 2) Tashkilotlar
   const orgs = await post('/api/1/organizations', token, { organizationIds: null, returnAdditionalInfo: false });
-  const orgList = (orgs.status === 200 && Array.isArray(orgs.data))
-    ? orgs.data.map((o) => ({ id: o.id, name: o.name }))
+  // iiko turli versiyalarda turli shakl qaytaradi: to'g'ridan-to'g'ri massiv
+  // yoki { organizations: [...] } obyekti. Ikkalasini ham qo'llab-quvvatlaymiz.
+  const orgArr = Array.isArray(orgs.data)
+    ? orgs.data
+    : (orgs.data && Array.isArray(orgs.data.organizations) ? orgs.data.organizations : null);
+  const orgList = (orgs.status === 200 && orgArr)
+    ? orgArr.map((o) => ({ id: o.id, name: o.name }))
     : [];
+  const orgRaw = orgs.status === 200 && !orgArr
+    ? { keys: orgs.data ? Object.keys(orgs.data) : null, sample: JSON.stringify(orgs.data).slice(0, 300) }
+    : undefined;
 
   // 3) Terminal guruhlar (faqat agar IIKO_ORGANIZATION_ID berilgan bo'lsa)
   let terminals = [];
