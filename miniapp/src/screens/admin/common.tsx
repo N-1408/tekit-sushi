@@ -5,6 +5,7 @@ import { useStore } from '../../lib/store'
 import { tgUser, haptic, useNativeBack } from '../../lib/tg'
 import { adminSession } from '../../lib/api'
 import { authHeaders, tgOAuthStart, tgOAuthConfigured, tgOAuthFinish } from '../../lib/admin'
+import { tgWidgetLogin } from '../../lib/api'
 import { ThemeToggle } from '../../components/ui'
 
 export type AdminData = {
@@ -139,9 +140,10 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
               <div className="mt-4 flex items-center gap-3 text-[11px] font-bold text-[var(--mut)]">
                 <span className="h-px flex-1 bg-[var(--line2)]" /><span>yoki</span><span className="h-px flex-1 bg-[var(--line2)]" />
               </div>
+              <TelegramWidget onResult={(r) => { if (r === 'ok') { setSessOk(true); haptic('success') } else setTgState(r) }} />
               <button onClick={() => tgOAuthStart()}
-                className="press mt-3 w-full py-4 rounded-2xl bg-[var(--panel)] text-navy-ink border border-navy-line text-[15px] font-extrabold active:scale-[.98] transition-transform">
-                {t.aTgLogin}
+                className="press mt-2 w-full py-3 rounded-2xl bg-[var(--panel)] text-navy-ink border border-navy-line text-[13px] font-bold active:scale-[.98] transition-transform">
+                {t.aTgLogin} (brauzer orqali)
               </button>
             </>
           )}
@@ -152,6 +154,36 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
     )
   }
   return <ACtx.Provider value={ctx}>{children}{tabs && <AdminTabBar />}</ACtx.Provider>
+}
+
+
+/* Telegram Login Widget: rasmiy telegram.org skripti, popup bilan tasdiqlash. */
+function TelegramWidget({ onResult }: { onResult: (r: 'ok' | 'pending' | 'fail') => void }) {
+  React.useEffect(() => {
+    try { (window as any).onTgWidgetAuth = (u: any) => window.dispatchEvent(new CustomEvent('tk-tg-widget', { detail: u })) } catch {}
+    const bot = String(import.meta.env.VITE_TELEGRAM_LOGIN_CLIENT_ID || '').trim()
+    if (!bot) return
+    const s = document.createElement('script')
+    s.src = 'https://telegram.org/js/telegram-widget.js?22'
+    s.async = true
+    s.setAttribute('data-telegram-login', bot)
+    s.setAttribute('data-size', 'large')
+    s.setAttribute('data-radius', '10')
+    s.setAttribute('data-onauth', 'onTgWidgetAuth(user)')
+    s.setAttribute('data-request-access', 'write')
+    const slot = document.getElementById('tk-tg-widget-slot')
+    slot?.appendChild(s)
+    const handler = (e: Event) => {
+      const u = (e as CustomEvent).detail
+      tgWidgetLogin(u).then((j) => onResult(j.ok ? 'ok' : (j.pending ? 'pending' : 'fail')))
+    }
+    window.addEventListener('tk-tg-widget', handler)
+    return () => {
+      window.removeEventListener('tk-tg-widget', handler)
+      try { slot?.replaceChildren() } catch {}
+    }
+  }, [])
+  return <div id="tk-tg-widget-slot" className="mt-3 flex justify-center [&_iframe]:max-w-full" />
 }
 
 export function AdminTopBar({ title, right, back }: { title: string; right?: React.ReactNode; back?: boolean }) {

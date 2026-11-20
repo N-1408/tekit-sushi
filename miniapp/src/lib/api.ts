@@ -67,6 +67,15 @@ export async function tgLogin(code: string, verifier: string, redirectUri: strin
   return (await r.json().catch(() => ({ ok: false }))) as { ok: boolean; pending?: boolean }
 }
 
+/* Telegram Login Widget (rasmiy skript) natijasi bilan kirish */
+export async function tgWidgetLogin(user: any): Promise<{ ok: boolean; pending?: boolean }> {
+  const r = await fetch(`${API_BASE}/api/auth`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'widget-login', user }),
+  })
+  return (await r.json().catch(() => ({ ok: false }))) as { ok: boolean; pending?: boolean }
+}
+
 /* Ruxsatlar sahifasi: adminlar + tasdiqlanmagan so'rovlar */
 export async function adminAccess(): Promise<{ admins: any[]; requests: any[] } | null> {
   const r = await fetch(`${API_BASE}/api/auth?action=access`, { headers: { 'X-Admin-Key': KEY() } })
