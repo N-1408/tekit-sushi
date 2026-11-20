@@ -99,7 +99,7 @@ function slugify(s) {
 // (tarjimalar, promo, sort, img, active/hit) saqlanib qoladi: faqat iiko
 // beradigan maydonlar yangilanadi. Yangi elementlar activate=true bo'lmasa
 // yashirin (active=false) keladi — mijozga ko'rinmaydi.
-export async function syncMenu(pool, { activate = false } = {}) {
+export async function syncMenu(pool, { activate = true } = {}) {
   const { products, groups } = await catalogV2();
   const groupsById = new Map(groups.map((g) => [g.groupId, g]));
   const byId = new Map(products.map((p) => [p.productId, p]));
@@ -199,6 +199,11 @@ export async function syncMenu(pool, { activate = false } = {}) {
      ON CONFLICT (item_id, group_id) DO UPDATE SET min_amount = EXCLUDED.min_amount, max_amount = EXCLUDED.max_amount, sort = EXCLUDED.sort`,
     [JSON.stringify(mRows)]
   );
+
+  // iiko yagona manba: mavjud placeholder (iiko'dan kelgan bo'lmagan)
+  // kategoriya va mahsulotlar menyudan yashirinadi (buyurtma tarixi uchun qatorlar qoladi).
+  await pool.query(`UPDATE menu_items SET active = false WHERE source IS DISTINCT FROM 'iiko'`);
+  await pool.query(`UPDATE menu_categories SET active = false WHERE source IS DISTINCT FROM 'iiko'`);
 
   return [{
     source: 'nomenclature-v2',
