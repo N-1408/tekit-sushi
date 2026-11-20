@@ -353,15 +353,6 @@ export function ThemeToggle({ variant = 'default', className }: { variant?: 'def
   )
 }
 
-/* ---------- yon qirg'oqdagi suzuvchi tema tugmasi (har ekranda ko'rinadi) ---------- */
-export function SideThemeToggle() {
-  return (
-    <div className="fixed right-0 top-1/2 -translate-y-1/2 z-[44]">
-      <ThemeToggle className="press grid place-items-center w-9 h-10 rounded-l-2xl bg-[var(--panel)] text-[var(--ink2)] border border-r-0 border-[var(--line)] shadow-[-3px_3px_14px_-6px_rgba(0,0,0,.35)] hover:text-[var(--ink)] active:scale-95 transition-colors" />
-    </div>
-  )
-}
-
 export { TopBar, WhaleMark } from './topbar'
 export { BrandLogo } from './topbar/brand-logo'
 

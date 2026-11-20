@@ -5,6 +5,7 @@ import { useStore } from '../../lib/store'
 import { tgUser, haptic, useNativeBack } from '../../lib/tg'
 import { adminSession } from '../../lib/api'
 import { authHeaders, tgOAuthStart, tgOAuthConfigured, tgOAuthFinish } from '../../lib/admin'
+import { ThemeToggle } from '../../components/ui'
 
 export type AdminData = {
   orders: any[]; stats: any; cats: any[]; items: any[]; promos: any[]
@@ -283,7 +284,10 @@ function AdminSidebar() {
           )
         })}
       </nav>
-      <div className="px-5 py-4 text-[10.5px] font-bold text-[var(--ink3)]">Tekit Sushi · v1.0</div>
+      <div className="px-5 py-4 border-t border-navy-line flex items-center justify-between gap-2">
+        <span className="text-[10.5px] font-bold text-[var(--ink3)]">Tekit Sushi · v1.0</span>
+        <ThemeToggle />
+      </div>
     </aside>
   )
 }
