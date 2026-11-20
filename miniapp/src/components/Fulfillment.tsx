@@ -116,6 +116,56 @@ function slotsFor(date: string, cfg: { slot_minutes: number; prep_minutes: numbe
 type Draft = { addr: string; lat: number | null; lon: number | null; verified: boolean } | null
 type Quote = { loading: boolean; fee: number; free: boolean; coverage: string; eta_minutes: number | null } | null
 
+/* ============ YO'L XARITASI (qadamlar ko'rsatkichi) ============
+ * Birinchi kirgan odam qayerda turganini va keyin nima bolishini oldindan koradi:
+ * tugallangan qadam teksga aylanadi, hozirgi qadam ajratiladi. Gorizontal
+ * ko'rinish 2 qadamli modallarga, vertikal ro'yxat 3 qadamli onboardingga. */
+function StepTrail({ steps, current }: { steps: string[]; current: number }) {
+  return (
+    <div className="flex items-center mb-3.5" aria-label="steps">
+      {steps.map((s, i) => (
+        <React.Fragment key={i}>
+          {i > 0 && (
+            <span aria-hidden="true"
+              className={'h-0.5 min-w-[10px] flex-1 rounded-full transition-colors ' + (i <= current ? 'bg-[var(--acc-line50)]' : 'bg-[var(--line2)]')} />
+          )}
+          <div className={'flex items-center gap-1.5 rounded-full pl-1 pr-2.5 py-1 border transition-colors shrink-0 '
+            + (i === current ? 'bg-[var(--acc-soft10)] border-[var(--acc)]' : 'bg-transparent border-transparent')}>
+            <span className={'w-[22px] h-[22px] rounded-full grid place-items-center shrink-0 transition-colors '
+              + (i <= current ? 'bg-[var(--acc)] text-white' : 'bg-[var(--soft)] text-[var(--mut2)]')}>
+              {i < current ? <IcCheck s={11} /> : <span className="text-[11px] font-extrabold leading-none">{i + 1}</span>}
+            </span>
+            <span className={'text-[12px] font-extrabold whitespace-nowrap leading-none '
+              + (i === current ? 'text-[var(--acc)]' : i < current ? 'text-[var(--ink2)]' : 'text-[var(--mut2)]')}>{s}</span>
+          </div>
+        </React.Fragment>
+      ))}
+    </div>
+  )
+}
+
+/* Vertikal yo'l xaritasi: 3 qadamli onboarding uchun (tor ekranlarga mos) */
+function StepList({ steps, current }: { steps: string[]; current: number }) {
+  return (
+    <ol className="pt-3 mt-3.5 border-t border-[var(--line)]" aria-label="steps">
+      {steps.map((s, i) => (
+        <li key={i} className="relative flex items-center gap-2.5">
+          {i < steps.length - 1 && (
+            <span aria-hidden="true" className={'absolute left-[10px] top-[24px] bottom-0 w-0.5 rounded-full '
+              + (i < current ? 'bg-[var(--acc-line50)]' : 'bg-[var(--line2)]')} />
+          )}
+          <span className={'relative z-[1] w-[21px] h-[21px] rounded-full grid place-items-center shrink-0 '
+            + (i <= current ? 'bg-[var(--acc)] text-white' : 'bg-[var(--soft)] text-[var(--mut2)]')}>
+            {i < current ? <IcCheck s={11} /> : <span className="text-[10.5px] font-extrabold leading-none">{i + 1}</span>}
+          </span>
+          <span className={'text-[13px] font-bold py-1.5 '
+            + (i === current ? 'text-[var(--acc)]' : i < current ? 'text-[var(--ink2)]' : 'text-[var(--mut2)]')}>{s}</span>
+        </li>
+      ))}
+    </ol>
+  )
+}
+
 /* ============ YETKAZIB BERISH MODALI ============ */
 export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onClose: () => void; switchTo?: () => void }) {
   const { t, user, saveUser, setMode, cartSum } = useStore()
@@ -206,6 +256,8 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
   }
 
   const opt = 'press focus-ring w-full flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[var(--acc-line50)] text-left transition-colors active:scale-[.99]'
+  /* 1-usul (avtomatik aniqlash) ajratilgan ko'rinishda: birinchi kirgan odam eng tez yo'lni birinchi koradi */
+  const optPrimary = 'press focus-ring w-full flex items-center gap-3.5 px-4 py-4 rounded-2xl bg-[var(--acc-soft10)] border border-[var(--acc)] text-left transition-colors active:scale-[.99]'
   const optTitle = 'text-[15.5px] font-extrabold text-[var(--ink)] leading-tight'
   const optSub = 'text-[13.5px] font-medium text-[var(--mut2)] leading-snug mt-0.5'
   const outside = q && !q.loading && q.coverage === 'outside'
@@ -231,6 +283,8 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
               {t.delSwitchPickup}
             </button>
           ) : undefined}>
+        {/* Yo'l xaritasi: 1 Manzil -> 2 Tasdiqlash */}
+        <StepTrail steps={[t.stepAddress, t.stepConfirm]} current={view === 'review' ? 1 : 0} />
         {view === 'write' ? (
           <div className="space-y-3">
             <button onClick={() => setView('entry')}
@@ -334,6 +388,14 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
                     </span>
                   </button>
                 )}
+                {/* Eng tez yo'l: joylashuvni avtomatik aniqlash */}
+                <button onClick={detect} className={optPrimary}>
+                  <span className="w-11 h-11 rounded-xl bg-[var(--acc)] text-white grid place-items-center shrink-0"><IcLocate s={19} /></span>
+                  <span className="min-w-0">
+                    <span className={optTitle + ' block'}>{t.delDetect}</span>
+                    <span className={optSub + ' block'}>{t.delDetectSub}</span>
+                  </span>
+                </button>
                 <button className={opt} onClick={() => { setWriteTxt(''); setView('write') }}>
                   <span className="w-11 h-11 rounded-xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcPin s={19} /></span>
                   <span className="min-w-0">
@@ -358,9 +420,6 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
                     <div className="text-[14px] font-semibold text-[var(--ink)] leading-snug">{t.delLocFail}</div>
                   </div>
                 )}
-                <button onClick={detect} className="press focus-ring w-full py-3 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] text-[14.5px] font-extrabold active:scale-[.98] transition-transform flex items-center justify-center gap-2">
-                  <IcLocate s={16} /> {t.delDetect}
-                </button>
               </>
             )}
           </div>
@@ -416,6 +475,10 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
   const chipOn = 'bg-navy text-white border-navy shadow-[0_6px_14px_-6px_rgba(15,30,154,.55)]'
   const chipOff = 'bg-[var(--panel)] text-[var(--ink2)] border-[var(--line2)] hover:border-[var(--acc-line50)]'
   const ready = branch && (asap || (date && time))
+  /* Tayyor tanlov xulosasi: foydalanuvchi nimani tasdiqlayotganini oldindan koradi */
+  const sel: PickupSel | null = branch
+    ? (asap || !date || !time ? { branch, asap: true } : { branch, asap: false, date, time })
+    : null
 
   return (
     <Modal open={open} onClose={onClose} title={t.pickTitle} width={480}
@@ -433,6 +496,8 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
           </button>
         </div>
       }>
+      {/* Yo'l xaritasi: 1 Filial -> 2 Vaqt */}
+      <StepTrail steps={[t.stepBranch, t.stepTime]} current={branch ? 1 : 0} />
       <div className="space-y-4">
         {/* Filiallar: faqat haqiqiy ma'lumot — nom, 24/7; manzil ma'lumoti kelsa ko'rsatiladi */}
         <div>
@@ -511,41 +576,61 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
             )}
           </div>
         )}
+        {/* Tanlov xulosasi: tasdiqlashdan oldin filial va vaqt bir joyda korinadi */}
+        {ready && sel && (
+          <div className="flex items-start gap-3 bg-[var(--acc-soft10)] border border-[var(--line2)] rounded-2xl px-4 py-3.5">
+            <span className="text-[var(--acc)] shrink-0 mt-0.5"><IcStore s={17} /></span>
+            <div className="min-w-0">
+              <div className="text-[11.5px] font-extrabold uppercase tracking-wide text-[var(--mut2)]">{t.pickWhen}</div>
+              <div className="text-[14.5px] font-extrabold text-[var(--ink)] leading-snug mt-0.5 break-words">{pickupSummary(t, sel, ff.branches, lang)}</div>
+            </div>
+          </div>
+        )}
       </div>
     </Modal>
   )
 }
 
-/* ============ BOSHLANG'ICH TANLOV MODALI ============ */
+/* ============ BOSHLANG'ICH TANLOV MODALI ============
+ * Birinchi kirgan odam uchun yo'l xaritasi: har bir kartada nima bolishi va
+ * keyingi qadam nima ekanligi korinadi; pastda umumiy yo'l xaritasi turadi. */
 export function InitialChoiceModal({ open, onClose, onPick }: { open: boolean; onClose: () => void; onPick?: (m: 'delivery' | 'pickup') => void }) {
   const { t, setMode } = useStore()
-  /* Tanlov: rejim o'rnatiladi, modal yopiladi va mos modal (manzil/filial)
-     ochiladi — avval modal o'zida qolib ketib, ilova bloklanib turardi. */
+  /* Tanlov: rejim ornasiladi, modal yopiladi va mos modal (manzil/filial)
+     ochiladi — avval modal ozida qolib ketib, ilova bloklanib turardi. */
   const choose = (m: 'delivery' | 'pickup') => { haptic('medium'); setMode(m); onPick?.(m) }
+
+  const card = 'press focus-ring w-full flex items-start gap-3.5 px-4 py-4 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[var(--acc-line50)] text-left transition-colors active:scale-[.99]'
+
   return (
     <Modal open={open} onClose={onClose} title={t.fcTitle} width={440}>
       <div className="space-y-2.5">
-        <button
-          onClick={() => choose('delivery')}
-          data-autofocus
-          className="press focus-ring w-full flex items-center gap-4 px-4 py-5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[var(--acc-line50)] text-left transition-colors active:scale-[.99]"
-        >
-          <span className="w-12 h-12 rounded-2xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcTruck s={22} /></span>
-          <span className="min-w-0">
-            <span className="text-[16px] font-extrabold text-[var(--ink)] block">{t.fcDel}</span>
-            <span className="text-[13.5px] font-medium text-[var(--mut2)] mt-0.5 block">{t.fcDelSub}</span>
+        <div className="text-[13.5px] font-semibold text-[var(--mut2)] px-1 leading-snug">{t.fcLead}</div>
+
+        <button onClick={() => choose('delivery')} data-autofocus className={card}>
+          <span className="w-11 h-11 rounded-xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcTruck s={21} /></span>
+          <span className="min-w-0 flex-1">
+            <span className="text-[16px] font-extrabold text-[var(--ink)] block leading-tight">{t.fcDel}</span>
+            <span className="text-[13.5px] font-medium text-[var(--mut2)] mt-0.5 block leading-snug">{t.fcDelSub}</span>
+            <span className="flex items-center gap-1.5 mt-2 flex-wrap">
+              <span className="text-[11.5px] font-extrabold px-2 py-1 rounded-full bg-[var(--acc-soft10)] text-[var(--acc)]">{t.dpFree}</span>
+              <span className="text-[11.5px] font-extrabold px-2 py-1 rounded-full bg-[var(--acc-soft10)] text-[var(--acc)]">{t.dpTimeVal}</span>
+            </span>
+            <span className="text-[12.5px] font-extrabold text-[var(--acc)] mt-2 block">{t.fcNextDel}</span>
           </span>
         </button>
-        <button
-          onClick={() => choose('pickup')}
-          className="press focus-ring w-full flex items-center gap-4 px-4 py-5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] hover:border-[var(--acc-line50)] text-left transition-colors active:scale-[.99]"
-        >
-          <span className="w-12 h-12 rounded-2xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcStore s={22} /></span>
-          <span className="min-w-0">
-            <span className="text-[16px] font-extrabold text-[var(--ink)] block">{t.fcPick}</span>
-            <span className="text-[13.5px] font-medium text-[var(--mut2)] mt-0.5 block">{t.fcPickSub}</span>
+
+        <button onClick={() => choose('pickup')} className={card}>
+          <span className="w-11 h-11 rounded-xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcStore s={21} /></span>
+          <span className="min-w-0 flex-1">
+            <span className="text-[16px] font-extrabold text-[var(--ink)] block leading-tight">{t.fcPick}</span>
+            <span className="text-[13.5px] font-medium text-[var(--mut2)] mt-0.5 block leading-snug">{t.fcPickSub}</span>
+            <span className="text-[12.5px] font-extrabold text-[var(--acc)] mt-2 block">{t.fcNextPick}</span>
           </span>
         </button>
+
+        {/* Yo'l xaritasi: 1 Buyurtma turi -> 2 Manzil/Filial -> 3 Buyurtma */}
+        <StepList steps={[t.road1, t.road2, t.road3]} current={0} />
       </div>
     </Modal>
   )
