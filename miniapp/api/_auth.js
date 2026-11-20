@@ -126,6 +126,59 @@ const cut = (v, n) => {
   return s ? s.slice(0, n) : null;
 };
 
+
+/* --- Telegram Login Widget (rasmiy skript) tasdig'i --- */
+function widgetCheckString(data) {
+  return Object.keys(data)
+    .filter((k) => k !== 'hash' && data[k] !== undefined && data[k] !== null && String(data[k]) !== '')
+    .sort()
+    .map((k) => `${k}=${data[k]}`)
+    .join('\n');
+}
+
+/* Widget hash: secret_key = SHA256(bot_token), HMAC-SHA256(data_check_string). */
+function verifyWidget(data, botToken) {
+  if (!data || !data.hash || !botToken || !data.id || !data.auth_date) return false;
+  try {
+    const secret = crypto.createHash('sha256').update(String(botToken)).digest();
+    const hmac = crypto.createHmac('sha256', secret).update(widgetCheckString(data)).digest('hex');
+    if (!safeEqual(hmac, String(data.hash).toLowerCase())) return false;
+    const authDate = Number(data.auth_date);
+    if (!Number.isFinite(authDate) || Date.now() / 1000 - authDate > 86400) return false;
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/* Ro'lga qarab: admin bo'lsa sessiya cookie, bo'lmasa 'requested' + adminlarga xabar. */
+async function finishLogin(res, p, secure, tgId, name, username, phone) {
+  await p.query(
+    `INSERT INTO bot_users (tg_id, name, username, phone)
+     VALUES ($1,$2,$3,$4)
+     ON CONFLICT (tg_id) DO UPDATE SET
+       name = COALESCE(EXCLUDED.name, bot_users.name),
+       username = COALESCE(EXCLUDED.username, bot_users.username),
+       phone = COALESCE(EXCLUDED.phone, bot_users.phone)`,
+    [tgId, name, username, phone]
+  );
+  const r = await p.query('SELECT role FROM bot_users WHERE tg_id=$1', [tgId]);
+  const role = r.rows[0]?.role || null;
+  if (role === 'admin') {
+    res.setHeader('Set-Cookie', sessionCookieHeader(makeSessionToken(tgId), secure));
+    return res.status(200).json({ ok: true, role: 'admin' });
+  }
+  if (!role) {
+    await p.query(`UPDATE bot_users SET role='requested' WHERE tg_id=$1 AND role IS NULL`, [tgId]);
+    const admins = await p.query(`SELECT tg_id FROM bot_users WHERE role='admin'`);
+    const who = name || (username ? '@' + username : `ID ${tgId}`);
+    for (const a of admins.rows) {
+      notifyUser(a.tg_id, `Yangi admin so'rovi: ${who}\nTasdiqlash uchun admin panelni oching.`);
+    }
+  }
+  return res.status(200).json({ ok: false, pending: true });
+}
+
 export async function handleAuth(req, res) {
   cors(res, 'GET, POST, OPTIONS');
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -173,36 +226,28 @@ export async function handleAuth(req, res) {
         const name = cut(claims.name || claims.given_name, 80);
         const username = cut(claims.preferred_username, 40);
         const phone = cut(claims.phone_number, 24);
-        await p.query(
-          `INSERT INTO bot_users (tg_id, name, username, phone)
-           VALUES ($1,$2,$3,$4)
-           ON CONFLICT (tg_id) DO UPDATE SET
-             name = COALESCE(EXCLUDED.name, bot_users.name),
-             username = COALESCE(EXCLUDED.username, bot_users.username),
-             phone = COALESCE(EXCLUDED.phone, bot_users.phone)`,
-          [tgId, name, username, phone]
-        );
-        const r = await p.query('SELECT role FROM bot_users WHERE tg_id=$1', [tgId]);
-        const role = r.rows[0]?.role || null;
-        if (role === 'admin') {
-          res.setHeader('Set-Cookie', sessionCookieHeader(makeSessionToken(tgId), secure));
-          return res.status(200).json({ ok: true, role: 'admin' });
-        }
-        if (!role) {
-          await p.query(`UPDATE bot_users SET role='requested' WHERE tg_id=$1 AND role IS NULL`, [tgId]);
-          const admins = await p.query(`SELECT tg_id FROM bot_users WHERE role='admin'`);
-          const who = name || (username ? '@' + username : `ID ${tgId}`);
-          for (const a of admins.rows) {
-            notifyUser(a.tg_id, `Yangi admin so'rovi: ${who}\nTasdiqlash uchun admin panelni oching.`);
-          }
-        }
-        return res.status(200).json({ ok: false, pending: true });
+        return finishLogin(res, p, secure, tgId, name, username, phone);
       } catch (e) {
         console.error('tg-login', e?.message);
         return res.status(500).json({ ok: false, error: 'server' });
       }
     }
 
+
+    if (action === 'widget-login') {
+      try {
+        const u = b.user || {};
+        if (!verifyWidget(u, process.env.BOT_TOKEN)) return res.status(401).json({ ok: false, error: 'auth' });
+        const tgId = Number(u.id);
+        if (!Number.isFinite(tgId)) return res.status(400).json({ ok: false });
+        const name = cut([u.first_name, u.last_name].filter(Boolean).join(' '), 80);
+        const username = cut(u.username, 40);
+        return finishLogin(res, p, secure, tgId, name, username, null);
+      } catch (e) {
+        console.error('widget-login', e?.message);
+        return res.status(500).json({ ok: false, error: 'server' });
+      }
+    }
     if (action === 'access-decide') {
       if (!(await checkAdmin(req))) return res.status(401).json({ ok: false, error: 'auth' });
       const tgId = Number(b.tg_id);
