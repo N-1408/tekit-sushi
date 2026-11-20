@@ -169,8 +169,11 @@ export default async (req, res) => {
   if (req.method === 'OPTIONS') return res.status(204).end();
   // Hobby rejada 12 funksiya limiti: auth va iiko-status alohida emas, shu yerda ichki yo'nalish
   if (req.query && req.query.type === 'auth') return handleAuth(req, res);
-  if (req.query && req.query.type === 'iiko-status') return handleIikoStatus(req, res);
   if (!process.env.ADMIN_PASSWORD) return res.status(503).json({ ok: false, error: 'ADMIN_PASSWORD sozlanmagan' });
+  if (req.query && req.query.type === 'iiko-status') {
+    if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
+    return handleIikoStatus(req, res);
+  }
 
   const okSchema = await ensureSchema();
   if (!okSchema) return res.status(500).json({ ok: false, error: 'DB xato' });
