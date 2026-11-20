@@ -4,6 +4,7 @@ import { tgUserFrom, cors, failGuard, recordFail, safeEqual } from './_verify.js
 import { readSession } from './_session.js';
 import { handleAuth } from './_auth.js';
 import { handleIikoStatus } from './_iiko-status.js';
+import { syncMenu, orgList } from './_iiko.js';
 async function check(req) {
   // Admin sessiyasi (Telegram Login orqali): cookie bazadagi roliga qarab tekshiriladi
   const sess = readSession(req);
@@ -53,7 +54,19 @@ function ensureSchema() {
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS fat int;
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS carbs int;
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS spicy boolean;
-       CREATE TABLE IF NOT EXISTS promos (code text PRIMARY KEY, percent int NOT NULL, active boolean NOT NULL DEFAULT true);`
+       ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS iiko_id text;
+       ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS iiko_prices jsonb;
+       ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS source text;
+       ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS iiko_id text;
+       ALTER TABLE menu_categories ADD COLUMN IF NOT EXISTS source text;
+       CREATE TABLE IF NOT EXISTS menu_mod_groups (
+         id text PRIMARY KEY, title text, min_qty int DEFAULT 0, max_qty int DEFAULT 0);
+       CREATE TABLE IF NOT EXISTS menu_mod_options (
+         id text PRIMARY KEY, group_id text NOT NULL, iiko_product_id text,
+         name text, price int DEFAULT 0, is_default boolean DEFAULT false);
+       CREATE TABLE IF NOT EXISTS menu_item_mod_groups (
+         item_id text NOT NULL, group_id text NOT NULL, min_amount real, max_amount real, sort int DEFAULT 0,
+         PRIMARY KEY (item_id, group_id));`
     ).then(() => true).catch(e => { console.error('ensureSchema', e); ensured = undefined; return false; });
   }
   return ensured;
@@ -163,6 +176,8 @@ async function buildStats(P, days) {
     menuCount: menuCount.rows[0]?.n || 0,
   }
 }
+
+export const maxDuration = 60;
 
 export default async (req, res) => {
   cors(res, 'GET, POST, OPTIONS');
@@ -285,6 +300,20 @@ export default async (req, res) => {
       }
 
       // ---- order status ----
+      if (act === 'iiko_sync') {
+        let orgs = Array.isArray(b.orgs) ? b.orgs.map((x) => String(x).slice(0, 80)) : [];
+        if (!orgs.length) {
+          const ol = await orgList();
+          orgs = ol.map((o) => o.id);
+        }
+        if (!orgs.length) return res.status(200).json({ ok: false, error: 'no organizations' });
+        const results = await syncMenu(P, orgs, { activate: !!b.activate });
+        await P.query(
+          "INSERT INTO settings (key, value) VALUES ('iiko_last_sync', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value",
+          [JSON.stringify({ at: new Date().toISOString(), results })]
+        );
+        return res.status(200).json({ ok: true, results });
+      }
       if (act === 'status') {
         const id = num(b.id, 0);
         const st = str(b.status, 20);

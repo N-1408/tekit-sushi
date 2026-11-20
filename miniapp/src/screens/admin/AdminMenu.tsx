@@ -19,6 +19,8 @@ function Body() {
  const a = useAdmin()
  const { cat: catParam } = useParams()
  const [q, setQ] = React.useState('')
+ const [syncing, setSyncing] = React.useState(false)
+ const [syncMsg, setSyncMsg] = React.useState('')
  const items: Item[] = a.data?.items || []
  const cats: Cat[] = a.data?.cats || []
 
@@ -34,6 +36,18 @@ function Body() {
  }
  const countIn = (slug: string) => items.filter(i => i.cat === slug).length
 
+ async function doSync() {
+  setSyncing(true); setSyncMsg('')
+  try {
+   const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() }, body: JSON.stringify({ action: 'iiko_sync' }) })
+   const j = await r.json()
+   if (j.ok && Array.isArray(j.results)) {
+    setSyncMsg(j.results.map((x: any) => `${x.name}: ${x.items} ta taom, ${x.modifierOptions} ta qo'shimcha`).join(' | '))
+    a.refresh(); haptic()
+   } else setSyncMsg('xato: ' + (j.error || r.status))
+  } catch { setSyncMsg('xato: tarmoq') } finally { setSyncing(false) }
+ }
+
  async function toggleItem(it: Item) {
  a.update({ items: items.map(x => x.id === it.id ? { ...x, active: !x.active } : x) })
  const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() }, body: JSON.stringify({ action: 'menu_toggle', id: it.id }) })
@@ -44,6 +58,7 @@ function Body() {
  <div className="pb-28">
  <AdminTopBar title={t.aMenuM} right={
  <div className="flex gap-2">
+ <button onClick={doSync} disabled={syncing} className="press h-9 rounded-full bg-[var(--panel)] border border-navy-line px-3 text-[12.5px] font-extrabold grid place-items-center active:scale-95 transition-transform disabled:opacity-50">{syncing ? '…' : '⟳ iiko'}</button>
  <button onClick={() => nav('/admin/cats')} className="press w-9 h-9 rounded-full bg-[var(--panel)] border border-navy-line grid place-items-center text-[15px] active:scale-90 transition-transform">🗂</button>
  <button onClick={() => nav('/admin/menu/new')} className="press h-9 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] px-3.5 text-[12.5px] font-extrabold grid place-items-center active:scale-95 transition-transform">+ {t.aAddItem}</button>
  </div>
@@ -52,6 +67,7 @@ function Body() {
  <input value={q} onChange={e => setQ(e.target.value)} placeholder={t.aSearchI}
  className="w-full bg-[var(--panel)] border border-navy-line rounded-2xl py-2.5 px-4 text-[13.5px] font-medium outline-none focus:border-[var(--btn)] placeholder:text-[var(--ink3)]" />
  </div>
+ {syncMsg && <div className="mt-1 text-[11px] text-[var(--mut)] px-1">{syncMsg}</div>}
  {!q.trim() && (
  <div className="flex gap-2 px-4 mt-3 overflow-x-auto no-scrollbar">
  {catsWith.map(c => (
