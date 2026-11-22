@@ -125,7 +125,7 @@ export default function Onboarding() {
               {!u && (
                 <div className="pt-2 mt-1 border-t border-navy-line">
                   <div className="pt-2 pb-1 text-center text-[12px] font-bold text-[#8A93B8]">{t.aTgSub}</div>
-                  <TelegramWidget scope="user" onResult={(r, j) => {
+                  <TelegramWidget scope="user" label={t.aTgContinue} phoneLabel={t.aTgOrPhone} onResult={(r, j) => {
                     if (r === 'ok' && j?.tg_id) { saveUser({ tg_id: j.tg_id, name: j.name || name.trim() || 'Mijoz' }); haptic('success') }
                     else if (r === 'fail') showToast(t.aTgErr)
                   }} />

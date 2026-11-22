@@ -45,7 +45,7 @@ async function verifyIdToken(token) {
   if (!key) return null;
   const pub = crypto.createPublicKey({ key: { kty: 'RSA', n: key.n, e: key.e }, format: 'jwk' });
   if (!crypto.verify('RSA-SHA256', Buffer.from(`${parts[0]}.${parts[1]}`), pub, b64ToBuf(parts[2]))) return null;
-  const clientId = String(process.env.TELEGRAM_LOGIN_CLIENT_ID || '');
+  const clientId = await resolveClientId();
   if (!clientId) return null;
   if (claims.iss !== OIDC_ISS) return null;
   if (String(claims.aud) !== clientId) return null;
@@ -55,7 +55,7 @@ async function verifyIdToken(token) {
 }
 
 async function exchangeCode(code, code_verifier, redirect_uri) {
-  const clientId = process.env.TELEGRAM_LOGIN_CLIENT_ID || '';
+  const clientId = await resolveClientId();
   const secret = process.env.TELEGRAM_LOGIN_CLIENT_SECRET || '';
   if (!clientId || !secret || !code) return null;
   const body = new URLSearchParams({
@@ -80,6 +80,17 @@ async function exchangeCode(code, code_verifier, redirect_uri) {
 
 let botInfoCache = null;
 /* getMe: BOT_TOKEN orqali botning RAQAMLI id'i (oauth client_id shuni talab qiladi). */
+let clientIdCache = null;
+/* OIDC Client ID: env raqam bo'lsa o'sha, aks holda getMe orqali botning
+   raqamli id'i (oauth.telegram.org client_id sifatida raqamni kutadi). */
+async function resolveClientId() {
+  if (clientIdCache) return clientIdCache;
+  const env = String(process.env.TELEGRAM_LOGIN_CLIENT_ID || '').trim();
+  if (/^\d+$/.test(env)) { clientIdCache = env; return env; }
+  const info = await getBotInfo();
+  if (info?.id) { clientIdCache = String(info.id); return clientIdCache; }
+  return env || null;
+}
 async function getBotInfo() {
   if (botInfoCache && Date.now() - botInfoCache.at < 3600e3) return botInfoCache.info;
   const tok = process.env.BOT_TOKEN || '';

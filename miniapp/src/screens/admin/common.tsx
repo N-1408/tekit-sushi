@@ -176,7 +176,7 @@ function IcPlane({ s = 22 }: { s?: number }) {
 
 /* Telegram Login (yangi OIDC oqimi): popup widget o'rniga to'liq sahifa yo'naltirish.
    scope 'user': mijoz sifatida kirish (Onboarding). Admin oqimi tgOAuthStart bilan. */
-export function TelegramWidget({ onResult, scope }: { onResult: (r: 'ok' | 'pending' | 'fail', j?: any) => void; scope?: 'user' }) {
+export function TelegramWidget({ onResult, scope, label, phoneLabel }: { onResult: (r: 'ok' | 'pending' | 'fail', j?: any) => void; scope?: 'user'; label?: string; phoneLabel?: string }) {
   React.useEffect(() => {
     if (scope !== 'user') return
     const handler = (e: Event) => {
@@ -188,10 +188,18 @@ export function TelegramWidget({ onResult, scope }: { onResult: (r: 'ok' | 'pend
   }, [])
   if (scope !== 'user') return null
   return (
-    <button onClick={() => { void tgOAuthStartUser() }}
-      className="press w-full py-3.5 rounded-2xl bg-[#229ED9] text-white text-[14.5px] font-extrabold shadow-[0_10px_22px_-8px_rgba(34,158,217,.7)] active:scale-[.98] transition-transform flex items-center justify-center gap-2.5">
-      <IcPlane s={17} />Telegram orqali kirish
-    </button>
+    <div>
+      <button onClick={() => { void tgOAuthStartUser() }}
+        className="press w-full py-3.5 rounded-full bg-[#229ED9] text-white text-[14.5px] font-extrabold shadow-[0_10px_22px_-8px_rgba(34,158,217,.7)] active:scale-[.98] transition-transform flex items-center justify-center gap-2.5">
+        <IcPlane s={17} />{label || 'Telegram orqali kirish'}
+      </button>
+      {phoneLabel && (
+        <button onClick={() => { void tgOAuthStartUser() }}
+          className="press w-full pt-2.5 pb-0.5 text-[12.5px] font-bold text-[#229ED9] flex items-center justify-center gap-1">
+          {phoneLabel}<span className="text-[14px] leading-none font-extrabold">&rsaquo;</span>
+        </button>
+      )}
+    </div>
   )
 }
 
