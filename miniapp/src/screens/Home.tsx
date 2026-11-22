@@ -253,7 +253,8 @@ export default function Home() {
       {(() => {
         const catalogNav = <CatalogNav q={q} setQ={setQ} chips={chips} active={searching ? null : active} onSelect={onSelect} />
         return wide ? (
-          <div ref={navRef} className="sticky z-30 tk-hdr-sticky">
+          <div ref={navRef} className="sticky z-30 tk-hdr-sticky"
+            style={{ marginLeft: 'calc((100% - 100vw) / 2)', marginRight: 'calc((100% - 100vw) / 2)' }}>
             <div className="tk-hdr-blue" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
               <Header />
               <div ref={catRef}>{catalogNav}</div>

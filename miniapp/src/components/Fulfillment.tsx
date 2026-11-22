@@ -45,6 +45,19 @@ const dowOf = (ymd: string): number => {
   return new Date(Date.UTC(y, m - 1, d)).getUTCDay()
 }
 
+/* Slotlarni kun qismlariga guruhlash: Tun / Ertalab / Kunduzi / Kechqurun */
+function slotGroups(slots: string[]): { key: string; slots: string[] }[] {
+  const bands: { key: string; from: number; to: number }[] = [
+    { key: 'slotNight', from: 0, to: 6 },
+    { key: 'slotMorning', from: 6, to: 12 },
+    { key: 'slotDay', from: 12, to: 17 },
+    { key: 'slotEvening', from: 17, to: 24 },
+  ]
+  return bands
+    .map(b => ({ key: b.key, slots: slots.filter(x => { const h = Number(x.slice(0, 2)); return h >= b.from && h < b.to }) }))
+    .filter(g => g.slots.length > 0)
+}
+
 /* ===== Yuborilgan OLIB KETISH buyurtmalari ===== */
 export function activePickupOrders(list: MyOrder[]): MyOrder[] {
   return list
@@ -509,7 +522,7 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
                   {cfg?.prep_minutes ? t.pickPrepIn.replace('{n}', String(cfg.prep_minutes)) : t.pickPrepUnknown}
                 </span>
               </button>
-              <button onClick={() => { setAsap(false); setSchedOpen(true) }}
+              <button onClick={() => { setAsap(false); setSchedOpen(true); if (!date) { const eff = { slot_minutes: effCfg.slot_minutes || 30, prep_minutes: effCfg.prep_minutes || 0 }; for (const d of days) { if (slotsFor(d, eff).slots.length) { setDate(d); break } } } }}
                 className={'press focus-ring px-3 py-3.5 rounded-2xl border text-left transition-colors active:scale-[.99] '
                   + (!asap && cfg ? 'bg-[var(--acc-soft10)] border-[var(--acc)]' : 'bg-[var(--panel)] border-[var(--line2)] hover:border-[var(--acc-line50)]')}>
                 <span className={'flex items-center gap-2 ' + (!asap && cfg ? 'text-[var(--acc)]' : 'text-[var(--ink)]')}><IcClock s={16} /> <span className="text-[14.5px] font-extrabold">{t.pickChooseTime}</span></span>
@@ -535,14 +548,25 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
                   })}
                 </div>
                 {date && slotInfo && (
-                  <div className="grid grid-cols-4 gap-2 max-h-44 overflow-y-auto">
-                    {slotInfo.slots.map(s => (
-                      <button key={s} onClick={() => setTime(s)}
-                        className={chipBase + (time === s ? chipOn : chipOff) + ' text-center'}>
-                        {s}
-                      </button>
-                    ))}
-                  </div>
+                  slotInfo.slots.length === 0 ? (
+                    <div className="text-[13.5px] font-semibold text-[var(--mut2)] px-1 py-1.5">{t.slotNone}</div>
+                  ) : (
+                    <div className="space-y-3">
+                      {slotGroups(slotInfo.slots).map(g => (
+                        <div key={g.key}>
+                          <div className="text-[11.5px] font-extrabold uppercase tracking-wide text-[var(--mut2)] mb-1.5 px-0.5">{(t as any)[g.key]}</div>
+                          <div className="grid grid-cols-4 gap-2">
+                            {g.slots.map(s => (
+                              <button key={s} onClick={() => setTime(s)}
+                                className={chipBase + (time === s ? chipOn : chipOff) + ' text-center'}>
+                                {s}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )
                 )}
               </div>
             )}
