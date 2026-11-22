@@ -246,7 +246,7 @@ export default function Home() {
   }, [])
 
   return (
-    <div className="pb-28 lg:pb-12">
+    <div className="pb-[calc(160px+var(--sab))] lg:pb-12">
       {/* Bitta sticky blok: brend qatori + qidiruv/kategoriyalar birgalikda
           safe-zone chegarasida (sat) pinlanadi. Blok oqim o'rnidan yuqorida
           render bo'lgani uchun pastdagi kontent sat bilan kompensatsiya. */}
