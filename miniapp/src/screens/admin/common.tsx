@@ -124,31 +124,38 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
   const authed = !!key || roleOk || sessOk || (wasOk && !roleReady)
   if (!authed) {
     return (
-      <div className="pb-28">
-        <div className="px-4 mt-8">
-          <div className="tekit-pattern w-20 h-20 rounded-[22px] mx-auto grid place-items-center text-[36px] shadow-lg">🔐</div>
-          <p className="mt-4 text-center text-[14px] font-semibold text-[var(--mut3)]">{t.adminPass}</p>
-          <input value={input} onChange={e => setInput(e.target.value)} type="password"
-            className="mt-4 w-full bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-[var(--btn)]" placeholder="••••••••" />
-          <button onClick={async () => { const ok = await verify(input); if (ok) { setKey(input); haptic('success') } else { setErr('x'); haptic('error') } }}
-            className="press mt-3 w-full py-4 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15.5px] font-extrabold shadow-[0_10px_22px_-8px_rgba(15,30,154,.6)] active:scale-[.98] transition-transform">
-            {t.login}
-          </button>
-          {err && <div className="mt-2 text-center text-[12.5px] font-bold a-bad-text">{t.wrongPass}</div>}
+      <div className="min-h-[100dvh] flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-[400px]">
+          <div className="flex items-center justify-center -space-x-3">
+            <span className="relative z-10 w-16 h-16 rounded-full bg-[#229ED9] grid place-items-center text-white shadow-lg"><IcPlane s={26} /></span>
+            <span className="w-16 h-16 rounded-full tekit-pattern grid place-items-center text-[30px] shadow-lg">🔐</span>
+          </div>
+          <h1 className="mt-4 text-center text-[19px] font-extrabold">{t.aTgLogin}</h1>
+          <p className="mt-1.5 text-center text-[13px] font-medium text-[var(--mut2)] leading-relaxed">{t.aTgSub}</p>
           {tgOAuthConfigured() && !tgUser() && (
             <>
-              <div className="mt-4 flex items-center gap-3 text-[11px] font-bold text-[var(--mut)]">
-                <span className="h-px flex-1 bg-[var(--line2)]" /><span>yoki</span><span className="h-px flex-1 bg-[var(--line2)]" />
-              </div>
-              <TelegramWidget onResult={(r) => { if (r === 'ok') { setSessOk(true); haptic('success') } else setTgState(r) }} />
               <button onClick={() => tgOAuthStart()}
-                className="press mt-2 w-full py-3 rounded-2xl bg-[var(--panel)] text-navy-ink border border-navy-line text-[13px] font-bold active:scale-[.98] transition-transform">
-                {t.aTgLogin} (brauzer orqali)
+                className="press mt-5 w-full py-3.5 rounded-full bg-[#229ED9] text-white text-[15px] font-extrabold shadow-[0_10px_22px_-8px_rgba(34,158,217,.7)] active:scale-[.98] transition-transform flex items-center justify-center gap-2.5">
+                <IcPlane s={18} />{t.aTgLogin}
               </button>
+              <TelegramWidget onResult={(r) => { if (r === 'ok') { setSessOk(true); haptic('success') } else setTgState(r) }} />
             </>
           )}
           {tgState === 'pending' && <div className="mt-3 text-center text-[12.5px] font-bold">{t.aTgPending}</div>}
           {tgState === 'fail' && <div className="mt-2 text-center text-[12.5px] font-bold a-bad-text">{t.aTgErr}</div>}
+          <a href="https://t.me/tekitsushi_bot" target="_blank" rel="noreferrer"
+            className="mt-3 block text-center text-[12.5px] font-bold text-[#229ED9] hover:underline">{t.aTgOpenBot} · @tekitsushi_bot</a>
+          <div className="mt-5 flex items-center gap-3 text-[11px] font-bold text-[var(--mut)]">
+            <span className="h-px flex-1 bg-[var(--line2)]" /><span>yoki</span><span className="h-px flex-1 bg-[var(--line2)]" />
+          </div>
+          <p className="mt-4 text-center text-[13px] font-semibold text-[var(--mut3)]">{t.adminPass}</p>
+          <input value={input} onChange={e => setInput(e.target.value)} type="password"
+            className="mt-2.5 w-full bg-[var(--panel)] border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium outline-none focus:border-[var(--btn)]" placeholder="••••••••" />
+          <button onClick={async () => { const ok = await verify(input); if (ok) { setKey(input); haptic('success') } else { setErr('x'); haptic('error') } }}
+            className="press mt-3 w-full py-3.5 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15px] font-extrabold shadow-[0_10px_22px_-8px_rgba(15,30,154,.6)] active:scale-[.98] transition-transform">
+            {t.login}
+          </button>
+          {err && <div className="mt-2 text-center text-[12.5px] font-bold a-bad-text">{t.wrongPass}</div>}
         </div>
       </div>
     )
@@ -157,8 +164,17 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
 }
 
 
+/* Telegram kuchi: rasmiy paper-plane belgisi */
+function IcPlane({ s = 22 }: { s?: number }) {
+  return (
+    <svg width={s} height={s} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M9.04 15.51 8.9 19.1c.36 0 .52-.16.71-.35l1.7-1.63 3.53 2.59c.65.36 1.11.17 1.28-.6l2.32-10.9c.21-.98-.35-1.37-.99-1.13L4.09 11.4c-.95.37-.93.9-.16 1.14l3.5 1.09 8.13-5.13c.38-.25.73-.11.44.14z" />
+    </svg>
+  )
+}
+
 /* Telegram Login Widget: rasmiy telegram.org skripti, popup bilan tasdiqlash. */
-function TelegramWidget({ onResult }: { onResult: (r: 'ok' | 'pending' | 'fail') => void }) {
+export function TelegramWidget({ onResult, scope }: { onResult: (r: 'ok' | 'pending' | 'fail', j?: any) => void; scope?: 'user' }) {
   React.useEffect(() => {
     try { (window as any).onTgWidgetAuth = (u: any) => window.dispatchEvent(new CustomEvent('tk-tg-widget', { detail: u })) } catch {}
     const bot = String(import.meta.env.VITE_TELEGRAM_LOGIN_CLIENT_ID || '').trim()
@@ -175,7 +191,7 @@ function TelegramWidget({ onResult }: { onResult: (r: 'ok' | 'pending' | 'fail')
     slot?.appendChild(s)
     const handler = (e: Event) => {
       const u = (e as CustomEvent).detail
-      tgWidgetLogin(u).then((j) => onResult(j.ok ? 'ok' : (j.pending ? 'pending' : 'fail')))
+      tgWidgetLogin(u, scope).then((j) => onResult(j.ok ? 'ok' : (j.pending ? 'pending' : 'fail'), j))
     }
     window.addEventListener('tk-tg-widget', handler)
     return () => {

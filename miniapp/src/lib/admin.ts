@@ -89,7 +89,17 @@ export function tgOAuthConfigured(): boolean {
 /* PKCE + state bilan oauth.telegram.org'ga to'liq sahifa yo'naltirish.
    Popup emas: webview va COOP muammosiz. */
 export async function tgOAuthStart(): Promise<void> {
-  const clientId = String(import.meta.env.VITE_TELEGRAM_LOGIN_CLIENT_ID || '').trim()
+  let clientId = String(import.meta.env.VITE_TELEGRAM_LOGIN_CLIENT_ID || '').trim()
+  /* oauth.telegram.org client_id sifatida botning RAQAMLI id'ini talab qiladi
+     (username yuborilsa "bot id required" chiqadi). Server BOT_TOKEN bilan
+     getMe orqali raqamli id'ni qaytaradi. */
+  try {
+    const r = await fetch('/api/auth?action=botinfo')
+    if (r.ok) {
+      const j = await r.json()
+      if (j?.ok && j.id) clientId = String(j.id)
+    }
+  } catch {}
   if (!clientId || !crypto?.subtle) return
   const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)))
   const state = b64url(crypto.getRandomValues(new Uint8Array(16)))
