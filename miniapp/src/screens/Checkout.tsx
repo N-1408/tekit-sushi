@@ -127,7 +127,7 @@ export default function Checkout() {
     }
     const pickupWhen = pickup && !pickup.asap && pickup.date && pickup.time ? `${pickup.date} ${pickup.time}` : null
     try {
-      const items = cart.filter(l => l.q > 0).map(l => ({ id: l.id, slug: l.slug, title: pName(l, lang), q: l.q, price: l.price }))
+      const items = cart.filter(l => l.q > 0).map(l => ({ id: l.id, slug: l.slug, title: pName(l, lang), q: l.q, price: l.price, mods: l.mods && l.mods.length ? l.mods : undefined }))
       const r = await fetch('/api/order', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

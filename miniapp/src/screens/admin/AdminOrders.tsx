@@ -148,6 +148,8 @@ function Body() {
           {o.note && <div className="flex gap-1.5"><span>💬</span><span>{o.note}</span></div>}
           {o.promo_code && <div className="flex gap-1.5"><span>🎁</span><span>{o.promo_code} · −{fmt(o.discount || 0)} UZS</span></div>}
           {o.status_note && <div className="text-[11.5px] font-semibold text-[var(--mut)]">{o.status_note}</div>}
+          {o.iiko_error && <div className="text-[11.5px] font-semibold text-red-600">iiko: {o.iiko_error}</div>}
+          {o.iiko_order_id && <div className="text-[11px] font-semibold text-emerald-700">iiko ✓ {String(o.iiko_order_id).slice(0, 8)}</div>}
         </div>
       </div>
     )

@@ -129,3 +129,38 @@ export async function tgOAuthFinish(): Promise<'ok' | 'pending' | 'fail' | null>
   const j = await tgLogin(code, saved.verifier, `${location.origin}/admin`)
   return j.ok ? 'ok' : (j.pending ? 'pending' : 'fail')
 }
+
+/* ---- Mijoz uchun OIDC kirish (scope user): Onboarding'dan ---- */
+export async function tgOAuthStartUser(): Promise<void> {
+  let clientId = String(import.meta.env.VITE_TELEGRAM_LOGIN_CLIENT_ID || '').trim()
+  try {
+    const r = await fetch('/api/auth?action=botinfo')
+    if (r.ok) { const j = await r.json(); if (j?.ok && j.id) clientId = String(j.id) }
+  } catch {}
+  if (!clientId || !crypto?.subtle) return
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(32)))
+  const state = b64url(crypto.getRandomValues(new Uint8Array(16)))
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))
+  const challenge = b64url(new Uint8Array(digest))
+  const redirect = `${location.origin}/`
+  try { sessionStorage.setItem('tk-tg-ov-user', JSON.stringify({ verifier, state, hash: location.hash || '' })) } catch {}
+  const q = new URLSearchParams({
+    client_id: clientId, redirect_uri: redirect, response_type: 'code',
+    scope: 'openid profile phone', state, code_challenge: challenge, code_challenge_method: 'S256',
+  })
+  location.href = `${TG_AUTH}?${q.toString()}`
+}
+
+/* Qaytishda code+state bilan mijoz loginini tugatish. Faqat user oqimi
+   saqlangan bo'lsa ishlaydi (admin oqimi bilan aralashmaydi). */
+export async function tgOAuthFinishUser(): Promise<{ ok: boolean; pending?: boolean; role?: string; tg_id?: number; name?: string } | null> {
+  const q = new URLSearchParams(location.search)
+  const code = q.get('code'), state = q.get('state')
+  if (!code || !state) return null
+  let saved: { verifier: string; state: string; hash?: string } | null = null
+  try { saved = JSON.parse(sessionStorage.getItem('tk-tg-ov-user') || 'null') } catch {}
+  if (!saved || saved.state !== state) return null
+  try { sessionStorage.removeItem('tk-tg-ov-user') } catch {}
+  try { history.replaceState(null, '', location.pathname + (saved.hash || '')) } catch {}
+  return await tgLogin(code, saved.verifier, `${location.origin}/`, 'user')
+}

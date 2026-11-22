@@ -3,6 +3,10 @@ import { T, type Lang, type Trans } from './i18n'
 export type { Lang } from './i18n'
 import { tgUser, haptic, TGA, resolveTheme, applyTheme, onSystemThemeChange, type ThemeMode } from './tg'
 
+export type ModOption = { id: string; name: string; price: number; iiko_id?: string | null; default?: boolean }
+export type ModGroup = { id: string; title: string; min: number; max: number; options: ModOption[] }
+export type ModPick = { group_id: string; option_id: string; q: number }
+
 export type Product = {
   id: string; slug: string; cat: string; price: number; img: string
   t_uz: string; t_ru: string; t_en: string
@@ -12,6 +16,7 @@ export type Product = {
   kcal?: number | null; protein?: number | null; fat?: number | null; carbs?: number | null
   active?: boolean
   old_price?: number | null; sale_percent?: number; sale_active?: boolean
+  mods?: ModGroup[]
 }
 /* Achchiq bo'limi: admin panelda 'spicy' belgisi bor — u qat'iy hukmron.
    Eski qatorlarda belgi hali yo'q (null), shuning uchun nom bo'yicha aniqlanadi
@@ -60,9 +65,9 @@ export const pImg = (p: Product | CartLine) => {
 
 export type CatDef = { id: string; uz: string; ru: string; en?: string; emoji?: string | null }
 
-export type CartLine = Product & { q: number }
+export type CartLine = Product & { q: number; mods?: ModPick[]; modsPrice?: number }
 
-export type OrderItem = { id: string; slug: string; title: string; q: number; price: number }
+export type OrderItem = { id: string; slug: string; title: string; q: number; price: number; mods?: ModPick[] }
 export type MyOrder = {
   oid: number; at: string; status: string; items: OrderItem[]
   sum: number; mode: string; pay: string; addr: string; name: string; phone: string
@@ -98,7 +103,7 @@ export type Store = {
   products: Product[]
   cats: CatDef[]
   cart: CartLine[]; cartCount: number; cartSum: number
-  add: (id: string, q?: number) => void; setQty: (id: string, q: number) => void; clearCart: () => void
+  add: (id: string, q?: number, mods?: ModPick[]) => void; setQty: (id: string, q: number) => void; clearCart: () => void
   favs: string[]; toggleFav: (id: string) => void
   toast: string | null; showToast: (s: string) => void
   myOrders: MyOrder[]; saveMyOrder: (o: MyOrder) => void
@@ -135,7 +140,7 @@ const load = <T,>(k: string, d: T): T => { try { const v = localStorage.getItem(
 
 export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangS] = useState<Lang>(() => load<Lang>('tk-lang', 'uz'))
-  const [cartMap, setCartMap] = useState<Record<string, number>>(() => load('tk-cart', {} as Record<string, number>))
+  const [cartMap, setCartMap] = useState<Record<string, number | { q: number; mods: ModPick[] }>>(() => load('tk-cart', {} as Record<string, number | { q: number; mods: ModPick[] }>))
   const [favs, setFavs] = useState<string[]>(() => load('tk-favs', [] as string[]))
   const [toast, setToast] = useState<string | null>(null)
   const [myOrders, setMyOrders] = useState<MyOrder[]>([])
@@ -217,10 +222,18 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const setPickup = useCallback((p: PickupSel | null) => { setPickupS(p); try { if (p) localStorage.setItem('tk-pickup', JSON.stringify(p)); else localStorage.removeItem('tk-pickup') } catch {} }, [])
   const setNavOpen = useCallback((v: boolean) => setNavOpenS(v), [])
   const setMode = useCallback((m: 'delivery' | 'pickup') => { setModeS(m) }, [])
-  const add = useCallback((id: string, q = 1) => setCartMap(c => ({ ...c, [id]: (c[id] || 0) + q })), [])
+  const add = useCallback((id: string, q = 1, mods?: ModPick[]) => setCartMap(c => {
+    const cur = c[id]
+    const curQ = typeof cur === 'number' ? cur : (cur?.q || 0)
+    const nextMods = mods && mods.length ? mods : (typeof cur === 'number' ? undefined : cur?.mods)
+    const nq = curQ + q
+    return { ...c, [id]: nextMods && nextMods.length ? { q: nq, mods: nextMods } : nq }
+  }), [])
   const setQty = useCallback((id: string, q: number) => setCartMap(c => {
     const copy = { ...c }
-    if (q <= 0) delete copy[id]; else copy[id] = q
+    if (q <= 0) { delete copy[id]; return copy }
+    const cur = c[id]
+    copy[id] = typeof cur === 'number' ? q : { ...(cur as { q: number; mods: ModPick[] }), q }
     return copy
   }), [])
   const clearCart = useCallback(() => setCartMap({}), [])
@@ -383,12 +396,25 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   }, [refreshOrders])
 
   const value = useMemo<Store>(() => {
+    const lineOf = (prod: Product, v: number | { q: number; mods: ModPick[] }): CartLine | null => {
+      const q = typeof v === 'number' ? v : v.q
+      const mods = typeof v === 'number' ? undefined : v.mods
+      let modsPrice = 0
+      if (mods && mods.length) {
+        for (const g of (prod.mods || [])) for (const m of mods) {
+          if (m.group_id !== g.id) continue
+          const opt = g.options.find(o => o.id === m.option_id)
+          if (opt) modsPrice += opt.price * m.q
+        }
+      }
+      return { ...prod, q, mods, modsPrice }
+    }
     const lines: CartLine[] = Object.entries(cartMap)
-      .map(([id, q]) => { const p = products.find(x => x.id === id); return p ? { ...p, q } : null })
+      .map(([id, v]) => { const p = products.find(x => x.id === id); return p ? lineOf(p, v) : null })
       .filter(Boolean) as CartLine[]
     // Badge savat xaritasidan: menyu hali yuklanmagan bo'lsa ham to'g'ri
-    const count = Object.values(cartMap).reduce((s, q) => s + (q || 0), 0)
-    const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
+    const count = Object.values(cartMap).reduce((s, v) => s + (typeof v === 'number' ? v : v.q), 0)
+    const sum = lines.reduce((s, l) => s + l.q * (l.price + (l.modsPrice || 0)), 0)
     return { lang, setLang, t: T[lang] as Trans, products, cats, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked }
   }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, cats, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked])
 

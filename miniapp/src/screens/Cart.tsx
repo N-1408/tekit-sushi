@@ -54,7 +54,7 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
   /* Savatga kirganda doim tepadan boshlash */
   React.useEffect(() => { const el = document.scrollingElement || document.documentElement; el.scrollTop = 0 }, [])
   const lines = cart.filter(l => l.q > 0)
-  const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
+  const sum = lines.reduce((s, l) => s + l.q * (l.price + (l.modsPrice || 0)), 0)
 
   /* Qoshimchalar: menyu kategoriyalaridan birinchi ikkitasi, savatdagi
      narsalar takrorlanmaydi (kategoriyalar serverdan/iiko'dan keladi). */
@@ -117,8 +117,19 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
                     <div className="text-[14.5px] font-bold line-clamp-2 flex-1">{pName(l, lang)}</div>
                     {isSpicy(l) && <SpicyBadge size={18} className="mt-0.5" />}
                   </div>
+                  {l.mods && l.mods.length ? (
+                    <div className="text-[11.5px] font-semibold text-[var(--mut2)] mt-0.5 leading-tight">
+                      {l.mods.map(m => {
+                        const g = (l.mods || []).find(x => x.group_id === m.group_id)
+                        const grp = (l as any).mods && (products.find(x => x.id === l.id)?.mods || []).find(g2 => g2.id === m.group_id)
+                        const opt = grp?.options.find(o => o.id === m.option_id)
+                        return opt ? `${opt.name}${m.q > 1 ? ` ×${m.q}` : ''}` : null
+                      }).filter(Boolean).join(', ')}
+                    </div>
+                  ) : (
                   <div className="text-[13px] font-semibold text-[var(--mut2)] mt-0.5">{l.weight}</div>
-                  <div className="text-[14px] font-extrabold mt-1">{fmt(l.price * l.q)} <span className="text-[10px] text-[var(--mut2)]">UZS</span></div>
+                  )}
+                  <div className="text-[14px] font-extrabold mt-1">{fmt(l.q * (l.price + (l.modsPrice || 0)))} <span className="text-[10px] text-[var(--mut2)]">UZS</span></div>
                 </div>
                 <div className="flex flex-col justify-between items-end">
                   <button onClick={() => { setQty(l.id, 0); haptic('light') }} className="text-[var(--mut2)] active:text-red-500 p-1">

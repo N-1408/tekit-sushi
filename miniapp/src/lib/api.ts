@@ -59,12 +59,12 @@ export async function adminSession(): Promise<boolean> {
   } catch { return false }
 }
 
-export async function tgLogin(code: string, verifier: string, redirectUri: string): Promise<{ ok: boolean; pending?: boolean }> {
+export async function tgLogin(code: string, verifier: string, redirectUri: string, scope?: 'admin' | 'user'): Promise<{ ok: boolean; pending?: boolean; role?: string; tg_id?: number; name?: string }> {
   const r = await fetch(`${API_BASE}/api/auth`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'tg-login', code, code_verifier: verifier, redirect_uri: redirectUri }),
+    body: JSON.stringify({ action: 'tg-login', code, code_verifier: verifier, redirect_uri: redirectUri, scope }),
   })
-  return (await r.json().catch(() => ({ ok: false }))) as { ok: boolean; pending?: boolean }
+  return (await r.json().catch(() => ({ ok: false }))) as { ok: boolean; pending?: boolean; role?: string; tg_id?: number; name?: string }
 }
 
 /* Telegram Login Widget (rasmiy skript) natijasi bilan kirish */

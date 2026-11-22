@@ -254,6 +254,19 @@ export async function handleAuth(req, res) {
         const name = cut(claims.name || claims.given_name, 80);
         const username = cut(claims.preferred_username, 40);
         const phone = cut(claims.phone_number, 24);
+        if (String(b.scope || '') === 'user') {
+          /* Mijoz sifatida kirish (OIDC): admin tasdig'i shart emas. */
+          await p.query(
+            `INSERT INTO bot_users (tg_id, name, username)
+             VALUES ($1,$2,$3)
+             ON CONFLICT (tg_id) DO UPDATE SET
+               name = COALESCE(EXCLUDED.name, bot_users.name),
+               username = COALESCE(EXCLUDED.username, bot_users.username)`,
+            [tgId, name, username]
+          );
+          await p.query(`UPDATE bot_users SET role='user' WHERE tg_id=$1 AND role IS NULL`, [tgId]);
+          return res.status(200).json({ ok: true, role: 'user', tg_id: tgId, name });
+        }
         return finishLogin(res, p, secure, tgId, name, username, phone);
       } catch (e) {
         console.error('tg-login', e?.message);

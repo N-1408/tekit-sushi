@@ -92,9 +92,43 @@ export default async (req, res) => {
       `SELECT id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort, kcal, protein, fat, carbs,
               sale_active, sale_percent, sale_price, spicy
        FROM menu_items WHERE active = true ORDER BY sort`)).rows;
+    let modsByItem = null;
+    try {
+      const m = (await p.query(
+        `SELECT g.item_id, g.min_amount, g.max_amount, og.id AS group_id, og.title, og.min_qty, og.max_qty,
+                o.id AS opt_id, o.name, o.price, o.iiko_product_id, o.is_default
+         FROM menu_item_mod_groups g
+         JOIN menu_mod_groups og ON og.id = g.group_id
+         JOIN menu_mod_options o ON o.group_id = og.id
+         ORDER BY g.sort, o.id`)).rows;
+      if (m.length) {
+        modsByItem = {};
+        const gmap = {};
+        for (const row of m) {
+          const key = row.group_id + '|' + row.item_id;
+          if (!gmap[key]) gmap[key] = {
+            id: row.group_id, title: row.title,
+            min: Number(row.min_qty ?? row.min_amount ?? 0),
+            max: Number(row.max_qty ?? row.max_amount ?? 0),
+            options: [],
+          };
+          gmap[key].options.push({ id: row.opt_id, name: row.name, price: Number(row.price) || 0, iiko_id: row.iiko_product_id, default: !!row.is_default });
+        }
+        for (const row of m) {
+          const g = gmap[row.group_id + '|' + row.item_id];
+          (modsByItem[row.item_id] = modsByItem[row.item_id] || []).push(g);
+        }
+        for (const id of Object.keys(modsByItem)) {
+          const seen = new Set();
+          modsByItem[id] = modsByItem[id].filter((g) => !seen.has(g.id) && seen.add(g.id));
+        }
+      }
+    } catch (me) { console.error('menu mods', me && me.message); }
     const items = rows.map(r => {
       const e = effPrice(r, catPct[r.cat] || 0);
-      return { ...r, price: e.price, old_price: e.old, sale_percent: e.pct, sale_active: e.old != null };
+      const out = { ...r, price: e.price, old_price: e.old, sale_percent: e.pct, sale_active: e.old != null };
+      if (modsByItem && modsByItem[r.id]) out.mods = modsByItem[r.id];
+      return out;
     });
     return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE ?? 0), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) },  cats, items });
   } catch (e) {

@@ -83,7 +83,13 @@ export async function catalogV2() {
 }
 
 function priceOf(p) {
-  const v = p.defaultSalePrice;
+  if (!p) return null;
+  let v = p.defaultSalePrice;
+  if ((v === null || v === undefined || v === '') && Array.isArray(p.sizePrices) && p.sizePrices.length) {
+    const pr = p.sizePrices[0] && p.sizePrices[0].price;
+    if (pr && typeof pr === 'object') v = pr.currentPrice != null ? pr.currentPrice : (pr.value != null ? pr.value : null);
+    else v = pr;
+  }
   const n = Number(v);
   return v === null || v === undefined || v === '' || !Number.isFinite(n) ? null : n;
 }
@@ -105,7 +111,12 @@ export async function syncMenu(pool, { activate = true } = {}) {
   const { products, groups } = await catalogV2();
   const groupsById = new Map(groups.map((g) => [g.groupId, g]));
   const byId = new Map(products.map((p) => [p.productId, p]));
-  const OK_TYPES = ['GOODS', 'DISH', 'PREPARED', 'SERVICE'];
+  /* iiko 'type' maydoni har xil katta-kichik harfda keladi (GOODS/Good/Dish) —
+     solishtirishdan oldin normalizatsiya qilinadi. Aks holda filter hammasini
+     tashlab yuboradi va menyu bo'sh qoladi. */
+  const OK_TYPES = ['GOOD', 'GOODS', 'DISH', 'PREPARED', 'SERVICE', 'SEMI'];
+  const typeOf = (p) => String((p && p.type) || '').trim().toUpperCase();
+  let typeCounts = null;
   // ON CONFLICT bir INSERT ichida bir qatorni ikki marta ko'rsa xato beradi —
   // shuning uchun har bir jadval uchun kalit bo'yicha bir marta olib qoldiramiz.
   const dedupe = (rows, key) => {
@@ -113,7 +124,11 @@ export async function syncMenu(pool, { activate = true } = {}) {
     for (const r of rows) { const k = key(r); if (!m.has(k)) m.set(k, r); }
     return [...m.values()];
   };
-  const sellable = dedupe(products.filter((p) => p.name && !p.isDeleted && OK_TYPES.includes(p.type)), (p) => p.productId);
+  const sellable = dedupe(products.filter((p) => p.name && !p.isDeleted && OK_TYPES.includes(typeOf(p))), (p) => p.productId);
+  if (!sellable.length && products.length) {
+    typeCounts = {};
+    for (const p of products) { const t = typeOf(p); typeCounts[t || '?'] = (typeCounts[t || '?'] || 0) + 1; }
+  }
 
   // 1) Toifalar: mahsulotning parentGroupId -> group nomi
   const usedCats = new Set(sellable.map((p) => p.parentGroupId || ''));
@@ -219,7 +234,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
   await pool.query(`DELETE FROM menu_items WHERE source IS DISTINCT FROM 'iiko'`);
   await pool.query(`DELETE FROM menu_categories WHERE source IS DISTINCT FROM 'iiko'`);
 
-  return [{
+  const summary = {
     source: 'nomenclature-v2',
     name: 'iiko',
     categories: catRes.rowCount || 0,
@@ -227,7 +242,13 @@ export async function syncMenu(pool, { activate = true } = {}) {
     modifierGroups: gRes.rowCount || 0,
     modifierOptions: oRes.rowCount || 0,
     itemGroupLinks: mRes.rowCount || 0,
-  }];
+  };
+  if (!sellable.length) {
+    summary.note = products.length
+      ? `iiko ${products.length} ta mahsulot qaytardi, ammo savatga o'tmadi. type qiymatlari: ` + Object.entries(typeCounts || {}).map(([k, v]) => `${k}=${v}`).join(', ')
+      : "iiko bo'sh katalog qaytardi (mahsulot yo'q)";
+  }
+  return [summary];
 }
 
 // ---------------------------------------------------------------------------
@@ -263,11 +284,28 @@ export async function createIikoOrder(pool, order) {
     const ids = (order.items || []).map((i) => i.id);
     const r = await pool.query('SELECT id, iiko_id, price FROM menu_items WHERE id = ANY($1)', [ids]);
     const byId = new Map(r.rows.map((x) => [x.id, x]));
+    // Modifikatorlar: iiko_product_id menyudagi variantlardan olinadi
+    const optIds = [];
+    for (const it of order.items || []) for (const g of (it.mods || [])) for (const op of (g.options || [])) if (op && op.option_id) optIds.push(op.option_id);
+    const optMap = new Map();
+    if (optIds.length) {
+      try {
+        const or_ = await pool.query('SELECT id, iiko_product_id, price FROM menu_mod_options WHERE id = ANY($1)', [...new Set(optIds)]);
+        for (const r of or_.rows) optMap.set(r.id, r);
+      } catch (me) { console.error('iiko mods lookup', me && me.message); }
+    }
     const iikoItems = [];
     for (const it of order.items || []) {
       const m = byId.get(it.id);
       if (!m || !m.iiko_id) continue; // qo'lda qo'shilgan elementlar iiko'ga bormaydi
-      iikoItems.push({ productId: m.iiko_id, type: 'Product', amount: it.q, price: Number(m.price) || 0 });
+      const entry = { productId: m.iiko_id, type: 'Product', amount: it.q, price: Number(m.price) || 0 };
+      const mods = [];
+      for (const g of (it.mods || [])) for (const op of (g.options || [])) {
+        const row = optMap.get(op.option_id);
+        if (row && row.iiko_product_id) mods.push({ productId: row.iiko_product_id, type: 'Product', amount: Number(op.q) || 1, price: Number(row.price) || 0 });
+      }
+      if (mods.length) entry.modifiers = mods;
+      iikoItems.push(entry);
     }
     if (!iikoItems.length) return { skipped: true, reason: 'no_iiko_items' };
 
@@ -276,11 +314,15 @@ export async function createIikoOrder(pool, order) {
       items: iikoItems,
       phone: order.phone || '',
       orderServiceType: isPickup ? 'DeliveryPickUp' : 'DeliveryByCourier',
+      customer: { name: String(order.name || '').slice(0, 120), type: 'regular' },
       customerComment: [order.note, order.name ? `Ism: ${order.name}` : null].filter(Boolean).join('; ') || undefined,
       payments: [{ paymentTypeKind: 'Cash', sum: Number(order.grand_total || order.total) || 0 }],
     };
     if (!isPickup && order.address) {
       orderBody.deliveryPoint = { address: { street: { name: String(order.address) }, house: '' } };
+    }
+    if (order.when && /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(String(order.when))) {
+      try { orderBody.deliveryDate = new Date(String(order.when).replace(' ', 'T') + ':00+05:00').toISOString(); } catch (te) {}
     }
     const terminalGroupId = await firstTerminalGroup(orgId).catch(() => null);
     const payload = { organizationId: orgId, ...(terminalGroupId ? { terminalGroupId } : {}), order: orderBody };

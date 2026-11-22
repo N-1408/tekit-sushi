@@ -34,6 +34,8 @@ function ensureSchema() {
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_external_id text;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_status text;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_fee int DEFAULT 0;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS iiko_order_id text;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS iiko_error text;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS grand_total int;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS client_ref text;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS lat double precision;
@@ -119,7 +121,7 @@ export default async (req, res) => {
 
     // Summani serverda menyudan hisoblaymiz; mavjudlik ham tekshiriladi
     const ids = cleanItems.map(i => i.id);
-    let serverSum = null, unavailable = [];
+    let serverSum = null, unavailable = [], modByItem = {};
     try {
       const pr = await getPool().query('SELECT id, price, active FROM menu_items WHERE id = ANY($1)', [ids]);
       const priceById = new Map(pr.rows.filter(r => r.active !== false).map(r => [r.id, Number(r.price)]));
@@ -127,7 +129,33 @@ export default async (req, res) => {
       if (unavailable.length) {
         return res.status(422).json({ ok: false, error: 'unavailable_items', items: unavailable });
       }
-      serverSum = cleanItems.reduce((s, i) => s + (priceById.get(i.id) || 0) * i.q, 0);
+      // Modifikatorlar: server menyudan narx va qoidalarni tekshiradi (client ishonchsiz)
+      try {
+        const modIds = [];
+        for (const src of o.items || []) for (const g of (src.mods || [])) for (const opt of (g.options || [])) if (opt && opt.id) modIds.push(String(opt.id).slice(0, 80));
+        if (modIds.length) {
+          const mr = await getPool().query('SELECT id, group_id, price FROM menu_mod_options WHERE id = ANY($1)', [...new Set(modIds)]);
+          const optById = new Map(mr.rows.map(r => [r.id, r]));
+          const linkRows = await getPool().query('SELECT item_id, group_id FROM menu_item_mod_groups');
+          const allowed = new Set(linkRows.rows.map(r => r.item_id + '|' + r.group_id));
+          for (const i of cleanItems) {
+            const src = (o.items || []).find(x => x && x.id === i.id) || {};
+            const picked = [];
+            for (const g of (src.mods || [])) {
+              if (!allowed.has(i.id + '|' + String(g.id || '').slice(0, 80))) continue;
+              for (const opt of (g.options || [])) {
+                const row = optById.get(String(opt.id || '').slice(0, 80));
+                if (!row || row.group_id !== String(g.id || '').slice(0, 80)) continue;
+                const qm = Math.max(0, Math.min(20, Math.round(Number(opt.q) || 0)));
+                if (!qm) continue;
+                picked.push({ group_id: row.group_id, option_id: row.id, q: qm, price: Number(row.price) || 0 });
+              }
+            }
+            if (picked.length) modByItem[i.id] = picked;
+          }
+        }
+      } catch (me) { console.error('mods check', me && me.message); }
+      serverSum = cleanItems.reduce((s, i) => s + ((priceById.get(i.id) || 0) + (modByItem[i.id] || []).reduce((a, m) => a + m.price * m.q, 0)) * i.q, 0);
     } catch (e) { console.error('price lookup', e?.message); }
     if (serverSum == null) {
       return res.status(500).json({ ok: false, error: 'Server xatosi' });
@@ -272,6 +300,11 @@ export default async (req, res) => {
     const grandTotal = finalTotal + deliveryFee;
     const pool = getPool();
     const changeAmount = o.change_amount != null ? Math.max(0, Math.round(Number(o.change_amount) || 0)) : null;
+    const storedItems = cleanItems.map(i => {
+      const src = (o.items || []).find(x => x && x.id === i.id) || {};
+      const mods = modByItem[i.id] || null;
+      return { id: i.id, title: String(src.title || i.id).slice(0, 120), q: i.q, price: Number(src.price) || 0, mods, mods_price: mods ? mods.reduce((a, m) => a + m.price * m.q, 0) : 0 };
+    });
     const result = await pool.query(
       `INSERT INTO orders (tg_user_id, name, phone, address, branch, delivery_type, payment, items, total, note, delivery_time, promo_code, discount, change_amount, payment_status, delivery_provider, delivery_fee, grand_total, client_ref, lat, lon)
        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21)
@@ -285,10 +318,7 @@ export default async (req, res) => {
         o.branch || null,
         o.delivery_type,
         o.payment || 'cash',
-        JSON.stringify(cleanItems.map(i => {
-          const src = (o.items || []).find(x => x && x.id === i.id) || {};
-          return { id: i.id, title: String(src.title || i.id).slice(0, 120), q: i.q, price: Number(src.price) || 0 };
-        })),
+        JSON.stringify(storedItems),
         finalTotal,
         o.note ? String(o.note).slice(0, 500) : null,
         o.when || null,
@@ -325,13 +355,14 @@ export default async (req, res) => {
       try {
         const iiko = await createIikoOrder(pool, {
           id: row.id, address: o.address || null, branch: o.branch || null,
-          phone, name, note: o.note || null, items: cleanItems,
+          phone, name, note: o.note || null, items: storedItems,
           total: finalTotal, grand_total: grandTotal, delivery_type: o.delivery_type,
         });
         if (iiko && iiko.iikoId) {
-          await pool.query('UPDATE orders SET iiko_order_id=$1 WHERE id=$2', [String(iiko.iikoId), row.id]);
+          await pool.query('UPDATE orders SET iiko_order_id=$1, iiko_error=NULL WHERE id=$2', [String(iiko.iikoId), row.id]);
         } else if (iiko && iiko.error) {
           console.error('iiko order', iiko.error);
+          await pool.query('UPDATE orders SET iiko_error=$1 WHERE id=$2', [String(iiko.error).slice(0, 300), row.id]);
         }
       } catch (ie) { console.error('iiko order', ie?.message); }
       // Mijozga Telegram xabari (bepul, SMS o'rniga)

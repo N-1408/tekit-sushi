@@ -42,7 +42,7 @@ function Body() {
    const r = await fetch('/api/admin', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() }, body: JSON.stringify({ action: 'iiko_sync' }) })
    const j = await r.json()
    if (j.ok && Array.isArray(j.results)) {
-    setSyncMsg(j.results.map((x: any) => `${x.name}: ${x.items} ta taom, ${x.modifierOptions} ta qo'shimcha`).join(' | '))
+    setSyncMsg(j.results.map((x: any) => `${x.name}: ${x.items} ta taom, ${x.modifierOptions} ta qo'shimcha${x.note ? ' — ' + x.note : ''}`).join(' | '))
     a.refresh(); haptic()
    } else setSyncMsg('xato: ' + (j.error || r.status))
   } catch { setSyncMsg('xato: tarmoq') } finally { setSyncing(false) }

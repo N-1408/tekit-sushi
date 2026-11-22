@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 import { useStore } from '../../lib/store'
 import { tgUser, haptic, useNativeBack } from '../../lib/tg'
 import { adminSession } from '../../lib/api'
-import { authHeaders, tgOAuthStart, tgOAuthConfigured, tgOAuthFinish } from '../../lib/admin'
+import { authHeaders, tgOAuthStart, tgOAuthConfigured, tgOAuthFinish, tgOAuthStartUser, tgOAuthFinishUser } from '../../lib/admin'
 import { tgWidgetLogin } from '../../lib/api'
 import { ThemeToggle } from '../../components/ui'
 
@@ -138,7 +138,6 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
                 className="press mt-5 w-full py-3.5 rounded-full bg-[#229ED9] text-white text-[15px] font-extrabold shadow-[0_10px_22px_-8px_rgba(34,158,217,.7)] active:scale-[.98] transition-transform flex items-center justify-center gap-2.5">
                 <IcPlane s={18} />{t.aTgLogin}
               </button>
-              <TelegramWidget onResult={(r) => { if (r === 'ok') { setSessOk(true); haptic('success') } else setTgState(r) }} />
             </>
           )}
           {tgState === 'pending' && <div className="mt-3 text-center text-[12.5px] font-bold">{t.aTgPending}</div>}
@@ -173,8 +172,29 @@ function IcPlane({ s = 22 }: { s?: number }) {
   )
 }
 
-/* Telegram Login Widget: rasmiy telegram.org skripti, popup bilan tasdiqlash. */
+/* Telegram Login (yangi OIDC oqimi): popup widget o'rniga to'liq sahifa yo'naltirish.
+   scope 'user': mijoz sifatida kirish (Onboarding). Admin oqimi tgOAuthStart bilan. */
 export function TelegramWidget({ onResult, scope }: { onResult: (r: 'ok' | 'pending' | 'fail', j?: any) => void; scope?: 'user' }) {
+  React.useEffect(() => {
+    if (scope !== 'user') return
+    const handler = (e: Event) => {
+      const j = ((e as CustomEvent).detail || {}) as any
+      onResult(j.ok ? 'ok' : (j.pending ? 'pending' : 'fail'), j)
+    }
+    window.addEventListener('tk-tg-oidc', handler)
+    return () => window.removeEventListener('tk-tg-oidc', handler)
+  }, [])
+  if (scope !== 'user') return null
+  return (
+    <button onClick={() => { void tgOAuthStartUser() }}
+      className="press w-full py-3.5 rounded-2xl bg-[#229ED9] text-white text-[14.5px] font-extrabold shadow-[0_10px_22px_-8px_rgba(34,158,217,.7)] active:scale-[.98] transition-transform flex items-center justify-center gap-2.5">
+      <IcPlane s={17} />Telegram orqali kirish
+    </button>
+  )
+}
+
+/* Eski widget oqimi (arxivlangan): ishlatilmaydi, lekin kod saqlanadi. */
+function TgWidgetLegacy({ onResult, scope }: { onResult: (r: 'ok' | 'pending' | 'fail', j?: any) => void; scope?: 'user' }) {
   React.useEffect(() => {
     try { (window as any).onTgWidgetAuth = (u: any) => window.dispatchEvent(new CustomEvent('tk-tg-widget', { detail: u })) } catch {}
     const bot = String(import.meta.env.VITE_TELEGRAM_LOGIN_CLIENT_ID || '').trim()

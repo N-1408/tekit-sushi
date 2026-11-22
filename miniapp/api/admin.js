@@ -210,7 +210,7 @@ export default async (req, res) => {
       if (action === 'bootstrap') {
         const [o, st, catsR, itemsR, promosR, riskR] = await Promise.all([
           P.query(`SELECT id, created_at, name, phone, address, branch, delivery_type, payment, total, status, status_note,
-                          items, note, delivery_time, promo_code, discount
+                          items, note, delivery_time, promo_code, discount, iiko_order_id, iiko_error
                    FROM orders ORDER BY id DESC LIMIT 300`),
           buildStats(P, 7),
           P.query(`SELECT * FROM menu_categories ORDER BY sort`),
@@ -231,7 +231,7 @@ export default async (req, res) => {
       if (action === 'orders') {
         const r = await P.query(
           `SELECT id, created_at, name, phone, address, branch, delivery_type, payment, total, status, status_note,
-                  items, note, delivery_time, promo_code, discount, change_amount
+                  items, note, delivery_time, promo_code, discount, iiko_order_id, iiko_error
            FROM orders ORDER BY id DESC LIMIT 300`);
         const riskR = await P.query(`SELECT phone, count(*)::int AS cancels FROM orders WHERE status = 'cancelled' GROUP BY phone`);
         return res.status(200).json({ ok: true, orders: r.rows, risk: Object.fromEntries(riskR.rows.map(r => [r.phone, r.cancels])) });
