@@ -13,7 +13,6 @@ import AdminCustomers from './screens/admin/AdminCustomers'
 import AdminAccess from './screens/admin/AdminAccess'
 import AdminOrders from './screens/admin/AdminOrders'
 import AdminMenu from './screens/admin/AdminMenu'
-import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminCats from './screens/admin/AdminCats'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
@@ -190,8 +189,6 @@ export default function App() {
         <Route path="/admin/dash" element={<AdminShell><AdminDash /></AdminShell>} />
         <Route path="/admin/menu" element={<AdminShell><AdminMenu /></AdminShell>} />
         <Route path="/admin/menu/:cat" element={<AdminShell><AdminMenu /></AdminShell>} />
-        <Route path="/admin/menu/new" element={<AdminGate><AdminItemForm /></AdminGate>} />
-        <Route path="/admin/menu/edit/:id" element={<AdminGate><AdminItemForm /></AdminGate>} />
         <Route path="/admin/cats" element={<AdminGate><AdminCats /></AdminGate>} />
         <Route path="/admin/customers" element={<AdminShell><AdminCustomers /></AdminShell>} />
         <Route path="/admin/access" element={<AdminShell><AdminAccess /></AdminShell>} />

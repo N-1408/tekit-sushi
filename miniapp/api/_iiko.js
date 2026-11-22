@@ -144,19 +144,21 @@ export async function syncMenu(pool, { activate = true } = {}) {
       t_uz: p.name, t_ru: p.name, t_en: p.name,
       d_uz: p.description || '', d_ru: p.description || '', d_en: p.description || '',
       iiko_id: p.productId,
+      img: (Array.isArray(p.imageUrls) && p.imageUrls[0] && (typeof p.imageUrls[0] === 'string' ? p.imageUrls[0] : p.imageUrls[0].url)) || p.imageUrl || p.image || null,
       iiko_prices: { default: Math.round(price) },
     };
   });
   const itemRes = await pool.query(
-    `INSERT INTO menu_items (id, slug, cat, price, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, source, iiko_id, iiko_prices)
-     SELECT x.id, x.slug, x.cat, x.price, x.t_uz, x.t_ru, x.t_en, x.d_uz, x.d_ru, x.d_en, 0, false, $2::boolean, 'iiko', x.iiko_id, x.iiko_prices
-     FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb)
+    `INSERT INTO menu_items (id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, source, iiko_id, iiko_prices)
+     SELECT x.id, x.slug, x.cat, x.price, x.img, x.t_uz, x.t_ru, x.t_en, x.d_uz, x.d_ru, x.d_en, 0, false, $2::boolean, 'iiko', x.iiko_id, x.iiko_prices
+     FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, img text, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb)
      ON CONFLICT (id) DO UPDATE SET
        cat = EXCLUDED.cat, price = EXCLUDED.price,
        t_uz = EXCLUDED.t_uz, t_ru = EXCLUDED.t_ru, t_en = EXCLUDED.t_en,
        d_uz = EXCLUDED.d_uz, d_ru = EXCLUDED.d_ru, d_en = EXCLUDED.d_en,
        iiko_prices = COALESCE(menu_items.iiko_prices, '{}'::jsonb) || EXCLUDED.iiko_prices,
-       active = EXCLUDED.active`,
+       img = COALESCE(NULLIF(EXCLUDED.img, ''), menu_items.img),
+       active = menu_items.active`,
     [JSON.stringify(dedupe(itemJson, (r) => r.id)), activate]
   );
 
@@ -208,10 +210,12 @@ export async function syncMenu(pool, { activate = true } = {}) {
     [JSON.stringify(dedupe(mRows, (r) => r.item_id + '|' + r.group_id))]
   );
 
-  // iiko yagona manba: mavjud placeholder (iiko'dan kelgan bo'lmagan)
-  // kategoriya va mahsulotlar menyudan yashirinadi (buyurtma tarixi uchun qatorlar qoladi).
-  await pool.query(`UPDATE menu_items SET active = false WHERE source IS DISTINCT FROM 'iiko'`);
-  await pool.query(`UPDATE menu_categories SET active = false WHERE source IS DISTINCT FROM 'iiko'`);
+  // iiko yagona manba: iiko'dan kelgan bo'lmagan (eski seed / qo'lda kiritilgan)
+  // kategoriya va mahsulotlar bazadan butunlay o'chiriladi. Buyurtmalar o'z
+  // paytidagi nusxani saqlaydi, tarix buzilmaydi.
+  await pool.query(`DELETE FROM menu_item_mod_groups WHERE item_id NOT IN (SELECT id FROM menu_items)`);
+  await pool.query(`DELETE FROM menu_items WHERE source IS DISTINCT FROM 'iiko'`);
+  await pool.query(`DELETE FROM menu_categories WHERE source IS DISTINCT FROM 'iiko'`);
 
   return [{
     source: 'nomenclature-v2',

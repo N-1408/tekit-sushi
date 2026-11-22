@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useEffect, useMemo, useState, useCallback } from 'react'
-import menu from '../data/menu.json'
 import { T, type Lang, type Trans } from './i18n'
 export type { Lang } from './i18n'
 import { tgUser, haptic, TGA, resolveTheme, applyTheme, onSystemThemeChange, type ThemeMode } from './tg'
@@ -14,8 +13,6 @@ export type Product = {
   active?: boolean
   old_price?: number | null; sale_percent?: number; sale_active?: boolean
 }
-export const PRODUCTS: Product[] = menu as Product[]
-
 /* Achchiq bo'limi: admin panelda 'spicy' belgisi bor — u qat'iy hukmron.
    Eski qatorlarda belgi hali yo'q (null), shuning uchun nom bo'yicha aniqlanadi
    (chili, spaysi, kimchi, o'tkir). Uchala til nomlari birgalikda tekshiriladi,
@@ -304,10 +301,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         setProducts(j.items)
         if (j.delivery) setDeliveryCfg({ fee: Number(j.delivery.fee) || 15000, threshold: Number(j.delivery.threshold) || 200000 })
       } else {
-        setProducts(PRODUCTS) // server javob bermasa: ilova ichidagi asosiy menyu
+        setProducts([]) // server javob bermasa: bo'sh menyu (iiko manba)
       }
       setMenuLoading(false)
-    }).catch(() => { if (!dead) { setProducts(PRODUCTS); setMenuLoading(false) } })
+    }).catch(() => { if (!dead) { setMenuLoading(false) } })
     fetch('/api/branches').then(r => r.ok ? r.json() : null).then(j => {
       if (dead || !j?.ok || !Array.isArray(j.branches) || !j.branches.length) return
       setFF(prev => ({

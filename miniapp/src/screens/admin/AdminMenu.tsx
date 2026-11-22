@@ -60,7 +60,6 @@ function Body() {
  <div className="flex gap-2">
  <button onClick={doSync} disabled={syncing} className="press h-9 rounded-full bg-[var(--panel)] border border-navy-line px-3 text-[12.5px] font-extrabold grid place-items-center active:scale-95 transition-transform disabled:opacity-50">{syncing ? '…' : '⟳ iiko'}</button>
  <button onClick={() => nav('/admin/cats')} className="press w-9 h-9 rounded-full bg-[var(--panel)] border border-navy-line grid place-items-center text-[15px] active:scale-90 transition-transform">🗂</button>
- <button onClick={() => nav('/admin/menu/new')} className="press h-9 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] px-3.5 text-[12.5px] font-extrabold grid place-items-center active:scale-95 transition-transform">+ {t.aAddItem}</button>
  </div>
  } />
  <div className="px-4 mt-3">
@@ -99,7 +98,7 @@ function Body() {
  : it.price
  return (
  <article key={it.id} className={`anim-up bg-[var(--panel)] border border-navy-line rounded-[18px] p-2.5 flex items-center gap-3 ${!it.active ? 'opacity-55' : ''}`}>
- <button onClick={() => nav(`/admin/menu/edit/${it.id}`)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+ <div className="flex items-center gap-3 flex-1 min-w-0 text-left">
  <img src={pImg(it)} alt="" className="w-[52px] h-[52px] rounded-xl object-cover bg-navy-soft shrink-0" loading="lazy" />
  <div className="flex-1 min-w-0">
  <div className="text-[13.5px] font-extrabold leading-snug line-clamp-1">{it.t_uz}</div>
@@ -116,12 +115,9 @@ function Body() {
  {onSale && <span className="ml-1.5 text-[11px] font-bold text-[var(--mut)] line-through">{fmt(it.price)}</span>}
  </div>
  </div>
- </button>
+ </div>
  <div className="flex flex-col gap-1.5 items-center">
  <Toggle on={!!it.active} onChange={() => toggleItem(it)} />
- <button onClick={() => nav(`/admin/menu/edit/${it.id}`)} className="press w-8 h-8 rounded-lg bg-navy-soft grid place-items-center active:scale-90 transition-transform">
- <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={{ stroke: 'var(--btn)' }} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9" /><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z" /></svg>
- </button>
  </div>
  </article>
  )
