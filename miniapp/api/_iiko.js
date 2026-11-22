@@ -100,6 +100,8 @@ function slugify(s) {
 // beradigan maydonlar yangilanadi. Yangi elementlar activate=true bo'lmasa
 // yashirin (active=false) keladi — mijozga ko'rinmaydi.
 export async function syncMenu(pool, { activate = true } = {}) {
+  // Admin qo'lda yashirgan mahsulotni sinxron yana yoqib yubormasin.
+  await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS hidden_by_admin boolean DEFAULT false');
   const { products, groups } = await catalogV2();
   const groupsById = new Map(groups.map((g) => [g.groupId, g]));
   const byId = new Map(products.map((p) => [p.productId, p]));
@@ -111,7 +113,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
     for (const r of rows) { const k = key(r); if (!m.has(k)) m.set(k, r); }
     return [...m.values()];
   };
-  const sellable = dedupe(products.filter((p) => p.name && OK_TYPES.includes(p.type)), (p) => p.productId);
+  const sellable = dedupe(products.filter((p) => p.name && !p.isDeleted && OK_TYPES.includes(p.type)), (p) => p.productId);
 
   // 1) Toifalar: mahsulotning parentGroupId -> group nomi
   const usedCats = new Set(sellable.map((p) => p.parentGroupId || ''));
@@ -158,7 +160,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
        d_uz = EXCLUDED.d_uz, d_ru = EXCLUDED.d_ru, d_en = EXCLUDED.d_en,
        iiko_prices = COALESCE(menu_items.iiko_prices, '{}'::jsonb) || EXCLUDED.iiko_prices,
        img = COALESCE(NULLIF(EXCLUDED.img, ''), menu_items.img),
-       active = menu_items.active`,
+       active = CASE WHEN COALESCE(menu_items.hidden_by_admin, false) THEN false ELSE $2::boolean END`,
     [JSON.stringify(dedupe(itemJson, (r) => r.id)), activate]
   );
 

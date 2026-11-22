@@ -368,7 +368,7 @@ export default async (req, res) => {
       // ---- menu item ----
       if (act === 'menu_toggle') {
         const id = str(b.id, 40);
-        const r = await P.query('UPDATE menu_items SET active = NOT active WHERE id = $1 RETURNING id, active', [id]);
+        const r = await P.query('UPDATE menu_items SET active = NOT active, hidden_by_admin = active WHERE id = $1 RETURNING id, active', [id]);
         if (!r.rows.length) return res.status(404).json({ ok: false, error: 'topilmadi' });
         return res.status(200).json({ ok: true, item: r.rows[0] });
       }

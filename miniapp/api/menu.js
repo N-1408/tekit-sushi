@@ -44,6 +44,7 @@ function ensureSchema() {
         t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text,
         pcs int DEFAULT 0, weight text, hit boolean DEFAULT false, active boolean DEFAULT true, sort int DEFAULT 0,
         sale_active boolean DEFAULT false, sale_percent int DEFAULT 0, sale_price int)`);
+      await p.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS hidden_by_admin boolean DEFAULT false`);
       for (const col of ['kcal', 'protein', 'fat', 'carbs'])
         await p.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS ${col} int`);
       const need = await p.query(`SELECT id, cat, t_uz, t_ru, t_en, d_uz FROM menu_items WHERE kcal IS NULL AND cat <> 'sous'`);
