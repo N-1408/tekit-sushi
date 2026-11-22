@@ -868,6 +868,15 @@ export const IcNavCart = ({ s = 23 }: { s?: number }) => (
     <path d="M9.2 10.5V6.8c0-1.6 1.3-2.9 2.8-2.9s2.8 1.3 2.8 2.9v3.7" />
   </svg>
 )
+/* korzina: yoy dastakli savat, xarocho'q chiziqlar bilan */
+export const IcNavBasket = ({ s = 23 }: { s?: number }) => (
+  <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M8.6 9c.1-3.6 1.5-5.6 3.4-5.6s3.3 2 3.4 5.6" />
+    <path d="M4.9 9h14.2l-1.4 10.2c-.2 1.3-1.2 2.3-2.5 2.3H8.8c-1.3 0-2.3-1-2.5-2.3L4.9 9Z" />
+    <path d="M9.2 12.4l5.6 7" />
+    <path d="M14.8 12.4l-5.6 7" />
+  </svg>
+)
 export const IcNavOrders = ({ s = 23 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <circle cx="12" cy="12" r="8.2" />
@@ -885,11 +894,11 @@ export function TabBar() {
   const { t, cartCount } = useStore()
   const nav = useNavigate()
   const beat = useCartBeat()
-  const loc = window.location.pathname
+  const loc = useLocation().pathname
   if (loc.startsWith('/p/')) return null
   const tabs = [
     { id: 'home', to: '/', label: t.tabHome, Ico: IcNavHome },
-    { id: 'cart', to: '/cart', label: t.tabCart, Ico: IcNavCart },
+    { id: 'cart', to: '/cart', label: t.tabCart, Ico: IcNavBasket },
     { id: 'orders', to: '/orders', label: t.tabOrders, Ico: IcNavOrders },
     { id: 'profile', to: '/profile', label: t.tabProfile, Ico: IcNavProfile },
   ]
