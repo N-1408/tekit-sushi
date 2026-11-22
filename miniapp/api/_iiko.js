@@ -329,6 +329,25 @@ export async function syncMenu(pool, { activate = true } = {}) {
   await pool.query(`DELETE FROM menu_items WHERE source IS DISTINCT FROM 'iiko'`);
   await pool.query(`DELETE FROM menu_categories WHERE source IS DISTINCT FROM 'iiko'`);
 
+  // Eski iiko qatorlari ham qolmasin: shu sinxda kelmagan iiko yozuvlari
+  // (eski nomenklatura id'lari, iiko'dan o'chirilgan taomlar) admin
+  // ro'yxatidan ham yo'qoladi. Tarix buzilmaydi: buyurtmalar o'z paytidagi
+  // nusxani saqlaydi. Faqat sinxron biror narsa olib keldiganida.
+  if (sellable.length) {
+    const itemIds = JSON.stringify(sellable.map((p) => String(p.productId)));
+    await pool.query(
+      `DELETE FROM menu_items WHERE source = 'iiko' AND iiko_id IS NOT NULL
+       AND NOT (iiko_id = ANY(SELECT value::text FROM jsonb_array_elements_text($1::jsonb)))`,
+      [itemIds]
+    );
+    const catIds = JSON.stringify([...usedCats].filter(Boolean));
+    await pool.query(
+      `DELETE FROM menu_categories WHERE source = 'iiko' AND iiko_id IS NOT NULL
+       AND NOT (iiko_id = ANY(SELECT value::text FROM jsonb_array_elements_text($1::jsonb)))`,
+      [catIds]
+    );
+  }
+
   const summary = {
     source: srcName,
     name: 'iiko',
