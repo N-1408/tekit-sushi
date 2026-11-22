@@ -25,6 +25,9 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
   const [manualOpen, setManualOpen] = React.useState(false)
   const [manualTxt, setManualTxt] = React.useState('')
 
+  /* Telegramda native BackButton bor bo'lsa, o'z qaytish tugmamizni ko'rsatmaymiz (desktopda ikki marta chiqmasligi uchun). */
+  const hasNativeBack = !!(TGA as any)?.BackButton?.show && (TGA as any)?.platform !== 'unknown'
+
   React.useEffect(() => {
     document.body.dataset.mapOpen = open ? '1' : ''
     return () => { document.body.dataset.mapOpen = '' }
@@ -118,9 +121,11 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
   const layer = (
     <div className="fixed inset-0 z-[90] bg-[var(--bg2)] flex flex-col">
       <div className="flex items-center gap-3 px-4 pt-[calc(12px+var(--sat))] pb-3 border-b border-[var(--line)] bg-[var(--bg2)]">
-        <button onClick={onClose} className="press w-9 h-9 rounded-full bg-[var(--panel)] text-[var(--ink)] grid place-items-center active:scale-90 transition-transform" aria-label="back">
-          <IcChevL s={17} />
-        </button>
+        {hasNativeBack ? null : (
+          <button onClick={onClose} className="press w-9 h-9 rounded-full bg-[var(--panel)] text-[var(--ink)] grid place-items-center active:scale-90 transition-transform" aria-label="back">
+            <IcChevL s={17} />
+          </button>
+        )}
         <div className="text-[15px] font-extrabold flex-1 text-[var(--ink)]">{t.mapTitle}</div>
       </div>
       <div className="flex-1 relative">

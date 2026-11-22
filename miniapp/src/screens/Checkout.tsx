@@ -6,6 +6,7 @@ import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
 import { TopBar, BigButton, IcTruck, IcCheck, IcPin, IcStore, IcChevR, IcCash, IcCard } from '../components/ui'
 import MapPicker from '../components/MapPicker'
+import { LoadingScreen } from '../components/status'
 import { PickupModal, pickupSummary, branchLabel } from '../components/Fulfillment'
 
 const Line = ({ label, children }: any) => <div><div className="text-[13px] font-bold text-[var(--mut2)] mb-1.5">{label}</div>{children}</div>
@@ -27,6 +28,14 @@ export default function Checkout() {
   const [busy, setBusy] = React.useState(false)
   const [err, setErr] = React.useState('')
   const [done, setDone] = React.useState<{ oid: number } | null>(null)
+
+  /* Zakaz yuborilgach: 2 sekund "qabul qilindi" ekrani ko'rinadi, so'ng
+     avtomatik ravishda Buyurtmalar sahifasiga o'tadi. */
+  React.useEffect(() => {
+    if (!done) return
+    const tm = setTimeout(() => nav('/orders'), 2000)
+    return () => clearTimeout(tm)
+  }, [done, nav])
   const [promoCode, setPromoCode] = React.useState('')
   const [promoPct, setPromoPct] = React.useState(0)
   const [promoMsg, setPromoMsg] = React.useState('')
@@ -171,6 +180,8 @@ export default function Checkout() {
 
   return (
     <div className="pb-28">
+      {/* Buyurtma yuborilayotganda umumiy yuklanish ekrani (ikki marta bosishdan ham saqlaydi) */}
+      {busy && <LoadingScreen />}
       <TopBar title={t.checkout} />
       {done ? (
         <div className="px-4 pt-16 text-center lg:max-w-[560px] lg:mx-auto">

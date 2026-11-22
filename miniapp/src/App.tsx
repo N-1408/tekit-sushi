@@ -20,15 +20,7 @@ import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, useIsWide,
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 import { TGA } from './lib/tg'
-
-/* Boot splash: server foydalanuvchini tekshirguncha (Telegram sessiyasida) */
-function BootSplash() {
-  return (
-    <div className="fixed inset-0 z-[90] bg-[var(--brand-blue)] grid place-items-center">
-      <img src="/logo-light.png" alt="Tekit Sushi" className="w-16 h-16 anim-pop" />
-    </div>
-  )
-}
+import { LoadingScreen, OfflineBanner } from './components/status'
 
 /* Desktop savat yon paneli (lg+): FloatingCart ochadi. Yopish: overlay,
    Escape yoki Telegramning native BackButton tugmasi (tarixga qaytmaydi). */
@@ -159,6 +151,17 @@ function ProfileDrawer() {
   )
 }
 
+/* Buyurtmalar belgisi yangi bo'lib tursin: har 30 sekundda zakazlar
+   tekshiriladi (Buyurtmalar sahifasining o'z 5 sekundlik yangilanishi bor). */
+function OrdersPoll() {
+  const { refreshOrders } = useStore()
+  React.useEffect(() => {
+    const iv = setInterval(() => { try { refreshOrders() } catch {} }, 30000)
+    return () => clearInterval(iv)
+  }, [refreshOrders])
+  return null
+}
+
 export default function App() {
   const { toast, user, ob, userChecked } = useStore()
   const loc = useLocation()
@@ -195,7 +198,9 @@ export default function App() {
         <Route path="/admin/promos" element={<AdminShell><AdminPromos /></AdminShell>} />
       </Routes>
       </div>
-      {!isAdmin && booting && <BootSplash />}
+      {!isAdmin && booting && <LoadingScreen />}
+      <OfflineBanner />
+      <OrdersPoll />
       {!isAdmin && !booting && (!user || ob) && <Onboarding />}
       {!isAdmin && <>
         <TabBar />

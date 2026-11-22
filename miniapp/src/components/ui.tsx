@@ -372,7 +372,7 @@ function HeaderLang() {
   return (
     <div ref={ref} className="relative">
       <button onClick={() => setOpen(v => !v)} aria-haspopup="listbox" aria-expanded={open}
-        className="press focus-ring flex items-center gap-1.5 h-11 px-3 rounded-full text-[12.5px] font-extrabold bg-[var(--hdr-chip)] text-white hover:bg-[var(--hdr-chip-hover)] transition-colors">
+        className="press focus-ring flex items-center gap-1.5 h-11 px-3 rounded-full text-[12.5px] font-medium bg-[var(--hdr-chip)] text-white hover:bg-[var(--hdr-chip-hover)] transition-colors">
         <FlagOf l={lang} s={14} />{lang.toUpperCase()}
         <span className={`transition-transform duration-150 ${open ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
       </button>
@@ -393,8 +393,47 @@ function HeaderLang() {
 /* ---------- bosh sahifa headeri: FAQAT logo + nom.
    Barcha ikonkalar (yetkazish/olib-ketish, til, tema, profil) Profile
    ekraniga ko'chirildi. ---------- */
+/* Desktop: buyurtma turi tanlovi — mobil headerdagi kabi bosilganda
+   "Yetkazib berish / Olib ketish" paneli ochiladi, variant tanlansa mos
+   modal (manzil/filial) chiqadi. onPick — Header'ning chooseMode'i. */
+function HeaderModePicker({ mode, t, onPick }: {
+  mode: string; t: any; onPick: (m: 'delivery' | 'pickup') => void
+}) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!open) return
+    const onDoc = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false) }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false) }
+    document.addEventListener('mousedown', onDoc)
+    window.addEventListener('keydown', onKey)
+    return () => { document.removeEventListener('mousedown', onDoc); window.removeEventListener('keydown', onKey) }
+  }, [open])
+  return (
+    <div ref={ref} className="relative min-w-0">
+      <button onClick={() => { haptic(); setOpen(v => !v) }} aria-haspopup="listbox" aria-expanded={open}
+        className="press focus-ring flex items-center gap-1.5 h-11 pl-3.5 pr-3 rounded-full bg-[var(--hdr-chip)] text-[15px] font-medium uppercase tracking-wide text-white active:scale-[.97] transition-transform min-w-0">
+        <span className="truncate">{mode === 'delivery' ? t.fcDel : mode === 'pickup' ? t.fcPick : t.orderType}</span>
+        <span className={`transition-transform duration-150 shrink-0 ${open ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
+      </button>
+      <div role="listbox" aria-label="order-type"
+        className={`absolute left-0 top-[calc(100%+8px)] z-30 w-56 rounded-2xl border border-[var(--line)] bg-[var(--panel)] shadow-[0_16px_40px_-16px_rgba(0,0,0,.35)] p-1.5 origin-top-left motion-safe:transition-[opacity,scale] motion-safe:duration-150 motion-safe:ease-out ${open ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+        {ORDER_MODES.map(m => (
+          <button key={m} role="option" aria-selected={mode === m}
+            onClick={() => { setOpen(false); onPick(m) }}
+            className={`press w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-left text-[13px] font-extrabold transition-colors ${mode === m ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)]' : 'text-[var(--ink2)] hover:bg-[var(--soft)]'}`}>
+            {m === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
+            {m === 'delivery' ? t.fcDel : t.fcPick}
+            {mode === m && <span className="ml-auto"><IcCheck s={14} /></span>}
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export function Header() {
-  const { t, lang, setLang, user, ob, mode, setMode } = useStore()
+  const { t, lang, setLang, user, ob, mode, setMode, ordersActiveCount } = useStore()
   const nav = useNavigate()
   const [delOpen, setDelOpen] = useState(false)
   const [pickOpen, setPickOpen] = useState(false)
@@ -454,11 +493,7 @@ export function Header() {
               <div className="justify-self-start flex items-center gap-2 min-w-0">
                 <HeaderLang />
                 <ThemeToggle variant="header" />
-                <button onClick={() => { haptic(); mode === 'delivery' ? setDelOpen(true) : setPickOpen(true) }}
-                  className="press focus-ring flex items-center gap-1.5 h-11 pl-3.5 pr-3 rounded-full bg-[var(--hdr-chip)] text-[15px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0">
-                  {mode === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
-                  <span className="truncate">{t.orderType}</span>
-                </button>
+                <HeaderModePicker mode={mode} t={t} onPick={chooseMode} />
               </div>
               {/* markazda: logo */}
               <button onClick={() => nav('/')} aria-label="Tekit Sushi"
@@ -470,15 +505,15 @@ export function Header() {
               {/* o'ngda: Savat, Buyurtmalar, Profil */}
               <div className="justify-self-end flex items-center gap-1.5 shrink-0">
                 <button onClick={() => { haptic(); setProfilePanelOpen(false); setOrdersPanelOpen(false); setCartPanelOpen(true) }}
-                  className="press focus-ring flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--hdr-chip)] text-[14.5px] font-extrabold text-white hover:bg-[var(--hdr-chip-hover)] active:scale-[.97] transition-all">
+                  className="press focus-ring flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--hdr-chip)] text-[14.5px] font-medium uppercase tracking-wide text-white hover:bg-[var(--hdr-chip-hover)] active:scale-[.97] transition-all">
                   <IcBag s={16} />{t.tabCart}
                 </button>
                 <button onClick={() => { haptic(); setCartPanelOpen(false); setProfilePanelOpen(false); setOrdersPanelOpen(true) }}
-                  className="press focus-ring flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--hdr-chip)] text-[14.5px] font-extrabold text-white hover:bg-[var(--hdr-chip-hover)] active:scale-[.97] transition-all">
+                  className="press focus-ring flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--hdr-chip)] text-[14.5px] font-medium uppercase tracking-wide text-white hover:bg-[var(--hdr-chip-hover)] active:scale-[.97] transition-all">
                   <IcNavOrders s={16} />{t.tabOrders}
                 </button>
                 <button onClick={() => { haptic(); setCartPanelOpen(false); setOrdersPanelOpen(false); setProfilePanelOpen(true) }}
-                  className="press focus-ring flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--hdr-chip)] text-[14.5px] font-extrabold text-white hover:bg-[var(--hdr-chip-hover)] active:scale-[.97] transition-all">
+                  className="press focus-ring flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--hdr-chip)] text-[14.5px] font-medium uppercase tracking-wide text-white hover:bg-[var(--hdr-chip-hover)] active:scale-[.97] transition-all">
                   <IcUser s={16} />{t.tabProfile}
                 </button>
               </div>
@@ -909,7 +944,7 @@ export const IcNavProfile = ({ s = 23 }: { s?: number }) => (
 )
 
 export function TabBar() {
-  const { t, cartCount } = useStore()
+  const { t, cartCount, ordersActiveCount } = useStore()
   const nav = useNavigate()
   const beat = useCartBeat()
   const loc = useLocation().pathname
@@ -936,6 +971,9 @@ export function TabBar() {
                 <Ico />
                 {id === 'cart' && cartCount > 0 && (
                   <span key={'tb' + beat} className={`absolute -top-1.5 -right-2 min-w-[16px] h-[16px] rounded-full bg-[#E8462B] text-white text-[9.5px] font-extrabold grid place-items-center leading-none px-1 ${beat ? 'cart-beat' : ''}`}>{cartCount}</span>
+                )}
+                {id === 'orders' && ordersActiveCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] rounded-full bg-[#E8462B] text-white text-[9.5px] font-extrabold grid place-items-center leading-none px-1">{ordersActiveCount}</span>
                 )}
               </span>
               <span className="tk-tab-lbl">{label}</span>
@@ -1147,12 +1185,12 @@ export function Sheet({ open, onClose, title, children, foot }: {
   )
 }
 
-export function Empty({ emoji, title, sub, action }: { emoji?: string; title: string; sub?: string; action?: React.ReactNode }) {
+export function Empty({ emoji, icon, title, sub, action }: { emoji?: string; icon?: React.ReactNode; title: string; sub?: string; action?: React.ReactNode }) {
   return (
     <div className="py-14 text-center">
       <div className="relative w-28 h-28 mx-auto">
         <div className="absolute -inset-4 rounded-full bg-navy-soft/70 blur-2xl opacity-80" />
-        <div className="relative tekit-pattern w-28 h-28 rounded-[30px] grid place-items-center text-white shadow-[0_16px_34px_-14px_rgba(15,30,154,.45)]"><IcPlate /></div>
+        <div className="relative tekit-pattern w-28 h-28 rounded-[30px] grid place-items-center text-white shadow-[0_16px_34px_-14px_rgba(15,30,154,.45)]">{icon || <IcPlate />}</div>
       </div>
       <div className="mt-5 text-[17px] font-extrabold">{title}</div>
       {sub && <div className="mt-1.5 text-[14px] font-medium text-[var(--mut2)] max-w-[300px] mx-auto leading-relaxed">{sub}</div>}

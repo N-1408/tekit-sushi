@@ -1,19 +1,20 @@
 import React from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useStore, pName, pImg, isSpicy, type Product } from '../lib/store'
+import { useStore, pName, pImg, isSpicy, type Product, type ModPick } from '../lib/store'
 import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
-import { TopBar, Qty, Empty, BigButton, IcX, IcStore, IcPlus, QtyStepper, SpicyBadge } from '../components/ui'
+import { TopBar, Qty, Empty, BigButton, IcX, IcStore, IcPlus, IcTruck, IcBin, IcBag, QtyStepper, SpicyBadge } from '../components/ui'
 import { pickupSummary } from '../components/Fulfillment'
 
 /* Savatdagi "qoshimcha qoshish" zonalari: faqat Souslar va Ichimliklar —
-   gorizontal chip qatorlari, ro'yxatdan keyin, buyurtma tugmasidan oldin. */
+   gorizontal kichik kartochka qatorlari (menyu uslubi), ro'yxatdan keyin,
+   buyurtma tugmasidan oldin. */
 function ExtraChip({ x, lang, t }: { x: Product; lang: any; t: any }) {
   const { cart, add, setQty } = useStore()
   const q = cart.find((l: any) => l.id === x.id)?.q ?? 0
   return (
-    <div className="shrink-0 w-[128px] bg-[var(--panel)] border border-navy-line rounded-[14px] p-2 flex flex-col">
-      <div className="relative aspect-square rounded-[10px] overflow-hidden bg-navy-soft">
+    <div className="shrink-0 w-[136px] bg-[var(--panel)] border border-navy-line rounded-[16px] p-2 flex flex-col">
+      <div className="relative aspect-square rounded-[12px] overflow-hidden bg-navy-soft">
         <img src={pImg(x)} alt={pName(x, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         {isSpicy(x) && <SpicyBadge size={18} className="absolute top-1.5 right-1.5" />}
       </div>
@@ -27,7 +28,7 @@ function ExtraChip({ x, lang, t }: { x: Product; lang: any; t: any }) {
         </div>
       ) : (
         <button onClick={() => { add(x.id); haptic('medium') }}
-          className="press mt-1.5 h-[32px] rounded-[10px] bg-[var(--btn)] text-[var(--btn-ink)] text-[12px] font-extrabold flex items-center justify-center gap-1.5 active:scale-[.98] transition-transform">
+          className="press mt-1.5 h-[32px] rounded-[11px] bg-[var(--btn)] text-[var(--btn-ink)] text-[12px] font-extrabold flex items-center justify-center gap-1.5 active:scale-[.98] transition-transform">
           <IcPlus s={12} />{t.cardAdd}
         </button>
       )}
@@ -49,12 +50,30 @@ function ExtraSection({ title, items, lang, t }: { title: string; items: Product
 
 export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' }) {
   const panel = variant === 'panel'
-  const { t, lang, cart, setQty, clearCart, openP, myOrders, products, cats, add, mode, pickup, ff, deliveryCfg } = useStore()
+  const { t, lang, cart, setQty, clearCart, openP, myOrders, products, cats, add, mode, pickup, ff, deliveryCfg, user } = useStore()
   const nav = useNavigate()
   /* Savatga kirganda doim tepadan boshlash */
   React.useEffect(() => { const el = document.scrollingElement || document.documentElement; el.scrollTop = 0 }, [])
   const lines = cart.filter(l => l.q > 0)
   const sum = lines.reduce((s, l) => s + l.q * (l.price + (l.modsPrice || 0)), 0)
+
+  /* Bepul yetkazib berish holati: navbar iconidagi halqa bilan bir xil mantiq. */
+  const threshold = deliveryCfg?.threshold || 200000
+  const left = Math.max(0, threshold - sum)
+  const fdPct = Math.min(1, sum / threshold)
+  const fdDone = left <= 0
+
+  /* O'chirishda silliq yiqilish. reduced-motion bo'lsa darhol o'chadi. */
+  const [leaving, setLeaving] = React.useState<Record<string, boolean>>({})
+  const remove = (id: string) => {
+    haptic('light')
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { setQty(id, 0); return }
+    setLeaving(s => ({ ...s, [id]: true }))
+    window.setTimeout(() => {
+      setQty(id, 0)
+      setLeaving(s => { const n = { ...s }; delete n[id]; return n })
+    }, 200)
+  }
 
   /* Qoshimchalar: menyu kategoriyalaridan birinchi ikkitasi, savatdagi
      narsalar takrorlanmaydi (kategoriyalar serverdan/iiko'dan keladi). */
@@ -90,7 +109,7 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
       )}
       {lines.length === 0 ? (
         <div className="px-4">
-          <Empty emoji="🛒" title={t.cartEmpty} sub={t.cartEmptySub}
+          <Empty icon={<IcBag s={42} />} title={t.cartEmpty} sub={t.cartEmptySub}
             action={
               <div className="flex flex-col gap-2.5 w-full">
                 <BigButton onClick={() => nav('/')}>{t.toMenu}</BigButton>
@@ -106,11 +125,18 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
         </div>
       ) : (
         <>
+          {/* Sarlavha qatori: mahsulot soni chapda, "Tozalash" o'ngda. */}
+          <div className="px-4 mt-4 flex items-center justify-between lg:max-w-[1240px] lg:mx-auto lg:px-0">
+            <div className="text-[13px] font-bold text-[var(--mut2)]">{t.cartLive.replace('{n}', String(lines.length))}</div>
+            <button onClick={() => { haptic('light'); clearCart() }}
+              className="press text-[12.5px] font-bold text-[var(--mut2)] active:text-red-500">{t.clearCart}</button>
+          </div>
           <div className={panel ? '' : 'lg:max-w-[1240px] lg:mx-auto lg:flex lg:gap-8 lg:items-start'}>
-          <div className={panel ? 'px-4 mt-4 space-y-2.5' : 'px-4 mt-4 space-y-2.5 lg:flex-1 lg:min-w-0 lg:px-0'}>
+          <div className={panel ? 'px-4 mt-3 space-y-2.5' : 'px-4 mt-3 space-y-2.5 lg:flex-1 lg:min-w-0 lg:px-0'}>
             {lines.map(l => (
-              <div key={l.id} className="flex gap-3 bg-[var(--panel)] border border-navy-line rounded-[18px] p-2.5">
-                <img src={pImg(l)} alt="" className="w-[68px] h-[68px] rounded-xl object-cover bg-navy-soft cursor-pointer"
+              <div key={l.id}
+                className={`flex gap-3 bg-[var(--panel)] border border-navy-line rounded-[18px] p-2.5 ${leaving[l.id] ? 'opacity-0 scale-[.97] -translate-y-1' : ''} motion-safe:transition-[opacity,transform] duration-200`}>
+                <img src={pImg(l)} alt="" className="w-[76px] h-[76px] rounded-[14px] object-cover bg-navy-soft cursor-pointer"
                   onClick={() => { haptic(); openP(l) }} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-1.5">
@@ -119,21 +145,27 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
                   </div>
                   {l.mods && l.mods.length ? (
                     <div className="text-[11.5px] font-semibold text-[var(--mut2)] mt-0.5 leading-tight">
-                      {l.mods.map(m => {
-                        const g = (l.mods || []).find(x => x.group_id === m.group_id)
+                      {(l.mods as ModPick[]).map(m => {
+                        const g = (l.mods as ModPick[]).find(x => x.group_id === m.group_id)
                         const grp = (l as any).mods && (products.find(x => x.id === l.id)?.mods || []).find(g2 => g2.id === m.group_id)
                         const opt = grp?.options.find(o => o.id === m.option_id)
                         return opt ? `${opt.name}${m.q > 1 ? ` ×${m.q}` : ''}` : null
                       }).filter(Boolean).join(', ')}
                     </div>
                   ) : (
-                  <div className="text-[13px] font-semibold text-[var(--mut2)] mt-0.5">{l.weight}</div>
+                  <div className="text-[12.5px] font-semibold text-[var(--mut2)] mt-0.5 truncate">
+                    {l.weight}{l.q > 1 ? ` · ${fmt(l.price)} × ${l.q}` : ''}
+                  </div>
                   )}
-                  <div className="text-[14px] font-extrabold mt-1">{fmt(l.q * (l.price + (l.modsPrice || 0)))} <span className="text-[10px] text-[var(--mut2)]">UZS</span></div>
+                  {/* Son o'zgarganda narx jonli yangilanadi (pop) */}
+                  <div key={l.q} className="text-[14px] font-extrabold mt-1 anim-pop">
+                    {fmt(l.q * (l.price + (l.modsPrice || 0)))} <span className="text-[10px] font-bold text-[var(--mut2)]">UZS</span>
+                  </div>
                 </div>
-                <div className="flex flex-col justify-between items-end">
-                  <button onClick={() => { setQty(l.id, 0); haptic('light') }} className="text-[var(--mut2)] active:text-red-500 p-1">
-                    <IcX s={15} />
+                <div className="flex flex-col items-end justify-between gap-1">
+                  <button onClick={() => remove(l.id)} aria-label="remove"
+                    className="press w-7 h-7 rounded-full grid place-items-center text-[var(--mut2)] bg-[var(--soft)] border border-[var(--line2)] active:text-red-500 active:border-red-300">
+                    <IcBin s={14} />
                   </button>
                   <Qty small min={0} q={l.q} onInc={() => { setQty(l.id, l.q + 1); haptic() }} onDec={() => { setQty(l.id, l.q - 1); haptic() }} />
                 </div>
@@ -154,14 +186,33 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
                 <span className="min-w-0 truncate">{pickup ? pickupSummary(t, pickup, ff.branches, lang) : t.pickBranch}</span>
               </div>
             ) : (
-              <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2"><span>{t.delivery}</span><span className={deliveryCfg?.fee > 0 ? 'text-[var(--ink)] font-bold' : 'text-emerald-600 font-bold'}>{deliveryCfg?.fee > 0 ? `${fmt(deliveryCfg.fee)} UZS` : t.free}</span></div>
+              <>
+                <div className="flex items-center gap-2 text-[13.5px] font-semibold text-[var(--mut2)] mt-2">
+                  <IcTruck s={15} />
+                  <span className="min-w-0 truncate">{user?.addr || t.pAddress}</span>
+                </div>
+                <div className="flex justify-between text-[13.5px] font-semibold text-[var(--mut2)] mt-2">
+                  <span>{t.delivery}</span>
+                  <span className={deliveryCfg?.fee > 0 ? 'text-[var(--ink)] font-bold' : 'text-emerald-600 font-bold'}>{deliveryCfg?.fee > 0 ? `${fmt(deliveryCfg.fee)} UZS` : t.free}</span>
+                </div>
+                {/* Bepul yetkazib berish progressi (GiftProgress bilan bir uslub) */}
+                <div className="mt-3">
+                  <div className="flex justify-between items-baseline text-[11.5px] font-bold">
+                    <span style={{ color: fdDone ? 'var(--promo-deep)' : 'var(--mut2)' }}>{fdDone ? t.fdDone : t.fdLeft.replace('{x}', fmt(left))}</span>
+                    <span className="text-[var(--mut2)]">{fmt(threshold)} UZS</span>
+                  </div>
+                  <div className="mt-1.5 h-[5px] rounded-full bg-navy-line overflow-hidden">
+                    <div className="h-full rounded-full motion-safe:transition-[width] duration-500"
+                      style={{ width: `${Math.round(fdPct * 100)}%`, background: 'var(--promo)' }} />
+                  </div>
+                </div>
+              </>
             )}
             <div className="h-px bg-navy-line my-3" />
             <div className="flex justify-between text-[16px] font-extrabold"><span>{t.total}</span><span>{fmt(sum + (mode === 'delivery' ? (deliveryCfg?.fee || 0) : 0))} UZS</span></div>
           </div>
           <div className={panel ? 'px-4 mt-4 flex flex-col gap-2.5' : 'px-4 mt-4 flex flex-col gap-2.5 lg:px-0'}>
             <div className={panel ? '' : 'hidden lg:block'}><BigButton onClick={() => { haptic(); nav('/checkout') }}>{t.checkout} · {fmt(sum)}</BigButton></div>
-            <button onClick={clearCart} className="text-[13px] font-bold text-[var(--mut2)] py-2 active:text-red-500">{t.clearCart}</button>
           </div>
           </div>
           </div>
