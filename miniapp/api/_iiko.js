@@ -101,6 +101,90 @@ function slugify(s) {
     .join('').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
 }
 
+/* Restoran mijozga ko'rinadigan menyusi iikoWeb'da "External Menu" sifatida
+   qurilgan (masalan "Test (mini app)"). U API-kalitga bog'lanadi va
+   /api/2/menu -> /api/menu/v3/by_id orqali o'qiladi. Nomenklatura v2 esa
+   xom katalog bo'lib, savatga chiqadigan taomlar shu yerdan kelmadi.
+   Quyidagi loader external menyuni nomenklatura shakliga aylantiradi,
+   shuning uchun DB yozish kodi o'zgarmaydi. */
+export async function externalMenuCatalog(orgIds) {
+  const orgs = (Array.isArray(orgIds) ? orgIds : [orgIds]).filter(Boolean);
+  let menu = null, org = null;
+  let lastErr = null;
+  for (const o of orgs) {
+    try {
+      const d = await call(`/api/2/menu?organizationId=${encodeURIComponent(o)}`, {});
+      const menus = (d && Array.isArray(d.externalMenus)) ? d.externalMenus : [];
+      if (!menus.length) { lastErr = new Error('iiko: org ' + o.slice(0, 8) + ' da external menyu yo\'q'); continue; }
+      const want = process.env.IIKO_EXTERNAL_MENU_ID;
+      menu = (want && menus.find((m) => String(m.id) === String(want)))
+        || menus.find((m) => /mini\s*app/i.test(String(m.name || '')))
+        || menus[0];
+      org = o;
+      break;
+    } catch (e) { lastErr = e; }
+  }
+  if (!menu) throw (lastErr || new Error("iiko: external menyu topilmadi"));
+  const d = await call(`/api/menu/v3/by_id?organizationId=${encodeURIComponent(org)}&externalMenuId=${encodeURIComponent(menu.id)}&version=3`, {});
+  const cats = Array.isArray(d && d.itemCategories) ? d.itemCategories : [];
+  const groups = [], products = [];
+  for (const c of cats) {
+    if (!c || !c.id) continue;
+    groups.push({ groupId: c.id, name: c.name || '', imageUrl: c.imageUrl || null });
+    const items = Array.isArray(c.itemList) ? c.itemList : [];
+    for (const it of items) {
+      if (!it || !it.itemId || !it.name) continue;
+      if (it.isAvailable === false) continue;
+      const sizes = Array.isArray(it.sizes) && it.sizes.length ? it.sizes : [{}];
+      const sz = sizes.find((x) => x && x.isDefault) || sizes[0];
+      const prices = Array.isArray(sz && sz.prices) ? sz.prices : [];
+      const pr = prices.find((x) => x && (!org || !x.organizationId || String(x.organizationId) === String(org))) || prices[0];
+      const mods = Array.isArray(sz && sz.itemModifierGroups) ? sz.itemModifierGroups : [];
+      products.push({
+        productId: String(it.itemId),
+        name: it.name,
+        description: it.description || '',
+        parentGroupId: c.id,
+        imageUrl: it.imageUrl || c.imageUrl || null,
+        type: 'DISH',
+        isDeleted: false,
+        defaultSalePrice: pr ? Number(pr.price) : null,
+        modifiers: mods.map((g) => ({
+          modifierId: g.itemGroupModifierId,
+          groupName: g.name || null,
+          minimumAmount: g.restrictions ? g.restrictions.minQuantity : undefined,
+          maximumAmount: g.restrictions ? g.restrictions.maxQuantity : undefined,
+          childModifiers: (Array.isArray(g.items) ? g.items : []).map((m) => ({
+            modifierId: m.itemId,
+            minimumAmount: m.restrictions ? m.restrictions.minQuantity : undefined,
+            maximumAmount: m.restrictions ? m.restrictions.maxQuantity : undefined,
+            defaultAmount: m.isDefault ? 1 : 0,
+          })),
+        })),
+      });
+      // Modifikator variantlarini ham katalogga qo'shamiz (type: MODIFIER, savatga
+      // qo'shilmaydi), faqat nom va narx aniqlanishi uchun.
+      for (const g of mods) {
+        for (const m of (Array.isArray(g.items) ? g.items : [])) {
+          if (!m || !m.itemId) continue;
+          if (products.some((p) => p.productId === String(m.itemId))) continue;
+          products.push({
+            productId: String(m.itemId),
+            name: m.name || String(m.itemId),
+            description: '',
+            parentGroupId: null,
+            type: 'MODIFIER',
+            isDeleted: false,
+            defaultSalePrice: m.price != null ? Number(m.price) : null,
+            modifiers: [],
+          });
+        }
+      }
+    }
+  }
+  return { products, groups, menuName: menu.name || '', menuId: menu.id };
+}
+
 // Katalogni DB'ga yozadi (iiko IDlari bilan kalitlanadi). Bizga xos ustunlar
 // (tarjimalar, promo, sort, img, active/hit) saqlanib qoladi: faqat iiko
 // beradigan maydonlar yangilanadi. Yangi elementlar activate=true bo'lmasa
@@ -108,7 +192,18 @@ function slugify(s) {
 export async function syncMenu(pool, { activate = true } = {}) {
   // Admin qo'lda yashirgan mahsulotni sinxron yana yoqib yubormasin.
   await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS hidden_by_admin boolean DEFAULT false');
-  const { products, groups } = await catalogV2();
+  let products, groups;
+  let srcName = 'nomenclature-v2', menuLabel = '';
+  try {
+    const em = await externalMenuCatalog([process.env.IIKO_ORGANIZATION_ID, process.env.IIKO_ORG_SAMPI]);
+    products = em.products; groups = em.groups;
+    srcName = 'external-menu';
+    menuLabel = `${em.menuName} (${em.menuId})`;
+  } catch (e) {
+    console.log("iiko external menu yuklanmadi, nomenklatura ishlatiladi:", String((e && e.message) || e));
+    const c2 = await catalogV2();
+    products = c2.products; groups = c2.groups;
+  }
   const groupsById = new Map(groups.map((g) => [g.groupId, g]));
   const byId = new Map(products.map((p) => [p.productId, p]));
   /* iiko 'type' maydoni har xil katta-kichik harfda keladi (GOODS/Good/Dish) —
@@ -235,8 +330,9 @@ export async function syncMenu(pool, { activate = true } = {}) {
   await pool.query(`DELETE FROM menu_categories WHERE source IS DISTINCT FROM 'iiko'`);
 
   const summary = {
-    source: 'nomenclature-v2',
+    source: srcName,
     name: 'iiko',
+    ...(menuLabel ? { menu: menuLabel } : {}),
     categories: catRes.rowCount || 0,
     items: itemRes.rowCount || 0,
     modifierGroups: gRes.rowCount || 0,
