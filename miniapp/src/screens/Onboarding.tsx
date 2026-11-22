@@ -3,11 +3,12 @@ import { useStore } from '../lib/store'
 import { API_BASE } from '../lib/api'
 import { tgUser, requestLocation, haptic } from '../lib/tg'
 import { IcPin } from '../components/ui'
+import { TelegramWidget } from './admin/common'
 
 const input = 'w-full bg-white border border-navy-line rounded-xl px-3.5 py-3 text-[14px] font-medium text-[#101821] outline-none focus:border-navy focus:ring-2 focus:ring-navy/10 placeholder:text-[#A2A9C6]'
 
 export default function Onboarding() {
-  const { t, user, saveUser, closeOb } = useStore()
+  const { t, user, saveUser, closeOb, showToast } = useStore()
   const u = tgUser()
   const first = !user
   const [step, setStep] = React.useState(0)
@@ -86,6 +87,15 @@ export default function Onboarding() {
                 {t.obNext}
               </button>
               <button onClick={() => commit('')} className="w-full py-3 text-[13px] font-bold text-[#8A93B8] press">{t.obSkip}</button>
+              {!u && (
+                <div className="pt-2 mt-1 border-t border-navy-line">
+                  <div className="pt-2 pb-1 text-center text-[12px] font-bold text-[#8A93B8]">{t.aTgSub}</div>
+                  <TelegramWidget scope="user" onResult={(r, j) => {
+                    if (r === 'ok' && j?.tg_id) { saveUser({ tg_id: j.tg_id, name: j.name || name.trim() || 'Mijoz' }); haptic('success') }
+                    else if (r === 'fail') showToast(t.aTgErr)
+                  }} />
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-3.5 anim-up">

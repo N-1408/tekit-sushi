@@ -78,6 +78,25 @@ async function exchangeCode(code, code_verifier, redirect_uri) {
   return j?.id_token || null;
 }
 
+let botInfoCache = null;
+/* getMe: BOT_TOKEN orqali botning RAQAMLI id'i (oauth client_id shuni talab qiladi). */
+async function getBotInfo() {
+  if (botInfoCache && Date.now() - botInfoCache.at < 3600e3) return botInfoCache.info;
+  const tok = process.env.BOT_TOKEN || '';
+  if (!tok) return null;
+  try {
+    const r = await fetch(`https://api.telegram.org/bot${tok}/getMe`);
+    const j = await r.json();
+    if (!j?.ok || !j.result?.id) return null;
+    const info = { id: j.result.id, username: j.result.username };
+    botInfoCache = { info, at: Date.now() };
+    return info;
+  } catch (e) {
+    console.error('getMe', e?.message);
+    return null;
+  }
+}
+
 let ensured;
 function ensureSchema() {
   if (!ensured) {
@@ -201,6 +220,11 @@ export async function handleAuth(req, res) {
         return res.status(500).json({ ok: false });
       }
     }
+    if (action === 'botinfo') {
+      const info = await getBotInfo();
+      if (!info) return res.status(200).json({ ok: false });
+      return res.status(200).json({ ok: true, id: info.id, username: info.username });
+    }
     if (action === 'access') {
       if (!(await checkAdmin(req))) return res.status(401).json({ ok: false, error: 'auth' });
       const [admins, reqs] = await Promise.all([
@@ -242,6 +266,19 @@ export async function handleAuth(req, res) {
         if (!Number.isFinite(tgId)) return res.status(400).json({ ok: false });
         const name = cut([u.first_name, u.last_name].filter(Boolean).join(' '), 80);
         const username = cut(u.username, 40);
+        if (String(b.scope || '') === 'user') {
+          /* Mijoz sifatida kirish: admin tasdig'i shart emas. */
+          await p.query(
+            `INSERT INTO bot_users (tg_id, name, username)
+             VALUES ($1,$2,$3)
+             ON CONFLICT (tg_id) DO UPDATE SET
+               name = COALESCE(EXCLUDED.name, bot_users.name),
+               username = COALESCE(EXCLUDED.username, bot_users.username)`,
+            [tgId, name, username]
+          );
+          await p.query(`UPDATE bot_users SET role='user' WHERE tg_id=$1 AND role IS NULL`, [tgId]);
+          return res.status(200).json({ ok: true, role: 'user', tg_id: tgId, name });
+        }
         return finishLogin(res, p, secure, tgId, name, username, null);
       } catch (e) {
         console.error('widget-login', e?.message);

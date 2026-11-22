@@ -68,12 +68,12 @@ export async function tgLogin(code: string, verifier: string, redirectUri: strin
 }
 
 /* Telegram Login Widget (rasmiy skript) natijasi bilan kirish */
-export async function tgWidgetLogin(user: any): Promise<{ ok: boolean; pending?: boolean }> {
+export async function tgWidgetLogin(user: any, scope?: 'user'): Promise<{ ok: boolean; pending?: boolean; role?: string; tg_id?: number; name?: string }> {
   const r = await fetch(`${API_BASE}/api/auth`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ action: 'widget-login', user }),
+    body: JSON.stringify({ action: 'widget-login', user, scope }),
   })
-  return (await r.json().catch(() => ({ ok: false }))) as { ok: boolean; pending?: boolean }
+  return (await r.json().catch(() => ({ ok: false }))) as { ok: boolean; pending?: boolean; role?: string; tg_id?: number; name?: string }
 }
 
 /* Ruxsatlar sahifasi: adminlar + tasdiqlanmagan so'rovlar */
