@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { API_BASE } from '../lib/api'
-import { haptic } from '../lib/tg'
+import { haptic, TGA } from '../lib/tg'
 import { IcChevL, IcLocate } from './ui'
 
 type Pt = { lat: number; lon: number }
@@ -37,6 +37,14 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
     if (initial) setPt(initial)
     const t0 = setTimeout(() => {
       if (!boxRef.current) return
+      if (mapRef.current && mapRef.current.getContainer() !== boxRef.current) {
+        /* Qayta ochilishda portal konteyneri qayta yaratiladi: eski xaritaning
+           konteyneri DOM'dan tushib qoladi va OQ EKRAN korinadi. Eskini butunlay
+           yechib, yangi konteynerda qayta quramiz. */
+        try { mapRef.current.remove() } catch {}
+        mapRef.current = null
+        mkRef.current = null
+      }
       if (!mapRef.current) {
         const start = initial || pt
         const m = L.map(boxRef.current, { zoomControl: false, center: [start.lat, start.lon], zoom: 16 })
@@ -61,6 +69,16 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
     }, 60)
     return () => clearTimeout(t0)
   }, [open])
+
+  /* Telegramning native "orqaga" tugmasi: xaritani yopadi (tarixga qaytmaydi). */
+  React.useEffect(() => {
+    if (!open) return
+    const bb = TGA?.BackButton as any
+    if (!bb?.show) return
+    const close = () => onClose()
+    try { bb.onClick(close); bb.show() } catch {}
+    return () => { try { bb.offClick?.(close); bb.hide() } catch {} }
+  }, [open, onClose])
 
   function applyManual() {
     const a = manualTxt.trim()

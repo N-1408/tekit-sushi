@@ -455,30 +455,30 @@ export function Header() {
                 <HeaderLang />
                 <ThemeToggle variant="header" />
                 <button onClick={() => { haptic(); mode === 'delivery' ? setDelOpen(true) : setPickOpen(true) }}
-                  className="press focus-ring flex items-center gap-1.5 h-11 pl-3.5 pr-3 rounded-full bg-[var(--hdr-chip)] text-[13.5px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0">
+                  className="press focus-ring flex items-center gap-1.5 h-11 pl-3.5 pr-3 rounded-full bg-[var(--hdr-chip)] text-[15px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0">
                   {mode === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
-                  <span className="truncate">{mode === 'delivery' ? t.fcDel : t.fcPick}</span>
+                  <span className="truncate">{t.orderType}</span>
                 </button>
               </div>
               {/* markazda: logo */}
               <button onClick={() => nav('/')} aria-label="Tekit Sushi"
                 className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
-                <img src="/logo-light.png" alt="Tekit Sushi" width={34} height={34}
-                  className="w-[34px] h-[34px] object-contain" />
-                <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+                <img src="/logo-light.png" alt="Tekit Sushi" width={36} height={36}
+                  className="w-[36px] h-[36px] object-contain" />
+                <span className="text-[17px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
               </button>
               {/* o'ngda: Savat, Buyurtmalar, Profil */}
               <div className="justify-self-end flex items-center gap-1.5 shrink-0">
                 <button onClick={() => { haptic(); setProfilePanelOpen(false); setOrdersPanelOpen(false); setCartPanelOpen(true) }}
-                  className="press focus-ring flex items-center gap-2 h-10 px-3.5 rounded-full text-[13px] font-extrabold text-white hover:bg-[var(--hdr-chip)] active:scale-[.97] transition-all">
+                  className="press focus-ring flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--hdr-chip)] text-[14.5px] font-extrabold text-white hover:bg-[var(--hdr-chip-hover)] active:scale-[.97] transition-all">
                   <IcBag s={16} />{t.tabCart}
                 </button>
                 <button onClick={() => { haptic(); setCartPanelOpen(false); setProfilePanelOpen(false); setOrdersPanelOpen(true) }}
-                  className="press focus-ring flex items-center gap-2 h-10 px-3.5 rounded-full text-[13px] font-extrabold text-white hover:bg-[var(--hdr-chip)] active:scale-[.97] transition-all">
+                  className="press focus-ring flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--hdr-chip)] text-[14.5px] font-extrabold text-white hover:bg-[var(--hdr-chip-hover)] active:scale-[.97] transition-all">
                   <IcNavOrders s={16} />{t.tabOrders}
                 </button>
                 <button onClick={() => { haptic(); setCartPanelOpen(false); setOrdersPanelOpen(false); setProfilePanelOpen(true) }}
-                  className="press focus-ring flex items-center gap-2 h-10 px-3.5 rounded-full text-[13px] font-extrabold text-white hover:bg-[var(--hdr-chip)] active:scale-[.97] transition-all">
+                  className="press focus-ring flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--hdr-chip)] text-[14.5px] font-extrabold text-white hover:bg-[var(--hdr-chip-hover)] active:scale-[.97] transition-all">
                   <IcUser s={16} />{t.tabProfile}
                 </button>
               </div>
@@ -916,7 +916,7 @@ export function TabBar() {
   if (loc.startsWith('/p/')) return null
   const tabs = [
     { id: 'home', to: '/', label: t.tabHome, Ico: IcNavHome },
-    { id: 'cart', to: '/cart', label: t.tabCart, Ico: IcNavBasket },
+    { id: 'cart', to: '/cart', label: t.tabCart, Ico: () => <IcBag s={23} /> },
     { id: 'orders', to: '/orders', label: t.tabOrders, Ico: IcNavOrders },
     { id: 'profile', to: '/profile', label: t.tabProfile, Ico: IcNavProfile },
   ]
