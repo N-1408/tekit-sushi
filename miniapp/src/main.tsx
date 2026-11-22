@@ -2,6 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App'
+import { AppErrorBoundary } from './components/status'
 import { StoreProvider } from './lib/store'
 import { initTelegram } from './lib/tg'
 import './index.css'
@@ -21,9 +22,11 @@ window.addEventListener('vite:preloadError', () => {
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <StoreProvider>
-      <BrowserRouter>
-        <App />
-      </BrowserRouter>
+      <AppErrorBoundary>
+        <BrowserRouter>
+          <App />
+        </BrowserRouter>
+      </AppErrorBoundary>
     </StoreProvider>
   </React.StrictMode>,
 )

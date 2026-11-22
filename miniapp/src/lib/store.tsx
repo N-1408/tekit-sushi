@@ -103,6 +103,9 @@ export type Store = {
   toast: string | null; showToast: (s: string) => void
   myOrders: MyOrder[]; saveMyOrder: (o: MyOrder) => void
   menuLoading: boolean
+  netLost: boolean
+  menuRetrying: boolean
+  retryMenu: () => void
   ordersLoaded: boolean
   userChecked: boolean
   sheetP: Product | null; openP: (p: Product) => void; closeP: () => void
@@ -144,6 +147,10 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
      Server javob bermasa — ilova ichidagi asosiy menyu ishlaydi. */
   const [products, setProducts] = useState<Product[]>([])
   const [menuLoading, setMenuLoading] = useState(true)
+  /* Server javob bermasa: lokal menyu koʻrsatiladi va netLost=true — Homeʻda
+     "Server bilan aloqa yoʻq" xabari chiqadi. retryMenu — qayta urinish. */
+  const [netLost, setNetLost] = useState(false)
+  const [menuRetrying, setMenuRetrying] = useState(false)
   const [ordersLoaded, setOrdersLoaded] = useState(false)
   const [role, setRole] = useState<string | null>(null)
   const [roleReady, setRoleReady] = useState(false)
@@ -303,11 +310,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (j?.ok && Array.isArray(j.items) && j.items.length) {
         setProducts(j.items)
         if (j.delivery) setDeliveryCfg({ fee: Number(j.delivery.fee) || 15000, threshold: Number(j.delivery.threshold) || 200000 })
+        setNetLost(false)
       } else {
         setProducts(PRODUCTS) // server javob bermasa: ilova ichidagi asosiy menyu
+        setNetLost(true)
       }
       setMenuLoading(false)
-    }).catch(() => { if (!dead) { setProducts(PRODUCTS); setMenuLoading(false) } })
+    }).catch(() => { if (!dead) { setProducts(PRODUCTS); setMenuLoading(false); setNetLost(true) } })
     fetch('/api/branches').then(r => r.ok ? r.json() : null).then(j => {
       if (dead || !j?.ok || !Array.isArray(j.branches) || !j.branches.length) return
       setFF(prev => ({
@@ -375,15 +384,28 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     return () => { dead = true; window.clearInterval(id); document.removeEventListener('visibilitychange', onVis) }
   }, [refreshOrders])
 
-  const value = useMemo<Store>(() => {
+    /* Server bilan aloqa yoʻqolganda menyuni qayta yuklash (Homeʻdagi tugma) */
+  const retryMenu = () => {
+    setMenuRetrying(true)
+    fetch('/api/menu').then(r => r.ok ? r.json() : null).then((j: any) => {
+      if (j?.ok && Array.isArray(j.items) && j.items.length) {
+        setProducts(j.items)
+        if (j.delivery) setDeliveryCfg({ fee: Number(j.delivery.fee) || 15000, threshold: Number(j.delivery.threshold) || 200000 })
+        setNetLost(false)
+      }
+      setMenuLoading(false)
+    }).catch(() => { setMenuLoading(false) }).finally(() => setMenuRetrying(false))
+  }
+
+const value = useMemo<Store>(() => {
     const lines: CartLine[] = Object.entries(cartMap)
       .map(([id, q]) => { const p = products.find(x => x.id === id); return p ? { ...p, q } : null })
       .filter(Boolean) as CartLine[]
     // Badge savat xaritasidan: menyu hali yuklanmagan bo'lsa ham to'g'ri
     const count = Object.values(cartMap).reduce((s, q) => s + (q || 0), 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked])
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked, netLost, menuRetrying, retryMenu }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked, netLost, menuRetrying, retryMenu])
 
   const navValue = useMemo<NavState>(() => ({ navOpen, setNavOpen }), [navOpen, setNavOpen])
   return (

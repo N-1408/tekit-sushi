@@ -6,6 +6,7 @@ import { fmt } from '../lib/money'
 import { haptic } from '../lib/tg'
 import { TopBar, BigButton, IcTruck, IcCheck, IcPin, IcStore, IcChevR, IcCash, IcCard } from '../components/ui'
 import MapPicker from '../components/MapPicker'
+import { LoadingScreen } from '../components/status'
 import { PickupModal, pickupSummary, branchLabel } from '../components/Fulfillment'
 
 const Line = ({ label, children }: any) => <div><div className="text-[13px] font-bold text-[var(--mut2)] mb-1.5">{label}</div>{children}</div>
@@ -171,6 +172,8 @@ export default function Checkout() {
 
   return (
     <div className="pb-28">
+      {/* Buyurtma yuborilayotganda umumiy yuklanish ekrani (ikki marta bosishdan ham saqlaydi) */}
+      {busy && <LoadingScreen />}
       <TopBar title={t.checkout} />
       {done ? (
         <div className="px-4 pt-16 text-center lg:max-w-[560px] lg:mx-auto">

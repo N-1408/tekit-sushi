@@ -21,24 +21,7 @@ import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, useIsWide,
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
 import { TGA } from './lib/tg'
-
-/* Boot splash: server foydalanuvchini tekshirguncha (Telegram sessiyasida) */
-function BootSplash() {
-  return (
-    <div className="fixed inset-0 z-[90] bg-[var(--brand-blue)] grid place-items-center">
-      <div className="flex flex-col items-center gap-4">
-        {/* Logo tabiiy nisbatda (w-auto): cho'zilib buzilmaydi */}
-        <img src="/logo-light.png" alt="Tekit Sushi" className="h-16 w-auto anim-pop" />
-        {/* Yengil yuklanish effekti: 3 nuqta ketma-ket yonadi (reduced-motion'da turg'un) */}
-        <div className="flex items-center gap-1.5" aria-hidden="true">
-          <span className="w-1.5 h-1.5 rounded-full bg-white/90 motion-safe:animate-pulse" />
-          <span className="w-1.5 h-1.5 rounded-full bg-white/55 motion-safe:animate-pulse" style={{ animationDelay: '150ms' }} />
-          <span className="w-1.5 h-1.5 rounded-full bg-white/30 motion-safe:animate-pulse" style={{ animationDelay: '300ms' }} />
-        </div>
-      </div>
-    </div>
-  )
-}
+import { LoadingScreen, OfflineBanner } from './components/status'
 
 /* Desktop savat yon paneli (lg+): FloatingCart ochadi. Yopish: overlay,
    Escape yoki Telegramning native BackButton tugmasi (tarixga qaytmaydi). */
@@ -207,7 +190,8 @@ export default function App() {
         <Route path="/admin/promos" element={<AdminShell><AdminPromos /></AdminShell>} />
       </Routes>
       </div>
-      {!isAdmin && booting && <BootSplash />}
+      {!isAdmin && booting && <LoadingScreen />}
+      <OfflineBanner />
       {!isAdmin && !booting && (!user || ob) && <Onboarding />}
       {!isAdmin && <>
         <TabBar />

@@ -1,6 +1,7 @@
 import React from 'react'
 import { useStore, pName, CATS, inCat, type Product } from '../lib/store'
 import { Header, CatalogNav, CityBanner, HeroSlider, ProductCard } from '../components/ui'
+import { haptic } from '../lib/tg'
 
 const SEC = (id: string) => `cat-${id}`
 
@@ -200,7 +201,7 @@ function useWideScreen() {
 }
 
 export default function Home() {
-  const { t, lang, products, menuLoading } = useStore()
+  const { t, lang, products, menuLoading, netLost, menuRetrying, retryMenu } = useStore()
   const [q, setQ] = React.useState('')
   const hits = products.filter(p => p.hit)
   const sales = products.filter(p => (p as any).sale_active && ((p as any).old_price ?? 0) > p.price)
@@ -272,6 +273,20 @@ export default function Home() {
           </div>
         )
       })()}
+      {netLost && (
+        <div className="px-4 mt-3 lg:max-w-[1240px] lg:mx-auto lg:px-6">
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-[rgba(245,158,11,.45)] bg-[rgba(245,158,11,.14)] px-4 py-2.5">
+            <div className="min-w-0">
+              <div className="text-[13.5px] font-bold text-[var(--ink)]">{t.netLostTitle}</div>
+              <div className="text-[12.5px] text-[var(--mut2)]">{t.netLostSub}</div>
+            </div>
+            <button onClick={() => { haptic('light'); retryMenu() }} disabled={menuRetrying}
+              className="press shrink-0 h-9 px-4 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] text-[12.5px] font-extrabold active:scale-[.97] transition-transform disabled:opacity-60">
+              {menuRetrying ? t.retrying : t.retryBtn}
+            </button>
+          </div>
+        </div>
+      )}
       <div className="lg:max-w-[1240px] lg:mx-auto">
         <CityBanner />
         {found ? (
