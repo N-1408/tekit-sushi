@@ -303,7 +303,7 @@ export default async (req, res) => {
       if (act === 'iiko_sync') {
         let results;
         try {
-          results = await syncMenu(P, { activate: !!b.activate });
+          results = await syncMenu(P, { activate: b.activate === undefined ? true : !!b.activate });
         } catch (e) {
           console.error('iiko_sync', e && (e.stack || e.message || e));
           return res.status(200).json({ ok: false, error: String(e && e.message || e).slice(0, 400) });

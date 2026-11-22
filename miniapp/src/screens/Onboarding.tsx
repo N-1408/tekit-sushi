@@ -22,6 +22,32 @@ export default function Onboarding() {
   const [busy, setBusy] = React.useState(false)
   const [locState, setLocState] = React.useState<'idle' | 'ok' | 'fail'>(user?.addr ? 'ok' : 'idle')
 
+  // Telegram orqali raqam ulashish (web_app_request_phone): foydalanuvchi tasdiqlasa
+  // raqam BOTga contact sifatida keladi, webhook uni bot_users.phone ga yozadi.
+  const [tgPh, setTgPh] = React.useState<'idle' | 'sent' | 'fail'>('idle')
+  const askTgPhone = React.useCallback(() => {
+    const wa: any = (window as any).Telegram?.WebApp
+    if (!wa?.requestPhone) { setTgPh('fail'); return }
+    try {
+      const h = (e: any) => {
+        const st = typeof e === 'string' ? e : (e?.status || e?.detail?.status)
+        try { wa.offEvent('phoneRequested', h) } catch {}
+        if (st === 'sent') {
+          setTgPh('sent'); haptic('success')
+          setTimeout(async () => {
+            try {
+              const r = await fetch('/api/me', { headers: { 'X-Init-Data': wa.initData } })
+              const j = r.ok ? await r.json() : null
+              if (j?.ok && j.phone) setPhoneD(digitsOf(j.phone))
+            } catch {}
+          }, 1500)
+        } else setTgPh('fail')
+      }
+      wa.onEvent('phoneRequested', h)
+      wa.requestPhone()
+    } catch { setTgPh('fail') }
+  }, [])
+
   React.useEffect(() => {
     const prev = document.body.style.overflow
     document.body.style.overflow = 'hidden'
@@ -82,6 +108,15 @@ export default function Onboarding() {
                   <input className="flex-1 px-3.5 py-3 text-[14px] font-medium text-[#101821] outline-none bg-white placeholder:text-[#A2A9C6]" type="tel" inputMode="numeric" value={fmtPhone(phoneD)} onChange={e => setPhoneD(e.target.value.replace(/\D/g, '').replace(/^998/, '').slice(0, 9))} placeholder="90 123 45 67" />
                 </div>
               </div>
+              {!!u && (
+                <div>
+                  <button onClick={askTgPhone} type="button"
+                    className={`w-full py-2.5 rounded-xl border border-navy-line bg-white text-[13px] font-bold press ${tgPh === 'sent' ? 'text-emerald-600 border-emerald-300' : 'text-navy'}`}>
+                    {tgPh === 'sent' ? t.obTgSent : t.obTgPhone}
+                  </button>
+                  {tgPh === 'fail' && <div className="mt-1 text-center text-[11.5px] font-semibold text-amber-600">{t.obTgFail}</div>}
+                </div>
+              )}
               <button onClick={() => { if (valid1) { haptic(); setStep(1) } }}
                 className={`w-full py-3.5 rounded-2xl text-[14.5px] font-extrabold press transition-all ${valid1 ? 'bg-navy text-white shadow-[0_8px_20px_-6px_rgba(15,30,154,.45)]' : 'bg-white text-[#A2A9C6] border border-navy-line'}`}>
                 {t.obNext}

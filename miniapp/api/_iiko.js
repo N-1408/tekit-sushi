@@ -155,7 +155,8 @@ export async function syncMenu(pool, { activate = true } = {}) {
        cat = EXCLUDED.cat, price = EXCLUDED.price,
        t_uz = EXCLUDED.t_uz, t_ru = EXCLUDED.t_ru, t_en = EXCLUDED.t_en,
        d_uz = EXCLUDED.d_uz, d_ru = EXCLUDED.d_ru, d_en = EXCLUDED.d_en,
-       iiko_prices = COALESCE(menu_items.iiko_prices, '{}'::jsonb) || EXCLUDED.iiko_prices`,
+       iiko_prices = COALESCE(menu_items.iiko_prices, '{}'::jsonb) || EXCLUDED.iiko_prices,
+       active = EXCLUDED.active`,
     [JSON.stringify(dedupe(itemJson, (r) => r.id)), activate]
   );
 
