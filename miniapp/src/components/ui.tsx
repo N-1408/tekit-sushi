@@ -1182,12 +1182,12 @@ export function Sheet({ open, onClose, title, children, foot }: {
   )
 }
 
-export function Empty({ emoji, title, sub, action }: { emoji?: string; title: string; sub?: string; action?: React.ReactNode }) {
+export function Empty({ emoji, icon, title, sub, action }: { emoji?: string; icon?: React.ReactNode; title: string; sub?: string; action?: React.ReactNode }) {
   return (
     <div className="py-14 text-center">
       <div className="relative w-28 h-28 mx-auto">
         <div className="absolute -inset-4 rounded-full bg-navy-soft/70 blur-2xl opacity-80" />
-        <div className="relative tekit-pattern w-28 h-28 rounded-[30px] grid place-items-center text-white shadow-[0_16px_34px_-14px_rgba(15,30,154,.45)]"><IcPlate /></div>
+        <div className="relative tekit-pattern w-28 h-28 rounded-[30px] grid place-items-center text-white shadow-[0_16px_34px_-14px_rgba(15,30,154,.45)]">{icon || <IcPlate />}</div>
       </div>
       <div className="mt-5 text-[17px] font-extrabold">{title}</div>
       {sub && <div className="mt-1.5 text-[14px] font-medium text-[var(--mut2)] max-w-[300px] mx-auto leading-relaxed">{sub}</div>}

@@ -2,7 +2,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useStore, type MyOrder } from '../lib/store'
 import { fmt } from '../lib/money'
-import { TopBar, Empty, BigButton } from '../components/ui'
+import { TopBar, Empty, BigButton, IcNavOrders, IcTruck } from '../components/ui'
 import { branchLabel, pickupWhenText } from '../components/Fulfillment'
 
 const ACTIVE = ['new', 'confirmed', 'cooking', 'delivering']
@@ -124,12 +124,12 @@ export default function Orders({ variant = 'page' }: { variant?: 'page' | 'panel
         </div>
       ) : myOrders.length === 0 ? (
         <div className="px-4">
-          <Empty emoji="📦" title={t.noOrders} sub={t.noOrdersSub}
+          <Empty icon={<IcNavOrders s={40} />} title={t.noOrders} sub={t.noOrdersSub}
             action={<BigButton onClick={() => nav('/')}>{t.toMenu}</BigButton>} />
         </div>
       ) : act.length === 0 ? (
         <div className="px-4">
-          <Empty emoji="🛵" title={t.noActive}
+          <Empty icon={<IcTruck s={40} />} title={t.noActive}
             sub={arc.length > 0 ? t.ordersInProfile : t.noActiveSub}
             action={<BigButton onClick={() => nav('/')}>{t.toMenu}</BigButton>} />
         </div>
