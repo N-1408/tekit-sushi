@@ -1,5 +1,9 @@
 import { getPool } from './_db.js';
 import { cors } from './_verify.js';
+import { syncMenu } from './_iiko.js';
+
+// Oxirgi o'z-o'zidan sinxron vaqti (bir namunada 2 daqiqada bir marta)
+let lastAutoSync = 0;
 
 
 
@@ -83,6 +87,21 @@ export default async (req, res) => {
     const ok = await ensureSchema();
     if (!ok) return res.status(500).json({ ok: false, error: 'DB xato' });
     const p = getPool();
+    // Menyu bo'sh bo'lsa: iikodan o'z-o'zidan sinxron (mijoz ilk ochilishida
+    // ham menyuni ko'radi). Eski iiko qatorlari shu sinxda o'chiriladi.
+    let syncInfo = null;
+    const pre = await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true`);
+    if (!pre.rows[0].n && Date.now() - lastAutoSync > 120000) {
+      lastAutoSync = Date.now();
+      try {
+        const s = (await syncMenu(p))[0];
+        if (s) syncInfo = s.items
+          ? `iiko: ${s.categories} kategoriya, ${s.items} taom (${s.source})`
+          : `iiko: ${s.note || "katalog bo'sh"}`;
+      } catch (se) {
+        syncInfo = 'iiko sinxron xato: ' + String((se && se.message) || se).slice(0, 200);
+      }
+    }
     const cats = (await p.query(
       `SELECT slug, sort, title_uz, title_ru, title_en, emoji, sale_active, sale_percent
        FROM menu_categories WHERE active = true ORDER BY sort`)).rows;
@@ -130,7 +149,7 @@ export default async (req, res) => {
       if (modsByItem && modsByItem[r.id]) out.mods = modsByItem[r.id];
       return out;
     });
-    return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE ?? 0), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) },  cats, items });
+    return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE ?? 0), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) }, ...(syncInfo ? { sync: syncInfo } : {}), cats, items });
   } catch (e) {
     console.error('menu error', e);
     return res.status(500).json({ ok: false, error: 'Server xatosi' });

@@ -136,7 +136,7 @@ export async function tgOAuthStart(): Promise<void> {
   const state = b64url(crypto.getRandomValues(new Uint8Array(16)))
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(verifier))
   const challenge = b64url(new Uint8Array(digest))
-  const redirect = `${location.origin}/admin`
+  const redirect = `${location.origin}/`
   try { sessionStorage.setItem('tk-tg-ov', JSON.stringify({ verifier, state })) } catch {}
   const q = new URLSearchParams({
     client_id: clientId, redirect_uri: redirect, response_type: 'code',

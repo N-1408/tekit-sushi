@@ -260,8 +260,18 @@ export default async (req, res) => {
         });
       }
       if (action === 'menu') {
-        const cats = (await P.query(`SELECT * FROM menu_categories ORDER BY sort`)).rows;
-        const items = (await P.query(`SELECT * FROM menu_items ORDER BY sort, cat`)).rows;
+        let cats = (await P.query(`SELECT * FROM menu_categories ORDER BY sort`)).rows;
+        let items = (await P.query(`SELECT * FROM menu_items ORDER BY sort, cat`)).rows;
+        if (!items.length) {
+          // Menyu hali bo'sh: iikodan bir marta o'z-o'zidan sinxronlaymiz.
+          try {
+            const s = (await syncMenu(P))[0];
+            if (s && s.items) {
+              cats = (await P.query(`SELECT * FROM menu_categories ORDER BY sort`)).rows;
+              items = (await P.query(`SELECT * FROM menu_items ORDER BY sort, cat`)).rows;
+            }
+          } catch (se) { console.error('auto sync menu', se && se.message); }
+        }
         return res.status(200).json({ ok: true, cats, items });
       }
       if (action === 'settings') {
