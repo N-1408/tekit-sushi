@@ -98,6 +98,7 @@ export type Store = {
   lang: Lang; setLang: (l: Lang) => void; t: Trans
   products: Product[]
   cart: CartLine[]; cartCount: number; cartSum: number
+  ordersActiveCount: number
   add: (id: string, q?: number) => void; setQty: (id: string, q: number) => void; clearCart: () => void
   favs: string[]; toggleFav: (id: string) => void
   toast: string | null; showToast: (s: string) => void
@@ -404,7 +405,8 @@ const value = useMemo<Store>(() => {
     // Badge savat xaritasidan: menyu hali yuklanmagan bo'lsa ham to'g'ri
     const count = Object.values(cartMap).reduce((s, q) => s + (q || 0), 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked, netLost, menuRetrying, retryMenu }
+    const ordersActiveCount = myOrders.filter(o => ['new', 'confirmed', 'cooking', 'delivering'].includes(o.status)).length
+    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, ordersActiveCount, saveMyOrder, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked, netLost, menuRetrying, retryMenu }
   }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked, netLost, menuRetrying, retryMenu])
 
   const navValue = useMemo<NavState>(() => ({ navOpen, setNavOpen }), [navOpen, setNavOpen])

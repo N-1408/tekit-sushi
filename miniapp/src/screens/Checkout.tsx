@@ -28,6 +28,14 @@ export default function Checkout() {
   const [busy, setBusy] = React.useState(false)
   const [err, setErr] = React.useState('')
   const [done, setDone] = React.useState<{ oid: number } | null>(null)
+
+  /* Zakaz yuborilgach: 2 sekund "qabul qilindi" ekrani ko'rinadi, so'ng
+     avtomatik ravishda Buyurtmalar sahifasiga o'tadi. */
+  React.useEffect(() => {
+    if (!done) return
+    const tm = setTimeout(() => nav('/orders'), 2000)
+    return () => clearTimeout(tm)
+  }, [done, nav])
   const [promoCode, setPromoCode] = React.useState('')
   const [promoPct, setPromoPct] = React.useState(0)
   const [promoMsg, setPromoMsg] = React.useState('')

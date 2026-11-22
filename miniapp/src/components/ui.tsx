@@ -433,7 +433,7 @@ function HeaderModePicker({ mode, t, onPick }: {
 }
 
 export function Header() {
-  const { t, lang, setLang, user, ob, mode, setMode } = useStore()
+  const { t, lang, setLang, user, ob, mode, setMode, ordersActiveCount } = useStore()
   const nav = useNavigate()
   const [delOpen, setDelOpen] = useState(false)
   const [pickOpen, setPickOpen] = useState(false)
@@ -944,7 +944,7 @@ export const IcNavProfile = ({ s = 23 }: { s?: number }) => (
 )
 
 export function TabBar() {
-  const { t, cartCount } = useStore()
+  const { t, cartCount, ordersActiveCount } = useStore()
   const nav = useNavigate()
   const beat = useCartBeat()
   const loc = useLocation().pathname
@@ -971,6 +971,9 @@ export function TabBar() {
                 <Ico />
                 {id === 'cart' && cartCount > 0 && (
                   <span key={'tb' + beat} className={`absolute -top-1.5 -right-2 min-w-[16px] h-[16px] rounded-full bg-[#E8462B] text-white text-[9.5px] font-extrabold grid place-items-center leading-none px-1 ${beat ? 'cart-beat' : ''}`}>{cartCount}</span>
+                )}
+                {id === 'orders' && ordersActiveCount > 0 && (
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] rounded-full bg-[#E8462B] text-white text-[9.5px] font-extrabold grid place-items-center leading-none px-1">{ordersActiveCount}</span>
                 )}
               </span>
               <span className="tk-tab-lbl">{label}</span>

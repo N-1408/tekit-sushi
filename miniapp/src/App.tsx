@@ -152,6 +152,17 @@ function ProfileDrawer() {
   )
 }
 
+/* Buyurtmalar belgisi yangi bo'lib tursin: har 30 sekundda zakazlar
+   tekshiriladi (Buyurtmalar sahifasining o'z 5 sekundlik yangilanishi bor). */
+function OrdersPoll() {
+  const { refreshOrders } = useStore()
+  React.useEffect(() => {
+    const iv = setInterval(() => { try { refreshOrders() } catch {} }, 30000)
+    return () => clearInterval(iv)
+  }, [refreshOrders])
+  return null
+}
+
 export default function App() {
   const { toast, user, ob, userChecked } = useStore()
   const loc = useLocation()
@@ -192,6 +203,7 @@ export default function App() {
       </div>
       {!isAdmin && booting && <LoadingScreen />}
       <OfflineBanner />
+      <OrdersPoll />
       {!isAdmin && !booting && (!user || ob) && <Onboarding />}
       {!isAdmin && <>
         <TabBar />
