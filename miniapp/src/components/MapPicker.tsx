@@ -1,4 +1,5 @@
 import React from 'react'
+import { createPortal } from 'react-dom'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { API_BASE } from '../lib/api'
@@ -10,7 +11,7 @@ type Pt = { lat: number; lon: number }
 export default function MapPicker({ open, initial, onPick, onClose, t }: {
   open: boolean
   initial?: Pt | null
-  onPick: (addr: string, lat: number, lon: number) => void
+  onPick: (addr: string, lat: number | null, lon: number | null) => void
   onClose: () => void
   t: any
 }) {
@@ -21,6 +22,8 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
   const [busy, setBusy] = React.useState(false)
   const [err, setErr] = React.useState(false)
   const [locBusy, setLocBusy] = React.useState(false)
+  const [manualOpen, setManualOpen] = React.useState(false)
+  const [manualTxt, setManualTxt] = React.useState('')
 
   React.useEffect(() => {
     document.body.dataset.mapOpen = open ? '1' : ''
@@ -29,6 +32,8 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
 
   React.useEffect(() => {
     if (!open) return
+    setManualOpen(false)
+    setManualTxt('')
     if (initial) setPt(initial)
     const t0 = setTimeout(() => {
       if (!boxRef.current) return
@@ -57,6 +62,14 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
     return () => clearTimeout(t0)
   }, [open])
 
+  function applyManual() {
+    const a = manualTxt.trim()
+    if (a.length < 6) return
+    haptic('medium')
+    onPick(a, null, null)
+    onClose()
+  }
+
   function locateMe() {
     if (locBusy || !navigator.geolocation) return
     setLocBusy(true)
@@ -84,7 +97,7 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
   }
 
   if (!open) return null
-  return (
+  const layer = (
     <div className="fixed inset-0 z-[90] bg-[var(--bg2)] flex flex-col">
       <div className="flex items-center gap-3 px-4 pt-[calc(12px+var(--sat))] pb-3 border-b border-[var(--line)] bg-[var(--bg2)]">
         <button onClick={onClose} className="press w-9 h-9 rounded-full bg-[var(--panel)] text-[var(--ink)] grid place-items-center active:scale-90 transition-transform" aria-label="back">
@@ -102,12 +115,44 @@ export default function MapPicker({ open, initial, onPick, onClose, t }: {
         </button>
       </div>
       <div className="px-4 pt-3 border-t border-[var(--line)] bg-[var(--bg2)]" style={{ paddingBottom: 'calc(14px + var(--sab))' }}>
-        <div className="text-[11.5px] font-bold text-[var(--mut2)] text-center">{err ? '—' : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`}</div>
-        <button onClick={pick} disabled={busy}
-          className="press mt-2.5 w-full py-3.5 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15px] font-extrabold disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[.98] transition-transform">
-          {busy ? '…' : t.mapPick}
-        </button>
+        {manualOpen ? (
+          <div className="space-y-2">
+            <input
+              value={manualTxt}
+              onChange={(e) => setManualTxt(e.target.value)}
+              placeholder={t.delWritePh}
+              maxLength={200}
+              autoFocus
+              className="w-full px-4 py-3 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] focus:border-[var(--acc)]/60 outline-none text-[14.5px] font-semibold text-[var(--ink)] placeholder:text-[var(--mut2)] placeholder:font-medium"
+            />
+            <div className="flex gap-2">
+              <button onClick={() => setManualOpen(false)} aria-label="back"
+                className="press w-12 shrink-0 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] text-[var(--ink)] grid place-items-center active:scale-[.98] transition-transform">
+                <IcChevL s={17} />
+              </button>
+              <button onClick={applyManual} disabled={manualTxt.trim().length < 6}
+                className="press flex-1 py-3 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[14.5px] font-extrabold disabled:opacity-40 active:scale-[.98] transition-transform">
+                {t.delNext}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              <span className="text-[11.5px] font-bold text-[var(--mut2)] text-center">{err ? '—' : `${pt.lat.toFixed(5)}, ${pt.lon.toFixed(5)}`}</span>
+              <span aria-hidden="true" className="text-[var(--mut2)] opacity-40">·</span>
+              <button onClick={() => setManualOpen(true)} className="press text-[12.5px] font-extrabold text-[var(--acc)] active:opacity-70">
+                {t.mapManualBtn}
+              </button>
+            </div>
+            <button onClick={pick} disabled={busy}
+              className="press mt-2.5 w-full py-3.5 rounded-2xl bg-[var(--btn)] text-[var(--btn-ink)] text-[15px] font-extrabold disabled:opacity-60 flex items-center justify-center gap-2 active:scale-[.98] transition-transform">
+              {busy ? '…' : t.mapPick}
+            </button>
+          </>
+        )}
       </div>
     </div>
   )
+  return createPortal(layer, document.body)
 }

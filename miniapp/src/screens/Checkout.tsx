@@ -95,11 +95,11 @@ export default function Checkout() {
     saveUser({ name: user?.name || '', phone: user?.phone || '', addr: s.label, lat: s.lat, lon: s.lon })
   }
 
-  function onMapPick(a: string, lat: number, lon: number) {
+  function onMapPick(a: string, lat: number | null, lon: number | null) {
     setAddr(a)
     setSugs([])
     haptic('medium')
-    saveUser({ name: user?.name || '', phone: user?.phone || '', addr: a, lat, lon })
+    saveUser({ name: user?.name || '', phone: user?.phone || '', addr: a, lat: lat ?? undefined, lon: lon ?? undefined })
     /* manzil tasdiqlandi — delivery rejimi endi haqiqiy tanlov */
     if (mode !== 'delivery') setMode('delivery')
   }

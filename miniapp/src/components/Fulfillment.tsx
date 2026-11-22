@@ -169,11 +169,10 @@ function StepList({ steps, current }: { steps: string[]; current: number }) {
 /* ============ YETKAZIB BERISH MODALI ============ */
 export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onClose: () => void; switchTo?: () => void }) {
   const { t, user, saveUser, setMode, cartSum } = useStore()
-  type View = 'entry' | 'write' | 'review'
+  type View = 'entry' | 'review'
   const [view, setView] = useState<View>('entry')
   const [draft, setDraft] = useState<Draft>(null)
   const [mapOpen, setMapOpen] = useState(false)
-  const [writeTxt, setWriteTxt] = useState('')
   const [locating, setLocating] = useState(false)
   const [locFail, setLocFail] = useState(false)
   const [q, setQ] = useState<Quote>(null)
@@ -184,7 +183,6 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
     if (open) {
       setMapOpen(false)
       setLocFail(false)
-      setWriteTxt('')
       if (user?.addr) {
         const d: NonNullable<Draft> = { addr: user.addr, lat: user.lat ?? null, lon: user.lon ?? null, verified: user.lat != null }
         setDraft(d)
@@ -264,7 +262,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
 
   return (
     <>
-      <Modal open={open} onClose={onClose} title={view === 'write' ? t.delWrite : t.delTitle} width={480}
+      <Modal open={open} onClose={onClose} title={t.delTitle} width={480}
         foot={
           view === 'review' && draft ? (
             <div className="flex gap-2.5">
@@ -285,29 +283,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
           ) : undefined}>
         {/* Yo'l xaritasi: 1 Manzil -> 2 Tasdiqlash */}
         <StepTrail steps={[t.stepAddress, t.stepConfirm]} current={view === 'review' ? 1 : 0} />
-        {view === 'write' ? (
-          <div className="space-y-3">
-            <button onClick={() => setView('entry')}
-              className="press focus-ring flex items-center gap-2 text-[14px] font-bold text-[var(--mut2)] hover:text-[var(--ink)] px-1 -mt-1">
-              <IcChevL s={16} /> {t.pickChange || t.delChange}
-            </button>
-            <input
-              value={writeTxt}
-              onChange={e => setWriteTxt(e.target.value)}
-              placeholder={t.delWritePh}
-              maxLength={200}
-              autoFocus
-              className="w-full px-4 py-3.5 rounded-2xl bg-[var(--panel)] border border-[var(--line2)] focus:border-[var(--acc)]/60 outline-none text-[15px] font-semibold text-[var(--ink)] placeholder:text-[var(--mut2)] placeholder:font-medium"
-            />
-            <div className="text-[13px] font-medium text-[var(--mut2)] px-1 leading-snug">{t.delWriteSub}</div>
-            <button
-              onClick={() => setDraftQ({ addr: writeTxt.trim(), lat: null, lon: null, verified: false })}
-              disabled={writeTxt.trim().length < 6} data-autofocus
-              className="press focus-ring w-full py-3.5 rounded-2xl bg-navy text-white text-[15px] font-extrabold active:scale-[.98] transition-transform disabled:opacity-40">
-              {t.delNext}
-            </button>
-          </div>
-        ) : view === 'review' && draft ? (
+        {view === 'review' && draft ? (
           <div className="space-y-3">
             <button onClick={() => { setDraft(null); setView('entry'); setQ(null) }}
               className="press focus-ring flex items-center gap-2 text-[14px] font-bold text-[var(--mut2)] hover:text-[var(--ink)] px-1 -mt-1">
@@ -396,13 +372,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
                     <span className={optSub + ' block'}>{t.delDetectSub}</span>
                   </span>
                 </button>
-                <button className={opt} onClick={() => { setWriteTxt(''); setView('write') }}>
-                  <span className="w-11 h-11 rounded-xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcPin s={19} /></span>
-                  <span className="min-w-0">
-                    <span className={optTitle + ' block'}>{t.delWrite}</span>
-                    <span className={optSub + ' block'}>{t.delWriteSub}</span>
-                  </span>
-                </button>
+                
                 <button className={opt} onClick={() => setMapOpen(true)}>
                   <span className="w-11 h-11 rounded-xl bg-[var(--acc-soft15)] text-[var(--acc)] grid place-items-center shrink-0"><IcLocate s={19} /></span>
                   <span className="min-w-0">
@@ -428,7 +398,7 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
       <MapPicker
         open={mapOpen}
         initial={draft?.lat != null && draft?.lon != null ? { lat: draft.lat, lon: draft.lon } : (user?.lat != null && user?.lon != null ? { lat: user.lat, lon: user.lon } : null)}
-        onPick={(a, lat, lon) => { setMapOpen(false); setDraftQ({ addr: a, lat, lon, verified: true }) }}
+        onPick={(a, lat, lon) => { setMapOpen(false); setDraftQ({ addr: a, lat, lon, verified: lat != null }) }}
         onClose={() => setMapOpen(false)}
         t={t}
       />
@@ -440,6 +410,8 @@ export function DeliveryModal({ open, onClose, switchTo }: { open: boolean; onCl
 export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClose: () => void; switchTo?: () => void }) {
   const { t, lang, pickup, setPickup, setMode, ff } = useStore()
   const cfg = ff.pickup_cfg
+  /* Jadval admin'da yozilmagan bo'lsa ham vaqt tanlash ishlaydi: standart 1 soatlik qadamlar */
+  const effCfg = cfg || { slot_minutes: 60, prep_minutes: 0, days_ahead: 6 }
   const [branch, setBranch] = useState<string | null>(null)
   const [asap, setAsap] = useState(true)
   const [date, setDate] = useState<string | null>(null)
@@ -457,8 +429,8 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
     }
   }, [open])
 
-  const days = cfg ? Array.from({ length: Math.max(1, cfg.days_ahead || 6) + 1 }, (_, i) => addDaysYmd(ymdOf(new Date()), i)) : []
-  const slotInfo = date && cfg ? slotsFor(date, { slot_minutes: cfg.slot_minutes || 30, prep_minutes: cfg.prep_minutes || 0 }) : null
+  const days = Array.from({ length: Math.max(1, effCfg.days_ahead || 6) + 1 }, (_, i) => addDaysYmd(ymdOf(new Date()), i))
+  const slotInfo = date ? slotsFor(date, { slot_minutes: effCfg.slot_minutes || 30, prep_minutes: effCfg.prep_minutes || 0 }) : null
 
   function confirm() {
     if (!branch) return
@@ -537,17 +509,17 @@ export function PickupModal({ open, onClose, switchTo }: { open: boolean; onClos
                   {cfg?.prep_minutes ? t.pickPrepIn.replace('{n}', String(cfg.prep_minutes)) : t.pickPrepUnknown}
                 </span>
               </button>
-              <button onClick={() => { if (!cfg) return; setAsap(false); setSchedOpen(true) }} disabled={!cfg}
-                className={'press focus-ring px-3 py-3.5 rounded-2xl border text-left transition-colors active:scale-[.99] disabled:opacity-50 '
+              <button onClick={() => { setAsap(false); setSchedOpen(true) }}
+                className={'press focus-ring px-3 py-3.5 rounded-2xl border text-left transition-colors active:scale-[.99] '
                   + (!asap && cfg ? 'bg-[var(--acc-soft10)] border-[var(--acc)]' : 'bg-[var(--panel)] border-[var(--line2)] hover:border-[var(--acc-line50)]')}>
                 <span className={'flex items-center gap-2 ' + (!asap && cfg ? 'text-[var(--acc)]' : 'text-[var(--ink)]')}><IcClock s={16} /> <span className="text-[14.5px] font-extrabold">{t.pickChooseTime}</span></span>
                 <span className="text-[12.5px] font-semibold text-[var(--mut2)] mt-1.5 block leading-snug">
-                  {!cfg ? t.pickSchedOff : (asap ? t.pickChooseTime : (date && time ? `${pickupWhenText(t, `${date} ${time}`)}` : t.pickSchedTitle))}
+                  {asap ? t.pickChooseTime : (date && time ? `${pickupWhenText(t, `${date} ${time}`)}` : t.pickSchedTitle)}
                 </span>
               </button>
             </div>
 
-            {schedOpen && cfg && (
+            {schedOpen && (
               <div className="mt-3 space-y-3 bg-[var(--panel)] border border-[var(--line2)] rounded-2xl p-3.5">
                 <div className="flex gap-2 overflow-x-auto pb-0.5 -mx-0.5 px-0.5">
                   {days.map(d => {
