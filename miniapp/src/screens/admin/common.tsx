@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom'
 import { useStore } from '../../lib/store'
 import { tgUser, haptic, useNativeBack } from '../../lib/tg'
 import { adminSession } from '../../lib/api'
-import { authHeaders, tgOAuthStart, tgOAuthConfigured, tgOAuthFinish, tgOAuthStartUser, tgOAuthFinishUser } from '../../lib/admin'
+import { authHeaders, tgOAuthStart, tgOAuthConfigured, tgOAuthFinish, tgOAuthStartUser, tgOAuthFinishUser, startSessionWatch } from '../../lib/admin'
 import { tgWidgetLogin } from '../../lib/api'
 import { ThemeToggle } from '../../components/ui'
 
@@ -41,6 +41,8 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
     try { const v = localStorage.getItem('tk-admin-data'); return v ? JSON.parse(v) : null } catch { return null }
   })
   const roleOk = !!uid && role === 'admin'
+
+  React.useEffect(() => { startSessionWatch() }, [])
 
   const verify = React.useCallback(async (k: string) => {
     if (!k) return false

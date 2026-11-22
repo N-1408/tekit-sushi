@@ -15,7 +15,7 @@ async function check(req, res) {
     try {
       const r = await getPool().query('SELECT role FROM bot_users WHERE tg_id=$1', [sess.tg_id]);
       if (r.rows[0]?.role === 'admin') {
-        if (res) res.setHeader('Set-Cookie', sessionCookieHeader(makeSessionToken(sess.tg_id), req.headers['x-forwarded-proto'] === 'https'));
+        if (res) res.setHeader('Set-Cookie', sessionCookieHeader(makeSessionToken(sess.tg_id, sess.tgv), req.headers['x-forwarded-proto'] === 'https'));
         return true;
       }
       return false;

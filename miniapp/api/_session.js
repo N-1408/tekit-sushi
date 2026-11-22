@@ -11,6 +11,10 @@ const SECRET =
   '';
 export const SESSION_COOKIE = 'tk-sess';
 const MAX_AGE = 12 * 3600; // 12 soat (sessiya timeout)
+/* Sessiya Telegram bilan bog'langan: tgv = oxirgi muvaffaqiyatli Telegram
+   tasdig'i (kirish yoki initData touch). Telegram'da sessiya yopilsa,
+   sayt ham eng ko'p shu muddatdan keyin tushiradi. */
+const TG_RECHECK_MAX = 12 * 3600;
 
 function sign(payload) {
   return crypto.createHmac('sha256', SECRET).update(payload).digest('base64url');
@@ -20,9 +24,9 @@ export function sessionEnabled() {
   return !!SECRET;
 }
 
-export function makeSessionToken(tgId) {
+export function makeSessionToken(tgId, tgv = Math.floor(Date.now() / 1000)) {
   const payload = Buffer.from(
-    JSON.stringify({ tg_id: tgId, exp: Math.floor(Date.now() / 1000) + MAX_AGE })
+    JSON.stringify({ tg_id: tgId, tgv: Number(tgv) || Math.floor(Date.now() / 1000), exp: Math.floor(Date.now() / 1000) + MAX_AGE })
   ).toString('base64url');
   return `${payload}.${sign(payload)}`;
 }
@@ -39,7 +43,9 @@ export function readSession(req) {
   if (a.length !== b.length || !crypto.timingSafeEqual(a, b)) return null;
   try {
     const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
-    if (!data?.tg_id || !data?.exp || Date.now() / 1000 > Number(data.exp)) return null;
+    const now = Date.now() / 1000;
+    if (!data?.tg_id || !data?.exp || now > Number(data.exp)) return null;
+    if (!data?.tgv || now - Number(data.tgv) > TG_RECHECK_MAX) return null;
     return data;
   } catch {
     return null;
