@@ -10,7 +10,7 @@ const SECRET =
   process.env.BOT_TOKEN ||
   '';
 export const SESSION_COOKIE = 'tk-sess';
-const MAX_AGE = 7 * 24 * 3600; // 7 kun
+const MAX_AGE = 12 * 3600; // 12 soat (sessiya timeout)
 
 function sign(payload) {
   return crypto.createHmac('sha256', SECRET).update(payload).digest('base64url');

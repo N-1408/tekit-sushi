@@ -7,7 +7,7 @@
 // bo'lmasa role='requested' qilib so'rov yoziladi va adminlarga xabar yuboriladi.
 import crypto from 'crypto';
 import { getPool } from './_db.js';
-import { tgUserFrom, cors, failGuard, recordFail, safeEqual } from './_verify.js';
+import { tgUserFrom, cors, failGuard, recordFail, safeEqual, rateLimit } from './_verify.js';
 import { notifyUser } from './_notify.js';
 import {
   readSession, makeSessionToken, sessionCookieHeader, clearSessionCookieHeader,
@@ -221,6 +221,7 @@ export async function handleAuth(req, res) {
       }
     }
     if (action === 'botinfo') {
+      if (!(await rateLimit(req, 'botinfo', 60, 60 * 1000))) return res.status(429).json({ ok: false });
       const info = await getBotInfo();
       if (!info) return res.status(200).json({ ok: false });
       return res.status(200).json({ ok: true, id: info.id, username: info.username });
@@ -239,6 +240,9 @@ export async function handleAuth(req, res) {
   if (req.method === 'POST') {
     const b = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const action = String(b.action || '');
+    if (action === 'tg-login' || action === 'widget-login') {
+      if (!(await rateLimit(req, 'auth', 20, 10 * 60 * 1000))) return res.status(429).json({ ok: false, error: 'rate' });
+    }
 
     if (action === 'tg-login') {
       try {

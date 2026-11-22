@@ -1,21 +1,30 @@
 import { getPool } from './_db.js';import { createDelivery } from './_delivery.js';
 import { notifyUser } from './_notify.js';
-import { tgUserFrom, cors, failGuard, recordFail, safeEqual } from './_verify.js';
-import { readSession } from './_session.js';
+import { tgUserFrom, cors, failGuard, recordFail, safeEqual, rateLimit } from './_verify.js';
+import { readSession, makeSessionToken, sessionCookieHeader } from './_session.js';
 import { handleAuth } from './_auth.js';
 import { handleIikoStatus } from './_iiko-status.js';
 import { syncMenu } from './_iiko.js';
-async function check(req) {
-  // Admin sessiyasi (Telegram Login orqali): cookie bazadagi roliga qarab tekshiriladi
+const pwLoginEnabled = () => String(process.env.ADMIN_PASSWORD_LOGIN || '0').trim() !== '0';
+
+async function check(req, res) {
+  // Admin sessiyasi (Telegram Login orqali): cookie bazadagi roliga qarab tekshiriladi.
+  // Sliding timeout: har faol so'rovda cookie 12 soatga yangilanadi.
   const sess = readSession(req);
   if (sess) {
     try {
       const r = await getPool().query('SELECT role FROM bot_users WHERE tg_id=$1', [sess.tg_id]);
-      return r.rows[0]?.role === 'admin';
+      if (r.rows[0]?.role === 'admin') {
+        if (res) res.setHeader('Set-Cookie', sessionCookieHeader(makeSessionToken(sess.tg_id), req.headers['x-forwarded-proto'] === 'https'));
+        return true;
+      }
+      return false;
     } catch { return false; }
   }
+  // Parol bilan kirish: ADMIN_PASSWORD_LOGIN yoqilmaguncha o'chirilgan (kod qoladi).
   const key = req.headers['x-admin-key'] || '';
   if (key) {
+    if (!pwLoginEnabled()) return false;
     if (await failGuard(req, 'pw')) return false;
     if (safeEqual(key, process.env.ADMIN_PASSWORD)) return true;
     await recordFail(req, 'pw');
@@ -186,7 +195,7 @@ export default async (req, res) => {
   if (req.query && req.query.type === 'auth') return handleAuth(req, res);
   if (!process.env.ADMIN_PASSWORD) return res.status(503).json({ ok: false, error: 'ADMIN_PASSWORD sozlanmagan' });
   if (req.query && req.query.type === 'iiko-status') {
-    if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
+    if (!(await check(req, res))) return res.status(401).json({ ok: false, error: 'auth' });
     return handleIikoStatus(req, res);
   }
 
@@ -195,7 +204,7 @@ export default async (req, res) => {
   const P = getPool();
 
   if (req.method === 'GET') {
-    if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
+    if (!(await check(req, res))) return res.status(401).json({ ok: false, error: 'auth' });
     const action = str(req.query.action || 'orders', 20);
     try {
       if (action === 'bootstrap') {
@@ -273,7 +282,7 @@ export default async (req, res) => {
   }
 
   if (req.method === 'POST') {
-    if (!(await check(req))) return res.status(401).json({ ok: false, error: 'auth' });
+    if (!(await check(req, res))) return res.status(401).json({ ok: false, error: 'auth' });
     try {
       const b = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const act = str(b.action, 24);
@@ -301,6 +310,7 @@ export default async (req, res) => {
 
       // ---- order status ----
       if (act === 'iiko_sync') {
+        if (!(await rateLimit(req, 'iiko_sync', 4, 60 * 1000))) return res.status(429).json({ ok: false, error: 'rate' });
         let results;
         try {
           results = await syncMenu(P, { activate: b.activate === undefined ? true : !!b.activate });

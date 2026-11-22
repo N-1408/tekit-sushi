@@ -1,5 +1,6 @@
 import { getPool } from './_db.js';import { cors, rateLimit, tgUserFrom } from './_verify.js';
 import { createDelivery, quoteDelivery, cityOf, TASHKENT_RE } from './_delivery.js';
+import { createIikoOrder } from './_iiko.js';
 import { notifyUser } from './_notify.js';
 import { BRANCH_IDS, pickupCfgFrom, readSettings, tkNow } from './_fulfillment.js';
 
@@ -37,6 +38,7 @@ function ensureSchema() {
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS client_ref text;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS lat double precision;
        ALTER TABLE orders ADD COLUMN IF NOT EXISTS lon double precision;
+       ALTER TABLE orders ADD COLUMN IF NOT EXISTS iiko_order_id text;
        CREATE UNIQUE INDEX IF NOT EXISTS orders_client_ref_uidx ON orders (client_ref);`
     ).then(() => true).catch(e => { console.error('ensureSchema', e); return false; });
   }
@@ -206,9 +208,30 @@ export default async (req, res) => {
         if (city && !TASHKENT_RE.test(String(city).trim())) {
           return res.status(422).json({ ok: false, error: 'outside_coverage' });
         }
+        if (lat < 41.10 || lat > 41.52 || lon < 69.00 || lon > 69.60) {
+          return res.status(422).json({ ok: false, error: 'outside_coverage' });
+        }
         o.lat = lat; o.lon = lon;
       } else {
-        o.lat = null; o.lon = null;
+        // Koordinata yo'q: manzilni geokodlaymiz va Toshkent chegarasini tekshiramiz
+        let g = null;
+        try {
+          const gr = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=uz&q=${encodeURIComponent(addr)}`, {
+            headers: { 'User-Agent': 'TekitSushiMiniApp/1.0 (contact: gigand.group@gmail.com)' },
+            signal: AbortSignal.timeout(6000),
+          });
+          if (gr.ok) g = (await gr.json())[0] || null;
+        } catch (ge) { console.error('geocode order', ge?.message); }
+        if (g) {
+          const glat = Number(g.lat), glon = Number(g.lon);
+          if (glat < 41.10 || glat > 41.52 || glon < 69.00 || glon > 69.60) {
+            return res.status(422).json({ ok: false, error: 'outside_coverage' });
+          }
+          o.lat = glat; o.lon = glon;
+        } else {
+          // Geokod javob bermadi: FAIL OPEN (xaridor bloklanmaydi)
+          o.lat = null; o.lon = null;
+        }
       }
     }
 
@@ -275,6 +298,19 @@ export default async (req, res) => {
           await pool.query('UPDATE orders SET delivery_external_id=$1, delivery_status=$2 WHERE id=$3', [String(delivery.external_id), delivery.status, row.id]);
         }
       } catch (de) { console.error('delivery adapter', de?.message); }
+      // iiko: buyurtma oshxonaga yuboriladi (xato bo'lsa ham buyurtma saqlanadi)
+      try {
+        const iiko = await createIikoOrder(pool, {
+          id: row.id, address: o.address || null, branch: o.branch || null,
+          phone, name, note: o.note || null, items: cleanItems,
+          total: finalTotal, grand_total: grandTotal, delivery_type: o.delivery_type,
+        });
+        if (iiko && iiko.iikoId) {
+          await pool.query('UPDATE orders SET iiko_order_id=$1 WHERE id=$2', [String(iiko.iikoId), row.id]);
+        } else if (iiko && iiko.error) {
+          console.error('iiko order', iiko.error);
+        }
+      } catch (ie) { console.error('iiko order', ie?.message); }
       // Mijozga Telegram xabari (bepul, SMS o'rniga)
       if (tgId) {
         const lines = cleanItems.map(i => `• ${(o.items || []).find(x => x && x.id === i.id)?.title || i.id} ×${i.q}`).join('\n');

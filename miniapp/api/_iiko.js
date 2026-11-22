@@ -223,3 +223,69 @@ export async function syncMenu(pool, { activate = true } = {}) {
     itemGroupLinks: mRes.rowCount || 0,
   }];
 }
+
+// ---------------------------------------------------------------------------
+// Buyurtmani iiko'ga yaratish (oshxona darhol ko'radi).
+// Filial -> organizatsiya xaritasi (env bilan almashtiriladi):
+//   IIKO_ORG_SAMPI, IIKO_ORG_NUKUS. Yetkazib berish buyurtmalarida filial
+// tanlanmaguncha IIKO_ORGANIZATION_ID (standart) ishlatiladi.
+// Muhim: xato bo'lsa buyurtma baribir mahalliy bazada saqlanadi — iiko
+// integratsiyasi buyurtma qabul qilinishiga to'sqinlik qilmaydi.
+// ---------------------------------------------------------------------------
+const BRANCH_TO_ORG = {
+  sampi: process.env.IIKO_ORG_SAMPI || '65317b0c-a016-453e-91a9-beefaef771dc',
+  nukus: process.env.IIKO_ORG_NUKUS || 'a030af58-a576-4952-a539-d9a7abc80fd1',
+};
+
+const tgCache = {}; // orgId -> { id, at }
+async function firstTerminalGroup(orgId) {
+  const c = tgCache[orgId];
+  if (c && c.id && Date.now() - c.at < 5 * 60 * 1000) return c.id;
+  const d = await call('/api/1/terminal_groups', { organizationIds: [orgId] });
+  const list = Array.isArray(d && d.terminalGroups) ? d.terminalGroups : [];
+  const g = list[0] || null;
+  const id = (g && g.id) || (g && Array.isArray(g.items) && g.items[0] && g.items[0].id) || null;
+  tgCache[orgId] = { id, at: Date.now() };
+  return id;
+}
+
+export async function createIikoOrder(pool, order) {
+  try {
+    const orgId = (order.branch && BRANCH_TO_ORG[order.branch]) || process.env.IIKO_ORGANIZATION_ID || null;
+    if (!orgId) return { skipped: true, reason: 'org_not_set' };
+
+    const ids = (order.items || []).map((i) => i.id);
+    const r = await pool.query('SELECT id, iiko_id, price FROM menu_items WHERE id = ANY($1)', [ids]);
+    const byId = new Map(r.rows.map((x) => [x.id, x]));
+    const iikoItems = [];
+    for (const it of order.items || []) {
+      const m = byId.get(it.id);
+      if (!m || !m.iiko_id) continue; // qo'lda qo'shilgan elementlar iiko'ga bormaydi
+      iikoItems.push({ productId: m.iiko_id, type: 'Product', amount: it.q, price: Number(m.price) || 0 });
+    }
+    if (!iikoItems.length) return { skipped: true, reason: 'no_iiko_items' };
+
+    const isPickup = order.delivery_type === 'pickup';
+    const orderBody = {
+      items: iikoItems,
+      phone: order.phone || '',
+      orderServiceType: isPickup ? 'DeliveryPickUp' : 'DeliveryByCourier',
+      customerComment: [order.note, order.name ? `Ism: ${order.name}` : null].filter(Boolean).join('; ') || undefined,
+      payments: [{ paymentTypeKind: 'Cash', sum: Number(order.grand_total || order.total) || 0 }],
+    };
+    if (!isPickup && order.address) {
+      orderBody.deliveryPoint = { address: { street: { name: String(order.address) }, house: '' } };
+    }
+    const terminalGroupId = await firstTerminalGroup(orgId).catch(() => null);
+    const payload = { organizationId: orgId, ...(terminalGroupId ? { terminalGroupId } : {}), order: orderBody };
+    const rr = await raw('/api/1/deliveries/create', await getToken(), payload);
+    if (rr.status !== 200 || !rr.data) {
+      const msg = (rr.data && (rr.data.errorDescription || rr.data.error || rr.data.description)) || `HTTP ${rr.status}`;
+      return { ok: false, error: String(msg).slice(0, 300) };
+    }
+    const iikoId = (rr.data && rr.data.orderInfo && rr.data.orderInfo.id) || (rr.data && rr.data.id) || null;
+    return { ok: true, iikoId };
+  } catch (e) {
+    return { ok: false, error: String((e && e.message) || e).slice(0, 300) };
+  }
+}
