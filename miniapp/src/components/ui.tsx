@@ -1049,7 +1049,7 @@ export const ProductCard = React.memo(function ProductCard({ p, i = 0 }: { p: Pr
       className="anim-up cursor-pointer relative flex flex-col h-full"
       style={{ animationDelay: `${Math.min(i * 40, 280)}ms` }}>
       <div className={`relative aspect-square rounded-[12px] overflow-hidden bg-[var(--sheet)] shrink-0 ${inCart ? 'ring-1 ring-inset ring-[var(--chip-on)]/45' : ''}`}>
-        <img ref={imgRef} src={pImg(p)} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+        <img ref={imgRef} src={pImg(p) || undefined} alt={pName(p, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         {wtxt && <span className="absolute bottom-2 left-2 bg-black/45 text-white text-[11px] font-bold px-2 py-1 rounded-[8px] backdrop-blur-[2px]">{wtxt}</span>}
         {isSpicy(p) && <SpicyBadge size={26} className="absolute top-2 right-2 tk-spicy-ember bg-black/40 backdrop-blur-[2px] shadow-sm" />}
         {inCart && !desk && (
@@ -1384,8 +1384,8 @@ export function ProductImage({ src, alt }: { src: string; alt: string }) {
   }
   return (
     <>
-      {!loaded && !failed && <div aria-hidden="true" className="skel absolute inset-0 !rounded-none" />}
-      {failed
+      {!loaded && !failed && !!src && <div aria-hidden="true" className="skel absolute inset-0 !rounded-none" />}
+      {(failed || !src)
         ? <div className="absolute inset-0 grid place-items-center text-[var(--mut2)]"><IcPlate /></div>
         : <img ref={refCb} src={src} alt={alt} loading="lazy" decoding="async"
             onLoad={() => setLoaded(true)} onError={() => setFailed(true)}
@@ -1478,7 +1478,7 @@ function SaucePicker({ sauces, qtyOf, setQty, onShow }: {
             <div key={sa.id}
               className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(0,0,0,.3)]' : 'border-[var(--line2)]')}>
               <button onClick={() => { haptic(); onShow?.(sa) }} className="press flex items-center gap-2.5 flex-1 min-w-0 text-left cursor-pointer active:opacity-80 transition-opacity">
-                <img src={pImg(sa)} alt={pName(sa, lang)} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-navy-soft shrink-0" />
+                <img src={pImg(sa) || undefined} alt={pName(sa, lang)} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-navy-soft shrink-0" />
                 <span className="min-w-0">
                   <span className="block text-[13px] font-extrabold leading-tight truncate">{pName(sa, lang)}</span>
                   <span className="block text-[11px] font-bold text-[var(--mut2)] mt-0.5 leading-none">{fmt(sa.price)} <span className="text-[9.5px]">UZS</span></span>
@@ -1520,7 +1520,7 @@ function RecoRow({ items, compact, onShow, qtyOf, setSel }: { items: Product[]; 
     <div key={r.id} className={`shrink-0 snap-start relative ${wide || ''}`}>
       <button onClick={() => { haptic(); (onShow || openP)(r) }} className="block w-full text-left cursor-pointer">
         <div className="aspect-square rounded-[12px] overflow-hidden bg-navy-soft">
-          <img src={pImg(r)} alt={pName(r, lang)} loading="lazy" className="w-full h-full object-cover" />
+          <img src={pImg(r) || undefined} alt={pName(r, lang)} loading="lazy" className="w-full h-full object-cover" />
         </div>
         <div className="mt-1.5 text-[13px] font-bold leading-tight truncate">{pName(r, lang)}</div>
         <div className="mt-0.5 text-[12.5px] font-extrabold text-[var(--ink)] whitespace-nowrap">{fmt(r.price)} <span className="text-[10.5px] font-bold text-[var(--mut2)]">UZS</span></div>
@@ -1702,7 +1702,7 @@ function ImgOrPlate({ src, alt }: { src: string; alt: string }) {
   const [failed, setFailed] = useState(false)
   return (
     <>
-      {failed
+      {(failed || !src)
         ? <div className="absolute inset-0 grid place-items-center text-[var(--mut2)]"><IcPlate /></div>
         : <img src={src} alt={alt} onError={() => setFailed(true)} className="absolute inset-0 w-full h-full object-cover" />}
     </>

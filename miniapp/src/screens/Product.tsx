@@ -48,7 +48,7 @@ export default function Product() {
       <TopBar title={pName(p, lang)} />
       <div className="lg:max-w-[1240px] lg:mx-auto lg:grid lg:grid-cols-2 lg:gap-10 lg:items-start lg:px-8 lg:pt-6">
       <div className="relative lg:rounded-[26px] lg:overflow-hidden">
-        <img src={pImg(p)} alt={pName(p, lang)} className="w-full aspect-square object-cover bg-navy-soft" />
+        <img src={pImg(p) || undefined} alt={pName(p, lang)} className="w-full aspect-square object-cover bg-navy-soft" />
         {p.pcs ? <span className="absolute bottom-3 left-4 bg-[var(--panel)] border border-navy-line text-[11px] font-extrabold px-2.5 py-1.5 rounded-lg shadow-sm">{p.pcs} {t.pcs}</span> : null}
       </div>
       <div className="px-4 mt-4 lg:px-0 lg:mt-0">
@@ -140,7 +140,7 @@ export default function Product() {
                 const sq = qtyOf(s.id)
                 return (
                   <div key={s.id} className={'flex items-center gap-2.5 rounded-2xl bg-[var(--panel)] border py-1 pl-1.5 pr-1.5 ' + (sq > 0 ? 'border-[var(--chip-on)] shadow-[0_4px_12px_-4px_rgba(0,0,0,.3)]' : 'border-navy-line')}>
-                    <img src={pImg(s)} alt={pName(s, lang)} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-navy-soft shrink-0" />
+                    <img src={pImg(s) || undefined} alt={pName(s, lang)} loading="lazy" className="w-10 h-10 rounded-full object-cover bg-navy-soft shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-[13px] font-extrabold leading-tight truncate">{pName(s, lang)}</div>
                       <div className="text-[11px] font-bold text-[var(--mut2)] mt-0.5 leading-none">{fmt(s.price)} <span className="text-[9.5px]">UZS</span></div>

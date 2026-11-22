@@ -108,9 +108,9 @@ export default async (req, res) => {
     const catPct = {};
     for (const c of cats) catPct[c.slug] = c.sale_active ? (c.sale_percent || 0) : 0;
     const rows = (await p.query(
-      `SELECT id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort, kcal, protein, fat, carbs,
+      `SELECT id, slug, cat, price, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort, kcal, protein, fat, carbs,
               sale_active, sale_percent, sale_price, spicy
-       FROM menu_items WHERE active = true ORDER BY sort`)).rows;
+       FROM menu_items WHERE active = true AND price > 0 ORDER BY sort`)).rows;
     let modsByItem = null;
     try {
       const m = (await p.query(
@@ -149,7 +149,11 @@ export default async (req, res) => {
       if (modsByItem && modsByItem[r.id]) out.mods = modsByItem[r.id];
       return out;
     });
-    return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE ?? 0), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) }, ...(syncInfo ? { sync: syncInfo } : {}), cats, items });
+    // Bo'sh qolgan kategoriyalarni klientga yubormaymiz (masalan, faqat
+    // ingredientlar bo'lgan guruhlar).
+    const haveCats = new Set(items.map((r) => r.cat));
+    const catsOut = cats.filter((c) => haveCats.has(c.slug));
+    return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE ?? 0), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) }, ...(syncInfo ? { sync: syncInfo } : {}), cats: catsOut, items });
   } catch (e) {
     console.error('menu error', e);
     return res.status(500).json({ ok: false, error: 'Server xatosi' });
