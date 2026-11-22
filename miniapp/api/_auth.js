@@ -240,6 +240,20 @@ export async function handleAuth(req, res) {
   if (req.method === 'POST') {
     const b = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
     const action = String(b.action || '');
+    if (action === 'touch') {
+      /* Telegram sessiyasi tirikligini tekshirish: amaldagi sessiya + yangi,
+         imzolangan initData (shu foydalanuvchi) bo'lsa sessiya uzaytiriladi.
+         initData yo'q, eski yoki boshqa foydalanuvnikisa — sessiya qolmaydi. */
+      const sess = readSession(req);
+      if (!sess) return res.status(401).json({ ok: false, error: 'session_expired' });
+      const u = tgUserFrom(req);
+      if (!u || String(u.id) !== String(sess.tg_id)) {
+        return res.status(401).json({ ok: false, error: 'session_expired' });
+      }
+      res.setHeader('Set-Cookie', sessionCookieHeader(makeSessionToken(sess.tg_id), secure));
+      return res.status(200).json({ ok: true });
+    }
+
     if (action === 'tg-login' || action === 'widget-login') {
       if (!(await rateLimit(req, 'auth', 20, 10 * 60 * 1000))) return res.status(429).json({ ok: false, error: 'rate' });
     }

@@ -25,6 +25,37 @@ export function authHeaders(key: string, role: string | null, uid?: number): Rec
   return h
 }
 
+/* Telegram sessiyasi yopilsa, sayt sessiyasi ham tushsin: har 5 daqiqada
+   initData bilan touch. 401 kelsa mahalliy sessiya tozalanadi va login
+   ekranga qaytiladi. Brauzerda (initData yo'q) touch yuborilmaydi —
+   sessiya baribir 12 soatda o'z-o'zidan yopiladi. */
+let sessWatchStarted = false
+export function startSessionWatch() {
+  if (sessWatchStarted) return
+  sessWatchStarted = true
+  const touch = async () => {
+    try { if (!TGA?.initData) return } catch { return }
+    try {
+      const r = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Init-Data': TGA.initData },
+        body: JSON.stringify({ action: 'touch' }),
+      })
+      if (r.status === 401) {
+        try {
+          localStorage.removeItem('tk-admin')
+          localStorage.removeItem('tk-admin-ok')
+          localStorage.removeItem('tk-admin-data')
+        } catch {}
+        sessWatchStarted = false
+        if (/^#\/admin/.test(location.hash || '')) location.reload()
+      }
+    } catch {}
+  }
+  touch()
+  setInterval(touch, 5 * 60 * 1000)
+}
+
 const TZ = 'Asia/Tashkent'
 export function fmtDT(d: string | Date): string {
   try {
