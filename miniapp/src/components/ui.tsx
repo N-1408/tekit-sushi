@@ -372,7 +372,7 @@ function HeaderLang() {
   return (
     <div ref={ref} className="relative">
       <button onClick={() => setOpen(v => !v)} aria-haspopup="listbox" aria-expanded={open}
-        className="press focus-ring flex items-center gap-1.5 h-9 pl-2.5 pr-2.5 rounded-full text-[12.5px] font-extrabold bg-[var(--soft)] text-[var(--ink2)] hover:text-[var(--ink)] transition-colors">
+        className="press focus-ring flex items-center gap-1.5 h-11 px-3 rounded-full text-[12.5px] font-extrabold bg-[var(--hdr-chip)] text-white hover:bg-[var(--hdr-chip-hover)] transition-colors">
         <FlagOf l={lang} s={14} />{lang.toUpperCase()}
         <span className={`transition-transform duration-150 ${open ? 'rotate-90' : ''}`}><IcChevR s={12} /></span>
       </button>
@@ -444,25 +444,43 @@ export function Header() {
   return (
     <>
       {isWide ? (
-        /* KENG ekran (lg+): eskicha brend qatori — o'z ko'rinishi saqlanadi */
-        <header className="relative z-[31] text-[var(--ink)]">
+        /* KENG ekran (lg+): mobil header bilan bir xil tartib — ko'k fon,
+           chapda til + tema + buyurtma turi, MARKAZDA logo, o'ngda
+           Savat/Buyurtmalar/Profil (ismisiz). */
+        <header ref={hdrRef} className="relative z-[31] text-white">
           <div className="max-w-[1240px] mx-auto">
-            <div>
-              <div className="flex items-center px-4 lg:px-6 pt-0.5 pb-1.5 lg:py-2 justify-between">
-                <button onClick={() => nav('/')} aria-label="Tekit Sushi"
-                  className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
-                  <BrandLogo size={36} />
-                  <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+            <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-4 lg:px-6 py-2.5">
+              {/* chapda: til, tema, buyurtma turi */}
+              <div className="justify-self-start flex items-center gap-2 min-w-0">
+                <HeaderLang />
+                <ThemeToggle variant="header" />
+                <button onClick={() => { haptic(); mode === 'delivery' ? setDelOpen(true) : setPickOpen(true) }}
+                  className="press focus-ring flex items-center gap-1.5 h-11 pl-3.5 pr-3 rounded-full bg-[var(--hdr-chip)] text-[13.5px] font-extrabold text-white active:scale-[.97] transition-transform min-w-0">
+                  {mode === 'delivery' ? <IcTruck s={16} /> : <IcStore s={16} />}
+                  <span className="truncate">{mode === 'delivery' ? t.fcDel : t.fcPick}</span>
                 </button>
-                <div className="flex items-center gap-1.5 shrink-0">
-                  <button onClick={() => { haptic(); setCartPanelOpen(false); setProfilePanelOpen(false); setOrdersPanelOpen(true) }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
-                    <IcBag s={16} />{t.tabOrders}
-                  </button>
-                  <button onClick={() => { haptic(); setCartPanelOpen(false); setOrdersPanelOpen(false); setProfilePanelOpen(true) }} className="press focus-ring flex items-center gap-2 h-9 px-3 rounded-full text-[13px] font-bold text-[var(--ink2)] hover:text-[var(--ink)] hover:bg-[var(--soft)] transition-colors">
-                    <IcUser s={16} />{t.tabProfile}{user?.name ? ` · ${user.name.split(' ')[0]}` : ''}
-                  </button>
-                  <HeaderLang />
-                </div>
+              </div>
+              {/* markazda: logo */}
+              <button onClick={() => nav('/')} aria-label="Tekit Sushi"
+                className="press flex items-center gap-2 min-w-0 active:opacity-80 transition-opacity">
+                <img src="/logo-light.png" alt="Tekit Sushi" width={34} height={34}
+                  className="w-[34px] h-[34px] object-contain" />
+                <span className="text-[15px] font-extrabold tracking-[0.08em] whitespace-nowrap">TEKIT SUSHI</span>
+              </button>
+              {/* o'ngda: Savat, Buyurtmalar, Profil */}
+              <div className="justify-self-end flex items-center gap-1.5 shrink-0">
+                <button onClick={() => { haptic(); setProfilePanelOpen(false); setOrdersPanelOpen(false); setCartPanelOpen(true) }}
+                  className="press focus-ring flex items-center gap-2 h-10 px-3.5 rounded-full text-[13px] font-extrabold text-white hover:bg-[var(--hdr-chip)] active:scale-[.97] transition-all">
+                  <IcBag s={16} />{t.tabCart}
+                </button>
+                <button onClick={() => { haptic(); setCartPanelOpen(false); setProfilePanelOpen(false); setOrdersPanelOpen(true) }}
+                  className="press focus-ring flex items-center gap-2 h-10 px-3.5 rounded-full text-[13px] font-extrabold text-white hover:bg-[var(--hdr-chip)] active:scale-[.97] transition-all">
+                  <IcNavOrders s={16} />{t.tabOrders}
+                </button>
+                <button onClick={() => { haptic(); setCartPanelOpen(false); setOrdersPanelOpen(false); setProfilePanelOpen(true) }}
+                  className="press focus-ring flex items-center gap-2 h-10 px-3.5 rounded-full text-[13px] font-extrabold text-white hover:bg-[var(--hdr-chip)] active:scale-[.97] transition-all">
+                  <IcUser s={16} />{t.tabProfile}
+                </button>
               </div>
             </div>
           </div>
@@ -1628,7 +1646,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
               q={m.q} total={p.price * m.q} min={0} stepperSize="lg"
               onInc={() => { m.setQ(v => v + 1); haptic() }}
               onDec={() => { if (m.q > 0) { m.setQ(v => v - 1); haptic() } }}
-              onAdd={(el) => { if (m.q > 0) m.addToCart(el) }}
+              onAdd={(el) => { if (m.q > 0) { m.addToCart(el); window.setTimeout(() => onClose(), 560) } }}
               onCloseEmpty={onClose} emptyLabel={m.t.closeBtn}
               label={m.t.addCart} busy={m.busy} anim={m.anim}
             />

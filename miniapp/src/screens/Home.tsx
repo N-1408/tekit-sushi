@@ -253,14 +253,12 @@ export default function Home() {
       {(() => {
         const catalogNav = <CatalogNav q={q} setQ={setQ} chips={chips} active={searching ? null : active} onSelect={onSelect} />
         return wide ? (
-          <>
-            <div className="relative z-20" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
+          <div ref={navRef} className="sticky z-30 tk-hdr-sticky">
+            <div className="tk-hdr-blue" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
               <Header />
-            </div>
-            <div ref={navRef} className="sticky z-30 tk-sticky-catalog">
               <div ref={catRef}>{catalogNav}</div>
             </div>
-          </>
+          </div>
         ) : (
           /* Ko'k header bloki EKRAN TEPASIDAN boshlanadi: xavfsiz hudud
              (Telegram tugmalari) ham ko'k fon ortida qoladi, kontent esa

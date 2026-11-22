@@ -62,7 +62,7 @@ function CartDrawer() {
     <div className={`fixed inset-0 z-[80] ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open || undefined}>
       <div className={`absolute inset-0 bg-black/45 motion-safe:transition-opacity motion-safe:duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={() => setCartPanelOpen(false)} />
       <aside role="dialog" aria-label={t.tabCart}
-        className={`absolute right-0 top-0 bottom-0 w-[460px] max-w-[94vw] bg-[var(--bg)] border-l border-[var(--line)] shadow-[-24px_0_60px_-30px_rgba(0,0,0,.6)] flex flex-col motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+        className={`absolute right-0 top-0 bottom-0 w-[460px] max-w-[94vw] bg-[var(--bg)] border-l border-[var(--line)] ${open ? 'shadow-[-24px_0_60px_-30px_rgba(0,0,0,.6)]' : ''} flex flex-col motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)] shrink-0">
           <div className="text-[16px] font-extrabold">{t.tabCart}</div>
           <button onClick={() => setCartPanelOpen(false)} aria-label="close-cart"
@@ -105,7 +105,7 @@ function OrdersDrawer() {
     <div className={`fixed inset-0 z-[80] ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open || undefined}>
       <div className={`absolute inset-0 bg-black/45 motion-safe:transition-opacity motion-safe:duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={() => setOrdersPanelOpen(false)} />
       <aside role="dialog" aria-label={t.tabOrders}
-        className={`absolute right-0 top-0 bottom-0 w-[560px] max-w-[94vw] bg-[var(--bg)] border-l border-[var(--line)] shadow-[-24px_0_60px_-30px_rgba(0,0,0,.6)] flex flex-col motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+        className={`absolute right-0 top-0 bottom-0 w-[560px] max-w-[94vw] bg-[var(--bg)] border-l border-[var(--line)] ${open ? 'shadow-[-24px_0_60px_-30px_rgba(0,0,0,.6)]' : ''} flex flex-col motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)] shrink-0">
           <div className="text-[16px] font-extrabold">{t.tabOrders}</div>
           <button onClick={() => setOrdersPanelOpen(false)} aria-label="close-orders"
@@ -148,7 +148,7 @@ function ProfileDrawer() {
     <div className={`fixed inset-0 z-[80] ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open || undefined}>
       <div className={`absolute inset-0 bg-black/45 motion-safe:transition-opacity motion-safe:duration-300 ${open ? 'opacity-100' : 'opacity-0'}`} onClick={() => setProfilePanelOpen(false)} />
       <aside role="dialog" aria-label={t.tabProfile}
-        className={`absolute right-0 top-0 bottom-0 w-[480px] max-w-[94vw] bg-[var(--bg)] border-l border-[var(--line)] shadow-[-24px_0_60px_-30px_rgba(0,0,0,.6)] flex flex-col motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}>
+        className={`absolute right-0 top-0 bottom-0 w-[480px] max-w-[94vw] bg-[var(--bg)] border-l border-[var(--line)] ${open ? 'shadow-[-24px_0_60px_-30px_rgba(0,0,0,.6)]' : ''} flex flex-col motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${open ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--line)] shrink-0">
           <div className="text-[16px] font-extrabold">{t.tabProfile}</div>
           <button onClick={() => setProfilePanelOpen(false)} aria-label="close-profile"
