@@ -1,5 +1,5 @@
 import React from 'react'
-import { useStore, pName, CATS, inCat, type Product } from '../lib/store'
+import { useStore, pName, inCat, isSpicy, type Product } from '../lib/store'
 import { Header, CatalogNav, CityBanner, HeroSlider, ProductCard } from '../components/ui'
 
 const SEC = (id: string) => `cat-${id}`
@@ -200,7 +200,7 @@ function useWideScreen() {
 }
 
 export default function Home() {
-  const { t, lang, products, menuLoading } = useStore()
+  const { t, lang, products, cats, menuLoading } = useStore()
   const [q, setQ] = React.useState('')
   const hits = products.filter(p => p.hit)
   const sales = products.filter(p => (p as any).sale_active && ((p as any).old_price ?? 0) > p.price)
@@ -211,9 +211,12 @@ export default function Home() {
   const loading = menuLoading && products.length === 0
 
   // chiplar: faqat haqiqatan bo'limi bor kategoriyalar
-  const chips = React.useMemo(() => CATS
-    .filter(c => products.some(p => inCat(p, c.id)))
-    .map(c => ({ id: c.id, label: (c as any)[lang] || t.catNames[c.id] })), [products, lang, t])
+  const chips = React.useMemo(() => {
+    const list = cats
+      .filter(c => products.some(p => p.cat === c.id))
+      .map(c => ({ id: c.id, label: (c as any)[lang] || c.uz || c.id }))
+    return products.some(p => isSpicy(p)) ? [{ id: 'spicy', label: t.catNames.spicy as string }, ...list] : list
+  }, [cats, products, lang, t])
 
   const wide = useWideScreen()
   const { navRef, active, onSelect } = useCatalogTracking(chips.map(c => c.id), searching)
@@ -291,9 +294,9 @@ export default function Home() {
             <HeroSlider />
             <Section title={t.aSaleHome} items={sales} />
             <Section title={t.hit} items={hits} />
-            {CATS.map(c => {
+            {chips.map(c => {
               const list = products.filter(p => inCat(p, c.id))
-              return <Section key={c.id} id={SEC(c.id)} title={(c as any)[lang] || t.catNames[c.id]} items={list} />
+              return <Section key={c.id} id={SEC(c.id)} title={c.label} items={list} />
             })}
             <div id="catalog-end" aria-hidden="true" className="h-px" />
           </>

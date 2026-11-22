@@ -58,6 +58,8 @@ export const pImg = (p: Product | CartLine) => {
   return CDN + im
 }
 
+export type CatDef = { id: string; uz: string; ru: string; en?: string; emoji?: string | null }
+
 export type CartLine = Product & { q: number }
 
 export type OrderItem = { id: string; slug: string; title: string; q: number; price: number }
@@ -94,6 +96,7 @@ function tkNowParts() {
 export type Store = {
   lang: Lang; setLang: (l: Lang) => void; t: Trans
   products: Product[]
+  cats: CatDef[]
   cart: CartLine[]; cartCount: number; cartSum: number
   add: (id: string, q?: number) => void; setQty: (id: string, q: number) => void; clearCart: () => void
   favs: string[]; toggleFav: (id: string) => void
@@ -140,6 +143,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   /* Menyu KESHLANMAYDI: serverdan yuklanadi, kelguncha skelet ko'rsatiladi.
      Server javob bermasa — ilova ichidagi asosiy menyu ishlaydi. */
   const [products, setProducts] = useState<Product[]>([])
+  const [cats, setCats] = useState<CatDef[]>([])
   const [menuLoading, setMenuLoading] = useState(true)
   const [ordersLoaded, setOrdersLoaded] = useState(false)
   const [role, setRole] = useState<string | null>(null)
@@ -299,6 +303,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (dead) return
       if (j?.ok && Array.isArray(j.items) && j.items.length) {
         setProducts(j.items)
+        // Kategoriyalar serverdan: iiko bilan sinxronlangan ro'yxat.
+        if (Array.isArray(j.cats) && j.cats.length) {
+          setCats(j.cats.map((c: any) => ({ id: String(c.slug), uz: c.title_uz || '', ru: c.title_ru || '', en: c.title_en || undefined, emoji: c.emoji || null })))
+        } else {
+          setCats([...new Set(j.items.map((x: any) => String(x.cat)))].map(id => ({ id, uz: id, ru: id, en: undefined, emoji: null })))
+        }
         if (j.delivery) setDeliveryCfg({ fee: Number(j.delivery.fee) || 15000, threshold: Number(j.delivery.threshold) || 200000 })
       } else {
         setProducts([]) // server javob bermasa: bo'sh menyu (iiko manba)
@@ -379,8 +389,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     // Badge savat xaritasidan: menyu hali yuklanmagan bo'lsa ham to'g'ri
     const count = Object.values(cartMap).reduce((s, q) => s + (q || 0), 0)
     const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
-    return { lang, setLang, t: T[lang] as Trans, products, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked }
-  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked])
+    return { lang, setLang, t: T[lang] as Trans, products, cats, cart: lines, cartCount: count, cartSum: sum, add, setQty, clearCart, favs, toggleFav, toast, showToast, myOrders, saveMyOrder, refreshOrders, sheetP, openP, closeP, role, roleReady, user, saveUser, ob, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked }
+  }, [lang, cartMap, favs, toast, myOrders, sheetP, role, roleReady, products, cats, user, ob, setLang, add, setQty, clearCart, toggleFav, showToast, saveMyOrder, refreshOrders, openP, closeP, saveUser, openOb, closeOb, mode, setMode, pickup, setPickup, deliveryCfg, ff, menuLoading, ordersLoaded, userChecked])
 
   const navValue = useMemo<NavState>(() => ({ navOpen, setNavOpen }), [navOpen, setNavOpen])
   return (

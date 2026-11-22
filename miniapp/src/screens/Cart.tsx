@@ -49,23 +49,23 @@ function ExtraSection({ title, items, lang, t }: { title: string; items: Product
 
 export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' }) {
   const panel = variant === 'panel'
-  const { t, lang, cart, setQty, clearCart, openP, myOrders, products, add, mode, pickup, ff, deliveryCfg } = useStore()
+  const { t, lang, cart, setQty, clearCart, openP, myOrders, products, cats, add, mode, pickup, ff, deliveryCfg } = useStore()
   const nav = useNavigate()
   /* Savatga kirganda doim tepadan boshlash */
   React.useEffect(() => { const el = document.scrollingElement || document.documentElement; el.scrollTop = 0 }, [])
   const lines = cart.filter(l => l.q > 0)
   const sum = lines.reduce((s, l) => s + l.q * l.price, 0)
 
-  /* Qoshimchalar: faqat Souslar va Ichimliklar (doim), savatdagi narsalar
-     takrorlanmaydi; boshqa kategoriyalar chiqmaydi. */
+  /* Qoshimchalar: menyu kategoriyalaridan birinchi ikkitasi, savatdagi
+     narsalar takrorlanmaydi (kategoriyalar serverdan/iiko'dan keladi). */
   const extras = React.useMemo(() => {
     const inCart = new Set(lines.map(l => l.id))
     const act = products.filter(x => x.active !== false && !inCart.has(x.id))
-    return [
-      { id: 'sous', title: t.catNames.sous as string, items: act.filter(x => x.cat === 'sous') },
-      { id: 'ichimlik', title: t.catNames.ichimlik as string, items: act.filter(x => x.cat === 'ichimlik') },
-    ]
-  }, [lines, products, t])
+    return cats
+      .map((c: any) => ({ id: c.id, title: (c as any)[lang] || c.uz || c.id, items: act.filter(x => x.cat === c.id) }))
+      .filter((s: any) => s.items.length > 0)
+      .slice(0, 2)
+  }, [lines, products, cats, lang])
   const hasExtras = extras.some(s => s.items.length > 0)
 
   return (

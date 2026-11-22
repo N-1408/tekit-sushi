@@ -1,19 +1,19 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { useStore, pName, CATS, inCat } from '../lib/store'
+import { useStore, pName, inCat } from '../lib/store'
 import { TopBar, CatalogNav, ProductCard, Empty } from '../components/ui'
 
 export default function Cat() {
   const { cat = '' } = useParams()
-  const { products, lang } = useStore()
+  const { products, lang, cats } = useStore()
   const [q, setQ] = React.useState('')
-  const c: any = CATS.find(x => x.id === cat)
+  const c: any = cats.find(x => x.id === cat)
   let items = products.filter(p => inCat(p, cat))
   if (q.trim()) items = items.filter(p => pName(p, lang).toLowerCase().includes(q.trim().toLowerCase()))
   return (
     <div className="pb-28 lg:pb-12">
       <div className="sticky top-0 z-30 tk-hdr-blue tk-topbar-blue" style={{ paddingTop: 'calc(6px + var(--sat))' }}>
-        <TopBar flat title={(c as any)?.[lang] || c?.id || cat} />
+        <TopBar flat title={(c as any)?.[lang] || c?.uz || cat} />
         <CatalogNav q={q} setQ={setQ} chips={[]} active={null} onSelect={() => {}} />
       </div>
       <div className="lg:max-w-[1240px] lg:mx-auto">
