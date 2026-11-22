@@ -2,7 +2,7 @@ import { getPool } from './_db.js';import { cors, rateLimit, tgUserFrom } from '
 import { createDelivery, quoteDelivery, cityOf, TASHKENT_RE } from './_delivery.js';
 import { createIikoOrder } from './_iiko.js';
 import { notifyUser } from './_notify.js';
-import { BRANCH_IDS, pickupCfgFrom, readSettings, tkNow } from './_fulfillment.js';
+import { BRANCHES, BRANCH_IDS, pickupCfgFrom, readSettings, tkNow } from './_fulfillment.js';
 
 
 let promoEnsured;
@@ -232,6 +232,29 @@ export default async (req, res) => {
           // Geokod javob bermadi: FAIL OPEN (xaridor bloklanmaydi)
           o.lat = null; o.lon = null;
         }
+      }
+    }
+
+    // Yetkazib berish zonasi: kordinata bor bo'lsa eng yaqin filial tanlanadi,
+    // u filial radiusidan tashqarida bo'lsa buyurtma qabul qilinmaydi (Toshkent chegarasi ustidan qo'shimcha qatlam).
+    if (o.delivery_type === 'delivery' && Number.isFinite(Number(o.lat)) && Number.isFinite(Number(o.lon))) {
+      const hav = (a, b, c, d) => {
+        const R = 6371, r = Math.PI / 180;
+        const dLat = (c - a) * r, dLon = (d - b) * r;
+        const h = Math.sin(dLat / 2) ** 2 + Math.cos(a * r) * Math.cos(c * r) * Math.sin(dLon / 2) ** 2;
+        return 2 * R * Math.asin(Math.min(1, Math.sqrt(h)));
+      };
+      const scored = BRANCHES
+        .filter((b) => Number.isFinite(Number(b.lat)) && Number.isFinite(Number(b.lon)))
+        .map((b) => ({ b, km: hav(Number(o.lat), Number(o.lon), Number(b.lat), Number(b.lon)) }))
+        .sort((x, y) => x.km - y.km);
+      const near = scored[0];
+      if (near) {
+        const maxKm = Number(near.b.delivery_radius_km) || 12;
+        if (near.km > maxKm) {
+          return res.status(422).json({ ok: false, error: 'outside_coverage', nearest_branch: near.b.id, distance_km: Math.round(near.km * 10) / 10 });
+        }
+        o.branch = near.b.id;
       }
     }
 

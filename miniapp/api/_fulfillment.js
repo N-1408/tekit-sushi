@@ -16,19 +16,21 @@
 export const BRANCHES = [
   {
     id: 'nukus',
-    name: { uz: 'Nukus ko\u2018cha filiali', ru: 'Филиал на Нукус коча' },
+    name: { uz: 'Nukus ko\u2018cha filiali (Parkwood)', ru: 'Филиал на Нукус коча (Парквуд)' },
     hours_24_7: true,
-    address: null,
-    lat: null,
-    lon: null,
+    address: null, // manzil matni egadan tasdiqlangach yoziladi
+    lat: 41.28666, // Mirobod, Nukus ko'chasi (Parkwood) — Yandex: 41.28666, 69.27274
+    lon: 69.27274,
+    delivery_radius_km: Number(process.env.DELIVERY_RADIUS_NUKUS_KM || 12),
   },
   {
     id: 'sampi',
     name: { uz: 'Sampi filiali', ru: 'Филиал Сампи' },
     hours_24_7: true,
-    address: null,
-    lat: null,
-    lon: null,
+    address: null, // manzil matni egadan tasdiqlangach yoziladi
+    lat: 41.355357, // Sampi — Yandex: 41.355357, 69.334227
+    lon: 69.334227,
+    delivery_radius_km: Number(process.env.DELIVERY_RADIUS_SAMPI_KM || 12),
   },
 ]
 
