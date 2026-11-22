@@ -104,7 +104,14 @@ export async function syncMenu(pool, { activate = true } = {}) {
   const groupsById = new Map(groups.map((g) => [g.groupId, g]));
   const byId = new Map(products.map((p) => [p.productId, p]));
   const OK_TYPES = ['GOODS', 'DISH', 'PREPARED', 'SERVICE'];
-  const sellable = products.filter((p) => p.name && OK_TYPES.includes(p.type));
+  // ON CONFLICT bir INSERT ichida bir qatorni ikki marta ko'rsa xato beradi —
+  // shuning uchun har bir jadval uchun kalit bo'yicha bir marta olib qoldiramiz.
+  const dedupe = (rows, key) => {
+    const m = new Map();
+    for (const r of rows) { const k = key(r); if (!m.has(k)) m.set(k, r); }
+    return [...m.values()];
+  };
+  const sellable = dedupe(products.filter((p) => p.name && OK_TYPES.includes(p.type)), (p) => p.productId);
 
   // 1) Toifalar: mahsulotning parentGroupId -> group nomi
   const usedCats = new Set(sellable.map((p) => p.parentGroupId || ''));
@@ -123,7 +130,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
      FROM jsonb_to_recordset($1::jsonb) AS x(slug text, title_uz text, title_ru text, title_en text, iiko_id text)
      ON CONFLICT (slug) DO UPDATE SET title_uz = EXCLUDED.title_uz, title_ru = EXCLUDED.title_ru,
        title_en = EXCLUDED.title_en, source = 'iiko', iiko_id = EXCLUDED.iiko_id`,
-    [JSON.stringify(catRows)]
+    [JSON.stringify(dedupe(catRows, (r) => r.slug))]
   );
 
   // 2) Mahsulotlar
@@ -149,7 +156,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
        t_uz = EXCLUDED.t_uz, t_ru = EXCLUDED.t_ru, t_en = EXCLUDED.t_en,
        d_uz = EXCLUDED.d_uz, d_ru = EXCLUDED.d_ru, d_en = EXCLUDED.d_en,
        iiko_prices = COALESCE(menu_items.iiko_prices, '{}'::jsonb) || EXCLUDED.iiko_prices`,
-    [JSON.stringify(itemJson), activate]
+    [JSON.stringify(dedupe(itemJson, (r) => r.id)), activate]
   );
 
   // 3) Modifikatorlar: p.modifiers -> sodda yoki childModifiers bilan guruh
@@ -183,21 +190,21 @@ export async function syncMenu(pool, { activate = true } = {}) {
     `INSERT INTO menu_mod_groups (id, title, min_qty, max_qty)
      SELECT x.id, x.title, x.min_qty, x.max_qty FROM jsonb_to_recordset($1::jsonb) AS x(id text, title text, min_qty int, max_qty int)
      ON CONFLICT (id) DO UPDATE SET title = EXCLUDED.title, min_qty = EXCLUDED.min_qty, max_qty = EXCLUDED.max_qty`,
-    [JSON.stringify(gRows)]
+    [JSON.stringify(dedupe(gRows, (r) => r.id))]
   );
   const oRes = await pool.query(
     `INSERT INTO menu_mod_options (id, group_id, iiko_product_id, name, price, is_default)
      SELECT x.id, x.group_id, x.iiko_product_id, x.name, x.price, x.is_default
      FROM jsonb_to_recordset($1::jsonb) AS x(id text, group_id text, iiko_product_id text, name text, price int, is_default boolean)
      ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, price = EXCLUDED.price, is_default = EXCLUDED.is_default`,
-    [JSON.stringify(oRows)]
+    [JSON.stringify(dedupe(oRows, (r) => r.id))]
   );
   const mRes = await pool.query(
     `INSERT INTO menu_item_mod_groups (item_id, group_id, min_amount, max_amount, sort)
      SELECT x.item_id, x.group_id, x.min_amount, x.max_amount, x.sort
      FROM jsonb_to_recordset($1::jsonb) AS x(item_id text, group_id text, min_amount real, max_amount real, sort int)
      ON CONFLICT (item_id, group_id) DO UPDATE SET min_amount = EXCLUDED.min_amount, max_amount = EXCLUDED.max_amount, sort = EXCLUDED.sort`,
-    [JSON.stringify(mRows)]
+    [JSON.stringify(dedupe(mRows, (r) => r.item_id + '|' + r.group_id))]
   );
 
   // iiko yagona manba: mavjud placeholder (iiko'dan kelgan bo'lmagan)
