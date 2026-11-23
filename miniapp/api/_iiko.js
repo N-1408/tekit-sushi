@@ -275,7 +275,7 @@ export async function externalMenuCatalog(orgIds) {
       rawSample = { item: Object.keys(firstIt).join(','), size: fsz ? Object.keys(fsz).join(',') : null };
     }
   } catch (e) { /* diagnostika */ }
-  return { products, groups, menuName: menu.name || '', menuId: menu.id, rawSample, rawShape: { keys: Object.keys(d || {}).slice(0, 15).join(','), grp: Array.isArray(cats) ? cats.length : -1, its: (Array.isArray(cats) ? cats : []).reduce((n, c) => n + (Array.isArray(c.items) ? c.items.length : Array.isArray(c.itemList) ? c.itemList.length : 0), 0), sample: (() => { try { const g = (Array.isArray(d.itemsGroups) && d.itemsGroups[0]) || null; const x = (g && Array.isArray(g.items) && g.items[0]) || (Array.isArray(d.products) && d.products[0]) || null; return JSON.stringify(x || null).slice(0, 500); } catch { return 'err'; } })() } };
+  return { products, groups, menuName: menu.name || '', menuId: menu.id, rawSample, rawShape: { keys: Object.keys(d || {}).slice(0, 15).join(','), grp: Array.isArray(cats) ? cats.length : -1, its: (Array.isArray(cats) ? cats : []).reduce((n, c) => n + (Array.isArray(c.items) ? c.items.length : Array.isArray(c.itemList) ? c.itemList.length : 0), 0), ig: igYield, cy: catYield, sampleIG: (() => { try { const g = (Array.isArray(d.itemsGroups) && d.itemsGroups[0]) || null; const x = g && Array.isArray(g.items) && g.items[0]; return x ? JSON.stringify(x).slice(0, 400) : 'null'; } catch { return 'err'; } })(), sampleCat: (() => { try { const c = catRaw[0] || null; const x = c && (Array.isArray(c.items) && c.items[0] || Array.isArray(c.itemList) && c.itemList[0]); return c ? (JSON.stringify({ c: { id: c.id, name: c.name }, x: x || null }).slice(0, 400)) : 'null'; } catch { return 'err'; } })() } };
 }
 
 // Katalogni DB'ga yozadi (iiko IDlari bilan kalitlanadi). Bizga xos ustunlar
@@ -525,7 +525,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
   if (!sellable.length) {
     summary.note = products.length
       ? `iiko ${products.length} ta mahsulot qaytardi, ammo savatga o'tmadi. type qiymatlari: ` + Object.entries(typeCounts || {}).map(([k, v]) => `${k}=${v}`).join(', ')
-      : `iiko bo'sh katalog qaytardi (mahsulot yo'q; kalitlar: ${emShape ? emShape.keys : 'yo\u2019q'}; guruhlar: ${emShape ? emShape.grp : '?'}; elementlar: ${emShape ? emShape.its : '?'})`;
+      : `iiko bo'sh katalog qaytardi (ig:${emShape ? emShape.ig : '?'} cat:${emShape ? emShape.cy : '?'}; kalitlar: ${emShape ? emShape.keys : 'yo\u2019q'}; guruhlar: ${emShape ? emShape.grp : '?'}; elementlar: ${emShape ? emShape.its : '?'}; IG: ${emShape ? emShape.sampleIG : '?'}; CAT: ${emShape ? emShape.sampleCat : '?'})`;
   }
   return [summary];
 }
