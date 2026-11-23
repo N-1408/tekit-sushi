@@ -246,7 +246,7 @@ export async function externalMenuCatalog(orgIds) {
       rawSample = { item: Object.keys(firstIt).join(','), size: fsz ? Object.keys(fsz).join(',') : null };
     }
   } catch (e) { /* diagnostika */ }
-  return { products, groups, menuName: menu.name || '', menuId: menu.id, rawSample, rawShape: { keys: Object.keys(d || {}).slice(0, 15).join(','), grp: Array.isArray(cats) ? cats.length : -1, its: (Array.isArray(cats) ? cats : []).reduce((n, c) => n + (Array.isArray(c.items) ? c.items.length : Array.isArray(c.itemList) ? c.itemList.length : 0), 0) } };
+  return { products, groups, menuName: menu.name || '', menuId: menu.id, rawSample, rawShape: { keys: Object.keys(d || {}).slice(0, 15).join(','), grp: Array.isArray(cats) ? cats.length : -1, its: (Array.isArray(cats) ? cats : []).reduce((n, c) => n + (Array.isArray(c.items) ? c.items.length : Array.isArray(c.itemList) ? c.itemList.length : 0), 0), sample: (() => { try { const g = (Array.isArray(d.itemsGroups) && d.itemsGroups[0]) || null; const x = (g && Array.isArray(g.items) && g.items[0]) || (Array.isArray(d.products) && d.products[0]) || null; return JSON.stringify(x || null).slice(0, 500); } catch { return 'err'; } })() } };
 }
 
 // Katalogni DB'ga yozadi (iiko IDlari bilan kalitlanadi). Bizga xos ustunlar
