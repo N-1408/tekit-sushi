@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { IcX } from './ui'
+import { lockPageScroll } from '../lib/scrolllock'
 
 /* ---------- umumiy modal tizimi ----------
  * Mobil: pastdan chiqadigan sheet (sichqoncha ustiga surib yopishga hojat yo'q),
@@ -19,10 +20,9 @@ export default function Modal({ open, onClose, title, children, foot, width = 52
 
   useEffect(() => {
     if (!open) return
-    const prevOverflow = document.body.style.overflow
+    const unlock = lockPageScroll()
     const prevScrollY = window.scrollY
-    document.body.style.overflow = 'hidden'
-    const prevFocus = document.activeElement as HTMLElement | null
+        const prevFocus = document.activeElement as HTMLElement | null
     const id = requestAnimationFrame(() => {
       const el = panelRef.current
       const first = (el?.querySelector<HTMLElement>('[data-autofocus]') ||
@@ -45,7 +45,7 @@ export default function Modal({ open, onClose, title, children, foot, width = 52
     return () => {
       document.removeEventListener('keydown', onKey, true)
       cancelAnimationFrame(id)
-      document.body.style.overflow = prevOverflow
+      unlock()
       if (Math.abs(window.scrollY - prevScrollY) > 2) window.scrollTo(0, prevScrollY)
       try { prevFocus?.focus?.() } catch {}
     }

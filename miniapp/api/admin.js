@@ -4,6 +4,7 @@ import { tgUserFrom, cors, failGuard, recordFail, safeEqual, rateLimit } from '.
 import { readSession, makeSessionToken, sessionCookieHeader } from './_session.js';
 import { handleAuth } from './_auth.js';
 import { handleIikoStatus } from './_iiko-status.js';
+import { handleBotWebhook } from './_bot-webhook.js';
 import { syncMenu } from './_iiko.js';
 const pwLoginEnabled = () => String(process.env.ADMIN_PASSWORD_LOGIN || '0').trim() !== '0';
 
@@ -199,6 +200,10 @@ export default async (req, res) => {
   if (req.query && req.query.type === 'iiko-status') {
     if (!(await check(req, res))) return res.status(401).json({ ok: false, error: 'auth' });
     return handleIikoStatus(req, res);
+  }
+  if (req.query && req.query.type === 'bot-webhook') {
+    if (!(await check(req, res))) return res.status(401).json({ ok: false, error: 'auth' });
+    return handleBotWebhook(req, res, req.query.mode === 'fix' ? 'fix' : 'status');
   }
 
   const okSchema = await ensureSchema();

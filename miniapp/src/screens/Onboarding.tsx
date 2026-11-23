@@ -1,5 +1,6 @@
 import React from 'react'
 import { useStore } from '../lib/store'
+import { lockPageScroll } from '../lib/scrolllock'
 import { API_BASE } from '../lib/api'
 import { tgUser, requestLocation, haptic } from '../lib/tg'
 import { IcPin } from '../components/ui'
@@ -49,9 +50,8 @@ export default function Onboarding() {
   }, [])
 
   React.useEffect(() => {
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
+    const unlock = lockPageScroll()
+        return () => { unlock() }
   }, [])
 
   const detect = React.useCallback(async () => {
