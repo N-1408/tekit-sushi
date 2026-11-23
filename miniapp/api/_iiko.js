@@ -141,7 +141,7 @@ export async function externalMenuCatalog(orgIds) {
   for (const o of tryOrgs) {
     for (const v of [3, 2, 4]) {
       try {
-        d = await call('/api/menu/v3/by_id', { externalMenuId: String(menu.id), organizationIds: [o], version: v });
+        d = await call('/api/menu/v3/by_id', { externalMenuId: String(menu.id), organizationId: o, version: v });
         org = o;
         break;
       } catch (e) { byErr = e; d = null; }
