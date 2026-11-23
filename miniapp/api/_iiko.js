@@ -225,7 +225,7 @@ export async function externalMenuCatalog(orgIds) {
       rawSample = { item: Object.keys(firstIt).join(','), size: fsz ? Object.keys(fsz).join(',') : null };
     }
   } catch (e) { /* diagnostika */ }
-  return { products, groups, menuName: menu.name || '', menuId: menu.id, rawSample };
+  return { products, groups, menuName: menu.name || '', menuId: menu.id, rawSample, rawShape: { keys: Object.keys(d || {}).slice(0, 15).join(','), grp: Array.isArray(cats) ? cats.length : -1, its: (Array.isArray(cats) ? cats : []).reduce((n, c) => n + (Array.isArray(c.items) ? c.items.length : Array.isArray(c.itemList) ? c.itemList.length : 0), 0) } };
 }
 
 // Katalogni DB'ga yozadi (iiko IDlari bilan kalitlanadi). Bizga xos ustunlar
@@ -239,12 +239,13 @@ export async function syncMenu(pool, { activate = true } = {}) {
   await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_uz text');
   await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_en text');
   await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS iiko_images jsonb');
-  let products, groups, emErr = null, emSample = null;
+  let products, groups, emErr = null, emSample = null, emShape = null;
   let srcName = 'nomenclature-v2', menuLabel = '';
   try {
     const em = await externalMenuCatalog([process.env.IIKO_ORGANIZATION_ID, process.env.IIKO_ORG_SAMPI]);
     products = em.products; groups = em.groups;
     emSample = em.rawSample || null;
+    emShape = em.rawShape || null;
     srcName = 'external-menu';
     menuLabel = `${em.menuName} (${em.menuId})`;
   } catch (e) {
@@ -474,7 +475,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
   if (!sellable.length) {
     summary.note = products.length
       ? `iiko ${products.length} ta mahsulot qaytardi, ammo savatga o'tmadi. type qiymatlari: ` + Object.entries(typeCounts || {}).map(([k, v]) => `${k}=${v}`).join(', ')
-      : "iiko bo'sh katalog qaytardi (mahsulot yo'q)";
+      : `iiko bo'sh katalog qaytardi (mahsulot yo'q; kalitlar: ${emShape ? emShape.keys : 'yo\u2019q'}; guruhlar: ${emShape ? emShape.grp : '?'}; elementlar: ${emShape ? emShape.its : '?'})`;
   }
   return [summary];
 }
