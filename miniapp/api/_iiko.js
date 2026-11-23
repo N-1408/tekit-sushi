@@ -212,6 +212,25 @@ export async function syncMenu(pool, { activate = true } = {}) {
   const OK_TYPES = ['GOOD', 'GOODS', 'DISH', 'PREPARED', 'SERVICE', 'SEMI'];
   const typeOf = (p) => String((p && p.type) || '').trim().toUpperCase();
   let typeCounts = null;
+  /* Rasmlar iiko'da taomning o'zida (nomenklatura) saqlanadi: external menu
+     javobida rasm maydoni bo'lmasa, nomenklaturadan productId bo'yicha
+     olamiz. */
+  const imgMissing = sellable.filter((p) => !p.imageUrl && !(Array.isArray(p.imageUrls) && p.imageUrls.length));
+  let imgFromNom = 0;
+  if (imgMissing.length) {
+    try {
+      const c2 = await catalogV2();
+      const imgById = new Map();
+      for (const q of c2.products) {
+        const u = (Array.isArray(q.imageUrls) && q.imageUrls[0] && (typeof q.imageUrls[0] === 'string' ? q.imageUrls[0] : q.imageUrls[0].url)) || q.imageUrl || null;
+        if (u) imgById.set(q.productId, u);
+      }
+      for (const p of imgMissing) {
+        const u = imgById.get(p.productId);
+        if (u) { p.imageUrl = u; imgFromNom++; }
+      }
+    } catch (e) { console.log('rasm uchun nomenklatura olinmadi:', String((e && e.message) || e)); }
+  }
   // ON CONFLICT bir INSERT ichida bir qatorni ikki marta ko'rsa xato beradi —
   // shuning uchun har bir jadval uchun kalit bo'yicha bir marta olib qoldiramiz.
   const dedupe = (rows, key) => {
@@ -357,6 +376,8 @@ export async function syncMenu(pool, { activate = true } = {}) {
     modifierGroups: gRes.rowCount || 0,
     modifierOptions: oRes.rowCount || 0,
     itemGroupLinks: mRes.rowCount || 0,
+    withImg: sellable.filter((p) => p.imageUrl || (Array.isArray(p.imageUrls) && p.imageUrls.length)).length,
+    imgFromNomenclature: imgFromNom,
   };
   if (!sellable.length) {
     summary.note = products.length
