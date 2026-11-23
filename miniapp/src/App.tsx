@@ -19,6 +19,7 @@ import { AdminShell, AdminGate } from './screens/admin/common'
 import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, useIsWide, useCartPanelOpen, setCartPanelOpen, useOrdersPanelOpen, setOrdersPanelOpen, useProfilePanelOpen, setProfilePanelOpen, IcX } from './components/ui'
 import Onboarding from './screens/Onboarding'
 import { useStore } from './lib/store'
+import { lockPageScroll } from './lib/scrolllock'
 import { TGA } from './lib/tg'
 import { LoadingScreen, OfflineBanner } from './components/status'
 
@@ -33,11 +34,10 @@ function CartDrawer() {
   /* Tana skrolli qulflanadi + Escape bilan yopiladi */
   React.useEffect(() => {
     if (!open || !isWide) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCartPanelOpen(false) }
+    const unlock = lockPageScroll()
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setCartPanelOpen(false) }
     window.addEventListener('keydown', onKey)
-    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
+    return () => { unlock(); window.removeEventListener('keydown', onKey) }
   }, [open, isWide])
   /* Native BackButton: panelni yopadi (useNativeBack history.back() emas) */
   React.useEffect(() => {
@@ -76,11 +76,10 @@ function OrdersDrawer() {
   /* Tana skrolli qulflanadi + Escape bilan yopiladi */
   React.useEffect(() => {
     if (!open || !isWide) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOrdersPanelOpen(false) }
+    const unlock = lockPageScroll()
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOrdersPanelOpen(false) }
     window.addEventListener('keydown', onKey)
-    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
+    return () => { unlock(); window.removeEventListener('keydown', onKey) }
   }, [open, isWide])
   /* Native BackButton: panelni yopadi (useNativeBack history.back() emas) */
   React.useEffect(() => {
@@ -119,11 +118,10 @@ function ProfileDrawer() {
   /* Tana skrolli qulflanadi + Escape bilan yopiladi */
   React.useEffect(() => {
     if (!open || !isWide) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setProfilePanelOpen(false) }
+    const unlock = lockPageScroll()
+        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setProfilePanelOpen(false) }
     window.addEventListener('keydown', onKey)
-    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
+    return () => { unlock(); window.removeEventListener('keydown', onKey) }
   }, [open, isWide])
   /* Native BackButton: panelni yopadi */
   React.useEffect(() => {
