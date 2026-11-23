@@ -37,6 +37,7 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
   const { t } = useStore()
   const [sessOk, setSessOk] = React.useState(false)
   const [tgState, setTgState] = React.useState<'' | 'pending' | 'fail'>('')
+  const [checking, setChecking] = React.useState(true)
   const [data, setData] = React.useState<AdminData | null>(() => {
     try { const v = localStorage.getItem('tk-admin-data'); return v ? JSON.parse(v) : null } catch { return null }
   })
@@ -62,12 +63,16 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
   // Brauzer sessiyasi (Telegram Login cookie) va OAuth qaytishi
   React.useEffect(() => {
     let alive = true
-    tgOAuthFinish().then((res) => {
-      if (!alive) return
-      if (res === 'ok') setSessOk(true)
-      else if (res) setTgState(res)
-    })
-    adminSession().then((ok) => { if (alive && ok) setSessOk(true) })
+    ;(async () => {
+      try {
+        const res = await tgOAuthFinish()
+        if (!alive) return
+        if (res === 'ok') setSessOk(true)
+        else if (res) setTgState(res)
+      } catch {}
+      try { if (await adminSession()) { if (alive) setSessOk(true) } } catch {}
+      if (alive) setChecking(false)
+    })()
     return () => { alive = false }
   }, [])
 
@@ -123,7 +128,9 @@ export function AdminGate({ children, tabs }: { children: React.ReactNode; tabs?
     refreshRole: () => {},
   }
 
-  const authed = !!key || roleOk || sessOk || (wasOk && !roleReady)
+  /* wasOk faqat tekshiruv tugaguncha: tirik sessiyasiz eski kesh bilan
+     admin ochilib qolmasin. */
+  const authed = !!key || roleOk || sessOk || (wasOk && checking)
   if (!authed) {
     return (
       <div className="min-h-[100dvh] flex items-center justify-center px-4 py-10">

@@ -15,7 +15,7 @@ function ExtraChip({ x, lang, t }: { x: Product; lang: any; t: any }) {
   return (
     <div className="shrink-0 w-[136px] bg-[var(--panel)] border border-navy-line rounded-[16px] p-2 flex flex-col">
       <div className="relative aspect-square rounded-[12px] overflow-hidden bg-navy-soft">
-        <img src={pImg(x)} alt={pName(x, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
+        <img src={pImg(x) || undefined} alt={pName(x, lang)} loading="lazy" decoding="async" className="w-full h-full object-cover" />
         {isSpicy(x) && <SpicyBadge size={18} className="absolute top-1.5 right-1.5" />}
       </div>
       <div className="text-[12px] font-bold leading-tight line-clamp-2 mt-1.5">{pName(x, lang)}</div>
@@ -136,7 +136,7 @@ export default function Cart({ variant = 'page' }: { variant?: 'page' | 'panel' 
             {lines.map(l => (
               <div key={l.id}
                 className={`flex gap-3 bg-[var(--panel)] border border-navy-line rounded-[18px] p-2.5 ${leaving[l.id] ? 'opacity-0 scale-[.97] -translate-y-1' : ''} motion-safe:transition-[opacity,transform] duration-200`}>
-                <img src={pImg(l)} alt="" className="w-[76px] h-[76px] rounded-[14px] object-cover bg-navy-soft cursor-pointer"
+                <img src={pImg(l) || undefined} alt="" className="w-[76px] h-[76px] rounded-[14px] object-cover bg-navy-soft cursor-pointer"
                   onClick={() => { haptic(); openP(l) }} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start gap-1.5">

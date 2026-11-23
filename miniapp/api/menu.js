@@ -91,7 +91,14 @@ export default async (req, res) => {
     // ham menyuni ko'radi). Eski iiko qatorlari shu sinxda o'chiriladi.
     let syncInfo = null;
     const pre = await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true`);
-    if (!pre.rows[0].n && Date.now() - lastAutoSync > 120000) {
+    let needImg = false;
+    if (pre.rows[0].n) {
+      try {
+        const noImg = await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true AND source = 'iiko' AND (img IS NULL OR img = '')`);
+        needImg = noImg.rows[0].n > 0;
+      } catch {}
+    }
+    if ((!pre.rows[0].n || needImg) && Date.now() - lastAutoSync > 1800000) {
       lastAutoSync = Date.now();
       try {
         const s = (await syncMenu(p))[0];
@@ -110,7 +117,7 @@ export default async (req, res) => {
     const rows = (await p.query(
       `SELECT id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort, kcal, protein, fat, carbs,
               sale_active, sale_percent, sale_price, spicy
-       FROM menu_items WHERE active = true ORDER BY sort`)).rows;
+       FROM menu_items WHERE active = true AND price > 0 ORDER BY sort`)).rows;
     let modsByItem = null;
     try {
       const m = (await p.query(
@@ -149,7 +156,11 @@ export default async (req, res) => {
       if (modsByItem && modsByItem[r.id]) out.mods = modsByItem[r.id];
       return out;
     });
-    return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE ?? 0), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) }, ...(syncInfo ? { sync: syncInfo } : {}), cats, items });
+    // Bo'sh qolgan kategoriyalarni klientga yubormaymiz (masalan, faqat
+    // ingredientlar bo'lgan guruhlar).
+    const haveCats = new Set(items.map((r) => r.cat));
+    const catsOut = cats.filter((c) => haveCats.has(c.slug));
+    return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE ?? 0), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) }, ...(syncInfo ? { sync: syncInfo } : {}), cats: catsOut, items });
   } catch (e) {
     console.error('menu error', e);
     return res.status(500).json({ ok: false, error: 'Server xatosi' });
