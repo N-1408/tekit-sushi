@@ -31,67 +31,6 @@ function Card({ title, children }: { title: string; children: React.ReactNode })
   )
 }
 
-type BotInfo = { url: string; wanted_url: string; url_ok: boolean; pending: number; last_error: string }
-
-function BotCard() {
-  const { t } = useStore()
-  const a = useAdmin()
-  const [st, setSt] = React.useState<BotInfo | null>(null)
-  const [busy, setBusy] = React.useState<'' | 'check' | 'fix'>('')
-  const [err, setErr] = React.useState(false)
-
-  React.useEffect(() => {
-    if (!a.ready) return
-    let dead = false
-    setBusy('check')
-    fetch(`${API_BASE}/api/admin?type=bot-webhook`, { headers: a.h() })
-      .then(r => r.ok ? r.json() : null).then(j => {
-        if (dead) return
-        if (j && j.ok) { setSt(j as BotInfo); setErr(false) } else setErr(true)
-      }).catch(() => { if (!dead) setErr(true) }).finally(() => { if (!dead) setBusy('') })
-    return () => { dead = true }
-  }, [a.ready])
-
-  const fix = () => {
-    if (busy) return
-    setBusy('fix')
-    fetch(`${API_BASE}/api/admin?type=bot-webhook&mode=fix`, { headers: a.h() })
-      .then(r => r.ok ? r.json() : null).then(j => {
-        if (j && j.ok) { setSt(j as BotInfo); setErr(false) } else setErr(true)
-      }).catch(() => setErr(true)).finally(() => setBusy(''))
-  }
-
-  const label = busy === 'fix' ? t.aBotFixing : busy === 'check' ? t.aBotCheck : t.aBotFix
-  return (
-    <div className="px-4 mt-4">
-      <div className="bg-[var(--panel)] border border-navy-line rounded-[20px] p-4">
-        <div className="flex items-center justify-between gap-2">
-          <div className="text-[13.5px] font-extrabold">{t.aBotT}</div>
-          {st && !err ? (
-            <span className={`text-[11px] font-extrabold px-2 py-0.5 rounded-md ${st.url_ok ? 'a-ok' : 'a-bad'}`}>
-              {st.url_ok ? t.aBotOk : t.aBotBad}
-            </span>
-          ) : null}
-        </div>
-        {err ? (
-          <div className="mt-2 text-[12px] font-semibold text-[var(--mut)]">{t.aBotErr}</div>
-        ) : !st ? (
-          <div className="mt-2.5 h-3 w-40 rounded-full bg-[var(--panel2,var(--panel))] border border-navy-line animate-pulse" />
-        ) : (
-          <div className="mt-2 space-y-1">
-            {st.pending > 0 ? <div className="text-[12px] font-semibold text-[var(--mut)]">{t.aBotQueue}: {st.pending}</div> : null}
-            {st.last_error ? <div className="text-[12px] font-semibold text-[var(--mut)] truncate">{t.aBotLastErr}: {st.last_error}</div> : null}
-          </div>
-        )}
-        <button onClick={fix} disabled={busy !== ''}
-          className="press mt-3 w-full py-2.5 rounded-xl text-[13px] font-extrabold bg-[var(--btn)] text-[var(--btn-ink)] shadow-[0_6px_14px_-6px_rgba(15,30,154,.5)] disabled:opacity-60">
-          {label}
-        </button>
-      </div>
-    </div>
-  )
-}
-
 function Body() {
   const { t } = useStore()
   const a = useAdmin()
@@ -161,7 +100,6 @@ function Body() {
   return (
     <div className="pb-28">
       <AdminTopBar title={t.aTabD} />
-      <BotCard />
       <div className="px-4 mt-4 flex gap-2">
         {([1, 7, 30] as const).map(r => (
           <button key={r} onClick={() => setRange(r)}
