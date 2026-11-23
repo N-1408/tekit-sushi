@@ -70,8 +70,16 @@ export default function AdminAccess() {
           {!list && !err && <div className="mt-2 text-[12.5px] font-semibold text-[var(--mut)]">{t.aCustLoading}</div>}
           {list && list.admins.map((u) => (
             <div key={u.tg_id} className="py-2.5 border-b border-[var(--line)] last:border-0">
-              <div className="text-[13.5px] font-extrabold truncate">{u.name || u.username || `ID ${u.tg_id}`}</div>
-              <div className="text-[11.5px] font-semibold text-[var(--mut)] truncate">{sub(u)}</div>
+              <div className="flex items-center gap-2">
+                <div className="flex-1 min-w-0">
+                  <div className="text-[13.5px] font-extrabold truncate">{u.name || u.username || `ID ${u.tg_id}`}</div>
+                  <div className="text-[11.5px] font-semibold text-[var(--mut)] truncate">{sub(u)}</div>
+                </div>
+                <button onClick={() => { if (confirm(`${u.name || u.username || 'ID ' + u.tg_id} adminlikdan olib tashlanadi. Davom etamizmi?`)) decide(u.tg_id, false) }}
+                  className="press px-3 py-1.5 rounded-lg bg-[rgba(239,68,68,.1)] a-bad-text border border-[rgba(239,68,68,.3)] text-[11.5px] font-extrabold disabled:opacity-40 active:scale-95 transition-all">
+                  {t.aAccRemove}
+                </button>
+              </div>
             </div>
           ))}
           {list && list.admins.length === 0 && <div className="mt-2 text-[12.5px] font-semibold text-[var(--mut)]">{t.aAccNone}</div>}

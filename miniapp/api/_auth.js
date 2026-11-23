@@ -257,7 +257,9 @@ export async function handleAuth(req, res) {
          initData yo'q, eski yoki boshqa foydalanuvnikisa — sessiya qolmaydi. */
       const sess = readSession(req);
       if (!sess) return res.status(401).json({ ok: false, error: 'session_expired' });
-      const u = tgUserFrom(req);
+      /* touch initData 24 soatdan eski bo'lib qolsa ham sessiya uzaytiriladi
+         (Telegram mini app ochiq turganda qayta login so'ralmasin) */
+      const u = tgUserFrom(req, 7 * 24 * 60 * 60);
       if (!u || String(u.id) !== String(sess.tg_id)) {
         return res.status(401).json({ ok: false, error: 'session_expired' });
       }
@@ -336,8 +338,10 @@ export async function handleAuth(req, res) {
         await p.query(`UPDATE bot_users SET role='admin' WHERE tg_id=$1`, [tgId]);
         notifyUser(tgId, `Sizga admin panelga kirish huquqi berildi. Panel: ${process.env.WEBAPP_URL || ''}admin`);
       } else {
-        await p.query(`UPDATE bot_users SET role=NULL WHERE tg_id=$1 AND role='requested'`, [tgId]);
-        notifyUser(tgId, `Admin so'rovingiz rad etildi.`);
+        /* Admin olib tashlash: o'zini o'zi olib tashlashi mumkin emas */
+        if (sess && String(sess.tg_id) === String(tgId)) return res.status(400).json({ ok: false, error: 'self' });
+        await p.query(`UPDATE bot_users SET role=NULL WHERE tg_id=$1 AND role IN ('requested','admin')`, [tgId]);
+        notifyUser(tgId, `Admin panelga kirish huquqi olib tashlandi.`);
       }
       return res.status(200).json({ ok: true });
     }

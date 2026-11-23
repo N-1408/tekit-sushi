@@ -42,7 +42,11 @@ async function call(path, body) {
     await new Promise((res) => setTimeout(res, i === 0 ? 3000 : 8000));
     r = await raw(path, await getToken(), body);
   }
-  if (r.status !== 200) throw new Error(`iiko ${path} failed (HTTP ${r.status})`);
+  if (r.status !== 200) {
+    const b = r.data || {};
+    const extra = b.errorDescription || b.error || b.description || b.message;
+    throw new Error(`iiko ${path} failed (HTTP ${r.status})` + (extra ? ': ' + String(extra).slice(0, 220) : ''));
+  }
   return r.data;
 }
 
@@ -164,6 +168,15 @@ export async function externalMenuCatalog(orgIds) {
         name: it.name,
         description: it.description || '',
         parentGroupId: c.id,
+        iikoImages: (() => {
+          const set = new Set();
+          const push = (u) => { if (typeof u === 'string' && /^https?:\/\//i.test(u)) set.add(u); };
+          push(it.imageUrl); push(it.buttonImageUrl);
+          (Array.isArray(it.imageUrls) ? it.imageUrls : []).forEach((u) => push(typeof u === 'string' ? u : u && u.url));
+          if (sz) { push(sz.imageUrl); push(sz.buttonImageUrl); push(sz.buttonImage && sz.buttonImage.url); (Array.isArray(sz.imageUrls) ? sz.imageUrls : []).forEach((u) => push(typeof u === 'string' ? u : u && u.url)); }
+          push(c.imageUrl); push(c.buttonImageUrl);
+          return [...set];
+        })(),
         imageUrl: it.imageUrl || it.buttonImageUrl || (sz && (sz.imageUrl || sz.buttonImageUrl || (sz.buttonImage && sz.buttonImage.url))) || c.buttonImageUrl || c.imageUrl || null,
         weight: sz && sz.weight != null ? sz.weight : undefined,
         nutritions: sz && Array.isArray(sz.nutritions) && sz.nutritions.length ? sz.nutritions : undefined,
@@ -225,6 +238,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
   // Admin til nomlari (name_uz/name_en) faqat DB'da: sinxron ularni hech qachon yozmaydi.
   await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_uz text');
   await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_en text');
+  await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS iiko_images jsonb');
   let products, groups, emErr = null, emSample = null;
   let srcName = 'nomenclature-v2', menuLabel = '';
   try {
@@ -309,7 +323,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
     const v = Number(n[key]);
     return Number.isFinite(v) && v > 0 ? Math.round(v) : null;
   };
-  const itemJson = sellable.map((p) => {
+  const itemJson = sellable.filter((p) => String(p.type || '').toUpperCase() !== 'MODIFIER').map((p) => {
     const price = priceOf(p) || 0;
     return {
       id: 'iiko_' + p.productId,
@@ -323,13 +337,14 @@ export async function syncMenu(pool, { activate = true } = {}) {
       weight: p.weight != null ? String(p.weight) : null,
       // iiko nutritions: sizes.nutritions[] -> { energy(kkal), proteins, fats, carbs, organizations[] }
       kcal: pickNut(p, 'energy'), protein: pickNut(p, 'proteins'), fat: pickNut(p, 'fats'), carbs: pickNut(p, 'carbs'),
+      iiko_images: Array.isArray(p.iikoImages) ? p.iikoImages : [],
       iiko_prices: { default: Math.round(price) },
     };
   });
   const itemRes = await pool.query(
-    `INSERT INTO menu_items (id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, source, iiko_id, iiko_prices, weight, kcal, protein, fat, carbs)
-     SELECT x.id, x.slug, x.cat, x.price, x.img, x.t_uz, x.t_ru, x.t_en, x.d_uz, x.d_ru, x.d_en, 0, false, $2::boolean, 'iiko', x.iiko_id, x.iiko_prices, x.weight, x.kcal, x.protein, x.fat, x.carbs
-     FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, img text, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb, weight text, kcal int, protein int, fat int, carbs int)
+    `INSERT INTO menu_items (id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, source, iiko_id, iiko_prices, weight, kcal, protein, fat, carbs, iiko_images)
+     SELECT x.id, x.slug, x.cat, x.price, x.img, x.t_uz, x.t_ru, x.t_en, x.d_uz, x.d_ru, x.d_en, 0, false, $2::boolean, 'iiko', x.iiko_id, x.iiko_prices, x.weight, x.kcal, x.protein, x.fat, x.carbs, x.iiko_images
+     FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, img text, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb, weight text, kcal int, protein int, fat int, carbs int), iiko_images jsonb
      ON CONFLICT (id) DO UPDATE SET
        cat = EXCLUDED.cat, price = EXCLUDED.price,
        t_uz = EXCLUDED.t_uz, t_ru = EXCLUDED.t_ru, t_en = EXCLUDED.t_en,
@@ -339,6 +354,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
        weight = COALESCE(NULLIF(EXCLUDED.weight, ''), menu_items.weight),
        kcal = COALESCE(EXCLUDED.kcal, menu_items.kcal), protein = COALESCE(EXCLUDED.protein, menu_items.protein),
        fat = COALESCE(EXCLUDED.fat, menu_items.fat), carbs = COALESCE(EXCLUDED.carbs, menu_items.carbs),
+       iiko_images = CASE WHEN jsonb_array_length(EXCLUDED.iiko_images) > 0 THEN EXCLUDED.iiko_images ELSE menu_items.iiko_images END,
        active = CASE WHEN COALESCE(menu_items.hidden_by_admin, false) THEN false ELSE $2::boolean END`,
     [JSON.stringify(dedupe(itemJson, (r) => r.id)), activate]
   );

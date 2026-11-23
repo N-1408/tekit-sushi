@@ -34,31 +34,12 @@ function Body() {
   const [loaded, setLoaded] = React.useState(!id)
   const [delOpen, setDelOpen] = React.useState(false)
   const [imgPreview, setImgPreview] = React.useState('')
-  const fileRef = React.useRef<HTMLInputElement>(null)
-  const [uploading, setUploading] = React.useState(false)
   // iiko taomi: faqat til nomlari va rasm tahrirlanadi (iiko maydonlariga tegilmaydi)
   const isIiko = !isNew && f.source === 'iiko'
 
-  const pickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    try {
-      setUploading(true)
-      const bmp = await createImageBitmap(file)
-      const scale = Math.min(1, 1000 / Math.max(bmp.width, bmp.height))
-      const w = Math.round(bmp.width * scale), hh = Math.round(bmp.height * scale)
-      const c = document.createElement('canvas'); c.width = w; c.height = hh
-      ;(c.getContext('2d') as any).drawImage(bmp, 0, 0, w, hh)
-      const dataUrl = c.toDataURL('image/jpeg', 0.85)
-      setImgPreview(dataUrl)
-      const r = await fetch('/api/upload', { method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() }, body: JSON.stringify({ data: dataUrl }) })
-      const j = await r.json()
-      if (!j.ok) throw new Error('up')
-      set('img', j.id)
-      showToast(t.aUpOk)
-    } catch { showToast(t.aUpErr); setImgPreview('') }
-    finally { setUploading(false); if (fileRef.current) fileRef.current.value = '' }
-  }
+  const iikoImgs: string[] = Array.isArray((a.data?.items || []).find((x: any) => x.id === id)?.iiko_images)
+    ? ((a.data?.items || []).find((x: any) => x.id === id)?.iiko_images as string[])
+    : []
 
   React.useEffect(() => {
     if (!a.data) return
@@ -127,11 +108,18 @@ function Body() {
             </div>
             <div className="flex-1">
               <Field label={t.aImageF}>
-                <input value={f.img} onChange={e => { set('img', e.target.value); setImgPreview(/^https?:/i.test(e.target.value) ? e.target.value : '') }} placeholder="https://... yoki UUID" className={inputCls} />
-                <label className="mt-2 flex items-center justify-center h-9 rounded-xl border border-navy-line bg-navy-soft text-[var(--btn)] text-[13px] font-medium cursor-pointer active:opacity-70">
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickFile} />
-                  {uploading ? t.aUploading : t.aUpImg}
-                </label>
+                {iikoImgs.length > 0 ? (
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
+                    {iikoImgs.map((u: string) => (
+                      <button key={u} type="button" onClick={() => { haptic(); set('img', u); setImgPreview(u) }}
+                        className={`press shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 ${f.img === u ? 'border-[var(--btn)]' : 'border-transparent'} active:scale-95 transition-all`}>
+                        <img src={u} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-[12px] font-semibold text-[var(--mut)]">iiko rasm yubormagan</div>
+                )}
               </Field>
             </div>
           </div>
@@ -161,11 +149,18 @@ function Body() {
             </div>
             <div className="flex-1">
               <Field label={t.aImageF}>
-                <input value={f.img} onChange={e => { set('img', e.target.value); setImgPreview(/^https?:/i.test(e.target.value) ? e.target.value : '') }} placeholder="https://... yoki UUID" className={inputCls} />
-                <label className="mt-2 flex items-center justify-center h-9 rounded-xl border border-navy-line bg-navy-soft text-[var(--btn)] text-[13px] font-medium cursor-pointer active:opacity-70">
-                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickFile} />
-                  {uploading ? t.aUploading : t.aUpImg}
-                </label>
+                {iikoImgs.length > 0 ? (
+                  <div className="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
+                    {iikoImgs.map((u: string) => (
+                      <button key={u} type="button" onClick={() => { haptic(); set('img', u); setImgPreview(u) }}
+                        className={`press shrink-0 w-14 h-14 rounded-xl overflow-hidden border-2 ${f.img === u ? 'border-[var(--btn)]' : 'border-transparent'} active:scale-95 transition-all`}>
+                        <img src={u} alt="" className="w-full h-full object-cover" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-[12px] font-semibold text-[var(--mut)]">iiko rasm yubormagan</div>
+                )}
               </Field>
             </div>
           </div>

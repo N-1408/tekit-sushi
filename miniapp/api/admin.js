@@ -221,7 +221,7 @@ export default async (req, res) => {
                    FROM orders ORDER BY id DESC LIMIT 300`),
           buildStats(P, 7),
           P.query(`SELECT * FROM menu_categories ORDER BY sort`),
-          P.query(`SELECT * FROM menu_items ORDER BY sort, cat`),
+          P.query(`SELECT * FROM menu_items m WHERE NOT (m.cat = 'iiko-other' AND NOT EXISTS (SELECT 1 FROM menu_categories c WHERE c.slug = m.cat)) ORDER BY sort, cat`),
           P.query(`SELECT code, percent, active FROM promos ORDER BY code`),
           P.query(`SELECT phone, count(*)::int AS cancels FROM orders WHERE status = 'cancelled' GROUP BY phone`),
         ]);
@@ -266,16 +266,37 @@ export default async (req, res) => {
           customers: r.rows.map(x => ({ ...x, revenue: Number(x.revenue) })),
         });
       }
+      if (action === 'customer_orders') {
+        /* Mijozning umrbioy buyurtmalari: buyurtmalar + nimalar buyurtma qilgani */
+        const phone = String(req.query.phone || '').trim();
+        if (!phone) return res.status(400).json({ ok: false, error: 'phone' });
+        const r = await P.query(`SELECT id, created_at, status, total, items FROM orders WHERE phone = $1 ORDER BY created_at DESC LIMIT 200`, [phone]);
+        const st = await P.query(`SELECT count(*)::int AS n, coalesce(sum(CASE WHEN status <> 'cancelled' THEN total ELSE 0 END),0)::bigint AS revenue FROM orders WHERE phone = $1`, [phone]);
+        const ids = new Set();
+        for (const o of r.rows) for (const it of (Array.isArray(o.items) ? o.items : [])) if (it && it.id) ids.add(String(it.id));
+        const names = new Map();
+        if (ids.size) {
+          const nr = await P.query(`SELECT id, coalesce(nullif(name_uz,''), t_uz) AS name FROM menu_items WHERE id = ANY($1)`, [[...ids]]);
+          for (const x of nr.rows) names.set(String(x.id), x.name);
+        }
+        const orders = r.rows.map((o) => {
+          const its = (Array.isArray(o.items) ? o.items : [])
+            .map((it) => `${Number(it.qty) || 1}x ${names.get(String(it.id)) || String(it.id || '')}`)
+            .filter((t) => !/^1x\s*$/.test(t));
+          return { id: o.id, created_at: o.created_at, status: o.status, total: Number(o.total), items_text: its.join(', ') };
+        });
+        return res.status(200).json({ ok: true, n: st.rows[0]?.n || 0, revenue: Number(st.rows[0]?.revenue || 0), orders });
+      }
       if (action === 'menu') {
         let cats = (await P.query(`SELECT * FROM menu_categories ORDER BY sort`)).rows;
-        let items = (await P.query(`SELECT * FROM menu_items ORDER BY sort, cat`)).rows;
+        let items = (await P.query(`SELECT * FROM menu_items m WHERE NOT (m.cat = 'iiko-other' AND NOT EXISTS (SELECT 1 FROM menu_categories c WHERE c.slug = m.cat)) ORDER BY sort, cat`)).rows;
         if (!items.length) {
           // Menyu hali bo'sh: iikodan bir marta o'z-o'zidan sinxronlaymiz.
           try {
             const s = (await syncMenu(P))[0];
             if (s && s.items) {
               cats = (await P.query(`SELECT * FROM menu_categories ORDER BY sort`)).rows;
-              items = (await P.query(`SELECT * FROM menu_items ORDER BY sort, cat`)).rows;
+              items = (await P.query(`SELECT * FROM menu_items m WHERE NOT (m.cat = 'iiko-other' AND NOT EXISTS (SELECT 1 FROM menu_categories c WHERE c.slug = m.cat)) ORDER BY sort, cat`)).rows;
             }
           } catch (se) { console.error('auto sync menu', se && se.message); }
         }

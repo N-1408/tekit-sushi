@@ -27,6 +27,7 @@ function Body() {
   const [rows, setRows] = React.useState<C[] | null>(null)
   const [err, setErr] = React.useState(false)
   const [open, setOpen] = React.useState<string | null>(null)
+  const [lt, setLt] = React.useState<{ n: number; revenue: number; orders: any[] } | null>(null)
 
   const aRef = React.useRef(a); aRef.current = a
   React.useEffect(() => {
@@ -47,7 +48,17 @@ function Body() {
     ? all.filter(c => (c.name || '').toLowerCase().includes(search) || String(c.phone || '').toLowerCase().includes(search))
     : all
 
-  const ordersOf = (phone: string): O[] => (a.data?.orders || []).filter((o: O) => String(o.phone) === String(phone))
+  React.useEffect(() => {
+    if (!open) { setLt(null); return }
+    setLt(null)
+    const A = aRef.current
+    let dead = false
+    fetch(`${API_BASE}/api/admin?action=customer_orders&phone=${encodeURIComponent(open)}`, { headers: A.h() })
+      .then(r => (r.ok ? r.json() : null))
+      .then(j => { if (!dead && j?.ok) setLt({ n: j.n || 0, revenue: j.revenue || 0, orders: j.orders || [] }) })
+      .catch(() => {})
+    return () => { dead = true }
+  }, [open])
   const totalRevenue = all.reduce((s, c) => s + c.revenue, 0)
   const repeat = all.filter(c => c.n > 1).length
 
@@ -84,7 +95,6 @@ function Body() {
       <div className="px-4 mt-3 space-y-2">
         {shown.map((c, i) => {
           const isOpen = open === c.phone
-          const os = ordersOf(c.phone)
           return (
             <div key={c.phone || i} className="bg-[var(--panel)] border border-navy-line rounded-[18px] overflow-hidden">
               <button onClick={() => setOpen(isOpen ? null : c.phone)} className="w-full text-left px-4 py-3.5">
@@ -114,15 +124,22 @@ function Body() {
                   <div className="flex justify-between text-[11.5px] font-bold text-[var(--mut)]">
                     <span>{t.aCustLast}</span><span>{fmtDT(c.last_at)}</span>
                   </div>
-                  {os.length > 0 ? (
-                    <div className="mt-1 space-y-1.5">
-                      {os.slice(0, 8).map((o: O) => (
-                        <div key={o.id} className="flex items-center gap-2 text-[12.5px]">
-                          <span className="font-extrabold text-[var(--mut)] shrink-0">#{o.id}</span>
-                          <span className="text-[var(--mut)] shrink-0">{fmtDT(o.created_at)}</span>
-                          <span className="flex-1" />
-                          <span className="font-extrabold">{fmt(o.total)}</span>
-                          <span className={`text-[10.5px] font-extrabold px-2 py-0.5 rounded-lg ${o.status === 'cancelled' ? 'a-bad' : o.status === 'new' ? 'a-warn' : 'a-ok'}`}>{t['st_' + o.status]}</span>
+                  <div className="flex justify-between text-[11.5px] font-extrabold">
+                    <span>{t.aCustLifetime}</span>
+                    <span>{lt ? `${lt.n} ${t.aCustOrdersN} · ${fmt(lt.revenue)}` : '…'}</span>
+                  </div>
+                  {lt && lt.orders.length > 0 ? (
+                    <div className="mt-1 space-y-2">
+                      {lt.orders.slice(0, 20).map((o: any) => (
+                        <div key={o.id} className="rounded-xl bg-navy-soft/40 px-3 py-2">
+                          <div className="flex items-center gap-2 text-[12.5px]">
+                            <span className="font-extrabold text-[var(--mut)] shrink-0">#{o.id}</span>
+                            <span className="text-[var(--mut)] shrink-0">{fmtDT(o.created_at)}</span>
+                            <span className="flex-1" />
+                            <span className="font-extrabold">{fmt(o.total)}</span>
+                            <span className={`text-[10.5px] font-extrabold px-2 py-0.5 rounded-lg ${o.status === 'cancelled' ? 'a-bad' : o.status === 'new' ? 'a-warn' : 'a-ok'}`}>{t['st_' + o.status]}</span>
+                          </div>
+                          {!!o.items_text && <div className="mt-1 text-[11.5px] font-medium text-[var(--mut)] leading-snug">{o.items_text}</div>}
                         </div>
                       ))}
                     </div>

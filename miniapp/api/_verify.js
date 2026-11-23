@@ -6,7 +6,7 @@ import { getPool } from './_db.js';
 export const INIT_DATA_MAX_AGE_SECONDS = 86400;
 
 // Telegram initData imzosini serverda tekshirish (HMAC-SHA256, BOT_TOKEN bilan)
-export function verifyInitData(initData) {
+export function verifyInitData(raw, maxAgeSeconds = INIT_DATA_MAX_AGE_SECONDS) {
   if (!initData || typeof initData !== 'string') return null;
   const token = process.env.BOT_TOKEN;
   if (!token) return null;
@@ -27,7 +27,7 @@ export function verifyInitData(initData) {
     if (given.length !== h.length || !crypto.timingSafeEqual(given, h)) return null;
     const authDate = Number(params.get('auth_date') || 0);
     // initData INIT_DATA_MAX_AGE_SECONDS dan eskirsa qabul qilmaymiz
-    if (!authDate || Date.now() / 1000 - authDate > INIT_DATA_MAX_AGE_SECONDS) return null;
+    if (!authDate || Date.now() / 1000 - authDate > maxAgeSeconds) return null;
     let user = null;
     try { user = JSON.parse(params.get('user') || 'null'); } catch {}
     if (!user || typeof user.id !== 'number') return null;
@@ -37,8 +37,8 @@ export function verifyInitData(initData) {
   }
 }
 
-export function tgUserFrom(req) {
-  return verifyInitData(req.headers['x-init-data']);
+export function tgUserFrom(req, maxAgeSeconds = INIT_DATA_MAX_AGE_SECONDS) {
+  return verifyInitData(req.headers['x-init-data'], maxAgeSeconds);
 }
 
 // Sirlarni solishtirish: vaqt-hujumga chidamli (admin parol, webhook sirlari)

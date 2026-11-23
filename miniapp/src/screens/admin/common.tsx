@@ -402,22 +402,25 @@ function AdminTabBar() {
     { id: 'access', to: '/admin/access', label: t.aTabA, icon: 'access' },
   ]
   const on = (to: string) => to === '/admin' ? loc.pathname === '/admin' || loc.pathname === '/admin/orders' : loc.pathname.startsWith(to)
+  /* Mijoz taraf Navbar bilan bir xil dizayn (tk-tabbar pill + sirg'aluvchi indikator) */
+  const onIdx = tabs.findIndex(tb => on(tb.to))
   return (
-    <nav className="fixed left-0 right-0 bottom-0 z-40 bg-[var(--panel)] border-t border-navy-line lg:hidden"
-      style={{ paddingBottom: 'calc(8px + var(--sab))' }}>
-      <div className="flex">
+    <nav className="tk-tabbar lg:hidden" aria-label="admin">
+      <div className="tk-tab-pill tk-tab-pill-6">
+        <span className="tk-tab-ind" aria-hidden="true"
+          style={{ transform: `translateX(${Math.max(onIdx, 0) * 100}%)`, opacity: onIdx < 0 ? 0 : 1 }} />
         {tabs.map(tb => {
           const act = on(tb.to)
           return (
             <button key={tb.id} onClick={() => { if (!act) { haptic(); nav(tb.to) } }}
-              className={`press flex-1 flex flex-col items-center gap-0.5 pt-2 text-[10.5px] font-bold transition-colors ${act ? 'text-[var(--chip-on)]' : 'text-[var(--ink3)]'}`}>
-              <span className={`relative flex items-center justify-center rounded-2xl transition-all duration-200 ${act ? 'bg-[var(--chip-on)] text-[var(--chip-on-ink)] px-4 py-1' : 'px-1 py-1'}`}>
+              className={`tk-tab-btn ${act ? 'is-on' : ''}`}>
+              <span className="tk-tab-ico relative">
                 {TAB_ICON[tb.id]}
                 {tb.id === 'orders' && !!pending && (
-                  <span className="absolute -top-1.5 -right-2.5 min-w-[17px] h-[17px] rounded-full bg-red-600 text-white text-[10px] font-extrabold grid place-items-center leading-none border-2 border-[var(--panel)]">{pending}</span>
+                  <span className="absolute -top-1.5 -right-2 min-w-[16px] h-[16px] rounded-full bg-[#E8462B] text-white text-[9.5px] font-extrabold grid place-items-center leading-none px-1">{pending}</span>
                 )}
               </span>
-              {tb.label}
+              <span className="tk-tab-lbl">{tb.label}</span>
             </button>
           )
         })}

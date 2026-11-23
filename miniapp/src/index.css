@@ -435,3 +435,6 @@ html[data-theme='dark'] .a-bad-text { color: #f87171; }
   --bg:#12151A; --bg2:#15181C; --panel:#1E2228; --sheet:#171B21; --soft:#1E2228;
   --line:#262A30; --line2:#2F333A;
 }
+
+/* admin panel: 6 ta tab bilan bir xil pill indikator */
+.tk-tab-pill-6 .tk-tab-ind { width: calc((100% - 14px) / 6); }
