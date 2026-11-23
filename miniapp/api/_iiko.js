@@ -139,16 +139,37 @@ export async function externalMenuCatalog(orgIds) {
   let d = null, byErr = null;
   const tryOrgs = [org, ...orgs.filter((o) => o !== org)];
   for (const o of tryOrgs) {
-    for (const v of [3, 2, 4]) {
+    for (const v of [2, 3, 4]) {
       try {
-        d = await call('/api/menu/v3/by_id', { externalMenuId: String(menu.id), organizationId: o, version: v });
-        org = o;
-        break;
+        const rd = await call('/api/menu/v3/by_id', { externalMenuId: String(menu.id), organizationId: o, version: v });
+        const cnt = Array.isArray(rd && rd.products)
+          ? rd.products.length
+          : (Array.isArray(rd && (rd.itemCategories || rd.itemGroups))
+            ? (rd.itemCategories || rd.itemGroups).reduce((n, c) => n + (Array.isArray(c.itemList || c.items) ? (c.itemList || c.items).length : 0), 0)
+            : 0);
+        d = rd; org = o;
+        if (cnt > 0) break; /* bo'sh javob: boshqa versiyani sinab ko'ramiz */
       } catch (e) { byErr = e; d = null; }
     }
     if (d) break;
   }
   if (!d) throw (byErr || new Error("iiko: menyu o'qilmadi"));
+  if (d && Array.isArray(d.products) && !Array.isArray(d.itemCategories) && !Array.isArray(d.itemGroups)) {
+    /* v3 javob shakli tekis: products + modifiers + itemsGroups */
+    const byId = new Map();
+    for (const p of d.products) if (p && (p.itemId || p.id) && p.name) byId.set(String(p.itemId || p.id), p);
+    for (const m of (Array.isArray(d.modifiers) ? d.modifiers : [])) if (m && (m.itemId || m.id) && m.name) { m.type = 'MODIFIER'; byId.set(String(m.itemId || m.id), m); }
+    const catsNorm = [];
+    for (const g of (Array.isArray(d.itemsGroups) ? d.itemsGroups : [])) {
+      const its = (Array.isArray(g.items) ? g.items : []).map((x) => byId.get(String(x && (x.itemId || x.id)))).filter(Boolean);
+      catsNorm.push({ id: String((g && (g.itemGroupId || g.id)) || ''), name: (g && (g.name || g.groupName || '')) || '', imageUrl: (g && (g.imageUrl || g.buttonImageUrl)) || null, itemList: its });
+    }
+    const seen = new Set();
+    for (const c of catsNorm) for (const i2 of c.itemList) seen.add(String(i2.itemId || i2.id));
+    const rest = [...byId.values()].filter((p) => !seen.has(String(p.itemId || p.id)));
+    if (rest.length) catsNorm.push({ id: '', name: '', imageUrl: null, itemList: rest });
+    d = Object.assign({}, d, { itemCategories: catsNorm });
+  }
   const cats = Array.isArray(d && (d.itemGroups || d.itemCategories)) ? (d.itemGroups || d.itemCategories) : [];
   const groups = [], products = [];
   for (const c of cats) {
