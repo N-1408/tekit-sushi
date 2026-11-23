@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, startTransition } from 'react'
 import { createPortal } from 'react-dom'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { lockPageScroll } from '../lib/scrolllock'
 import { useStore, pName, pImg, isSpicy, type Product } from '../lib/store'
 import { fmt } from '../lib/money'
 import { pDesc } from '../lib/store'
@@ -1092,9 +1093,8 @@ export function Sheet({ open, onClose, title, children, foot }: {
 }) {
   useEffect(() => {
     if (!open) return
-    const prev = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
-    return () => { document.body.style.overflow = prev }
+    const unlock = lockPageScroll()
+    return unlock
   }, [open])
 
   // Pastga surib yopish (surgich zonasi: dastak + sarlavha)
@@ -1616,7 +1616,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
   useEffect(() => { const id = window.setTimeout(() => setEnter(true), 10); return () => clearTimeout(id) }, [])
   useEffect(() => {
     const docEl = document.documentElement
-    const prevOverflow = document.body.style.overflow
+    const unlock = lockPageScroll()
     const prevPad = document.body.style.paddingRight
     const prevScrollY = window.scrollY
     const prevFocus = document.activeElement as HTMLElement | null
@@ -1624,8 +1624,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
     if (window.innerWidth > docEl.clientWidth) {
       document.body.style.paddingRight = `${window.innerWidth - docEl.clientWidth}px`
     }
-    document.body.style.overflow = 'hidden'
-    requestAnimationFrame(() => panelRef.current?.focus())
+        requestAnimationFrame(() => panelRef.current?.focus())
     const onKey = (e: KeyboardEvent) => {
       if (!panelRef.current) return
       if (e.key === 'Escape') { e.stopPropagation(); onClose(); return }
@@ -1642,7 +1641,7 @@ function DesktopProduct({ p, onClose }: { p: Product; onClose: () => void }) {
     document.addEventListener('keydown', onKey, true)
     return () => {
       document.removeEventListener('keydown', onKey, true)
-      document.body.style.overflow = prevOverflow
+      unlock()
       document.body.style.paddingRight = prevPad
       if (Math.abs(window.scrollY - prevScrollY) > 2) window.scrollTo(0, prevScrollY)
       try { prevFocus?.focus?.() } catch {}
@@ -1847,11 +1846,10 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
   const mountPathRef = useRef<string>('')
   useEffect(() => {
     mountPathRef.current = loc.pathname
-    const prevOverflow = document.body.style.overflow
+    const unlock = lockPageScroll()
     const prevScrollY = window.scrollY
     const prevFocus = document.activeElement as HTMLElement | null
-    document.body.style.overflow = 'hidden'
-    const onKey = (e: KeyboardEvent) => {
+        const onKey = (e: KeyboardEvent) => {
       if (!panelRef.current) return
       if (e.key === 'Escape') { e.stopPropagation(); closeRef.current(); return }
       if (e.key !== 'Tab') return
@@ -1867,7 +1865,7 @@ function ProductSheetMobile({ p, onClose }: { p: Product; onClose: () => void })
     document.addEventListener('keydown', onKey, true)
     return () => {
       document.removeEventListener('keydown', onKey, true)
-      document.body.style.overflow = prevOverflow
+      unlock()
       // Popap ochilgan sahifada qaytsak, skroll eski joyiga qaytadi; boshqa sahifaga o'tilgan bo'lsa tegmaymiz
       if (Math.abs(window.scrollY - prevScrollY) > 2 && (!mountPathRef.current || window.location.pathname === mountPathRef.current)) window.scrollTo(0, prevScrollY)
       try { prevFocus?.focus?.() } catch {}
