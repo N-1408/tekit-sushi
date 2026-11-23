@@ -378,6 +378,11 @@ export async function syncMenu(pool, { activate = true } = {}) {
     itemGroupLinks: mRes.rowCount || 0,
     withImg: sellable.filter((p) => p.imageUrl || (Array.isArray(p.imageUrls) && p.imageUrls.length)).length,
     imgFromNomenclature: imgFromNom,
+    imgDebug: {
+      sampleKeys: Object.keys(sellable[0] || {}).join(','),
+      itemImgCount: sellable.filter((p) => p.imageUrl).length,
+      szImgSeen: (() => { let n = 0; for (const p of sellable) { for (const sz of (Array.isArray(p.sizes) ? p.sizes : [])) { if (sz && (sz.imageUrl || sz.buttonImageUrl || (Array.isArray(sz.imageUrls) && sz.imageUrls.length))) n++; } } return n; })(),
+    },
   };
   if (!sellable.length) {
     summary.note = products.length

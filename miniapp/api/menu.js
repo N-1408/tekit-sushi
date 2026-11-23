@@ -102,7 +102,7 @@ export default async (req, res) => {
       lastAutoSync = Date.now();
       try {
         const s = (await syncMenu(p))[0];
-        if (s) syncInfo = `iiko: ${s.items} taom, ${s.withImg} rasm (${s.source}${s.imgFromNomenclature ? `, ${s.imgFromNomenclature} nomenklaturadan` : ''})`
+        if (s) syncInfo = { text: `iiko: ${s.items} taom, ${s.withImg} rasm (${s.source}${s.imgFromNomenclature ? `, ${s.imgFromNomenclature} nomenklaturadan` : ''})`, debug: s.imgDebug || null }
           ? `iiko: ${s.categories} kategoriya, ${s.items} taom (${s.source})`
           : `iiko: ${s.note || "katalog bo'sh"}`;
       } catch (se) {
