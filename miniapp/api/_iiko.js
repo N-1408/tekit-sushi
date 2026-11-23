@@ -141,7 +141,7 @@ export async function externalMenuCatalog(orgIds) {
   for (const o of tryOrgs) {
     for (const v of [3, 2, 4]) {
       try {
-        d = await call(`/api/menu/v3/by_id?organizationId=${encodeURIComponent(o)}&externalMenuId=${encodeURIComponent(menu.id)}&version=${v}`, {});
+        d = await call('/api/menu/v3/by_id', { externalMenuId: String(menu.id), organizationIds: [o], version: v });
         org = o;
         break;
       } catch (e) { byErr = e; d = null; }
@@ -149,14 +149,14 @@ export async function externalMenuCatalog(orgIds) {
     if (d) break;
   }
   if (!d) throw (byErr || new Error("iiko: menyu o'qilmadi"));
-  const cats = Array.isArray(d && d.itemCategories) ? d.itemCategories : [];
+  const cats = Array.isArray(d && (d.itemGroups || d.itemCategories)) ? (d.itemGroups || d.itemCategories) : [];
   const groups = [], products = [];
   for (const c of cats) {
     if (!c || !c.id) continue;
     groups.push({ groupId: c.id, name: c.name || '', imageUrl: c.imageUrl || null });
-    const items = Array.isArray(c.itemList) ? c.itemList : [];
+    const items = (Array.isArray(c.items) && c.items.length) ? c.items : (Array.isArray(c.itemList) ? c.itemList : []);
     for (const it of items) {
-      if (!it || !it.itemId || !it.name) continue;
+      if (!it || !(it.id || it.itemId) || !it.name) continue;
       if (it.isAvailable === false) continue;
       const sizes = Array.isArray(it.sizes) && it.sizes.length ? it.sizes : (Array.isArray(it.itemSizes) && it.itemSizes.length ? it.itemSizes : [{}]);
       const sz = sizes.find((x) => x && x.isDefault) || sizes[0];
@@ -164,7 +164,7 @@ export async function externalMenuCatalog(orgIds) {
       const pr = prices.find((x) => x && (!org || !x.organizationId || String(x.organizationId) === String(org))) || prices[0];
       const mods = Array.isArray(sz && sz.itemModifierGroups) ? sz.itemModifierGroups : [];
       products.push({
-        productId: String(it.itemId),
+        productId: String(it.id || it.itemId),
         name: it.name,
         description: it.description || '',
         parentGroupId: c.id,
