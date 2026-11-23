@@ -155,18 +155,18 @@ export async function externalMenuCatalog(orgIds) {
   }
   if (!d) throw (byErr || new Error("iiko: menyu o'qilmadi"));
   if (d && Array.isArray(d.products) && !Array.isArray(d.itemCategories) && !Array.isArray(d.itemGroups)) {
-    /* v3 javob shakli tekis: products + modifiers + itemsGroups */
-    const byId = new Map();
-    for (const p of d.products) if (p && (p.itemId || p.id) && p.name) byId.set(String(p.itemId || p.id), p);
-    for (const m of (Array.isArray(d.modifiers) ? d.modifiers : [])) if (m && (m.itemId || m.id) && m.name) { m.type = 'MODIFIER'; byId.set(String(m.itemId || m.id), m); }
+    /* v3 javob shakli: itemsGroups ichida to'liq mahsulotlar, products/modifiers
+       esa guruhlanmagan (modifikatorlar MODIFIER belgisi bilan). */
     const catsNorm = [];
     for (const g of (Array.isArray(d.itemsGroups) ? d.itemsGroups : [])) {
-      const its = (Array.isArray(g.items) ? g.items : []).map((x) => byId.get(String(x && (x.itemId || x.id)))).filter(Boolean);
+      const its = (Array.isArray(g.items) ? g.items : []).filter((x) => x && (x.itemId || x.id) && x.name);
       catsNorm.push({ id: String((g && (g.itemGroupId || g.id)) || ''), name: (g && (g.name || g.groupName || '')) || '', imageUrl: (g && (g.imageUrl || g.buttonImageUrl)) || null, itemList: its });
     }
     const seen = new Set();
     for (const c of catsNorm) for (const i2 of c.itemList) seen.add(String(i2.itemId || i2.id));
-    const rest = [...byId.values()].filter((p) => !seen.has(String(p.itemId || p.id)));
+    const rest = [];
+    for (const p of d.products) if (p && (p.itemId || p.id) && p.name && !seen.has(String(p.itemId || p.id))) rest.push(p);
+    for (const m of (Array.isArray(d.modifiers) ? d.modifiers : [])) if (m && (m.itemId || m.id) && m.name) { m.type = 'MODIFIER'; rest.push(m); }
     if (rest.length) catsNorm.push({ id: '', name: '', imageUrl: null, itemList: rest });
     d = Object.assign({}, d, { itemCategories: catsNorm });
   }
