@@ -99,7 +99,7 @@ export default async (req, res) => {
         needImg = noImg.rows[0].n > 0;
       } catch {}
     }
-    if ((!pre.rows[0].n || needImg) && Date.now() - lastAutoSync > 1800000) {
+    if ((!pre.rows[0].n || needImg) && Date.now() - lastAutoSync > 60000) {
       lastAutoSync = Date.now();
       try {
         const s = (await syncMenu(p))[0];
