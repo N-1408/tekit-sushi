@@ -154,7 +154,15 @@ export async function externalMenuCatalog(orgIds) {
     if (d) break;
   }
   if (!d) throw (byErr || new Error("iiko: menyu o'qilmadi"));
-  if (d && Array.isArray(d.products) && !Array.isArray(d.itemCategories) && !Array.isArray(d.itemGroups)) {
+  /* Javob shakli versiyaga qarab farq qiladi: v2'da itemCategories bilan
+     itemsGroups birga bo'ladi (itemCategories bo'sh/ma'lumot yo'q), v3'da
+     faqat itemsGroups. Qaysi manba ko'p ishlaydigan element berishini
+     o'lchaymiz va o'shani tanlaymiz. */
+  const usable = (x) => x && (x.productId || x.id || x.itemId) && x.name;
+  const catRaw = Array.isArray(d && d.itemGroups) ? d.itemGroups : (Array.isArray(d && d.itemCategories) ? d.itemCategories : []);
+  const catYield = catRaw.reduce((n, c) => n + (Array.isArray(c && (c.items || c.itemList)) ? (c.items || c.itemList).filter(usable).length : 0), 0);
+  const igYield = (Array.isArray(d && d.itemsGroups) ? d.itemsGroups : []).reduce((n, g) => n + (Array.isArray(g && g.items) ? g.items.filter(usable).length : 0), 0);
+  if (igYield > catYield) {
     /* v3 javob shakli (rasmiy sxema): itemsGroups[].items[] {productId, name,
        description, sizePrices[{price, buttonImageUrl, weight, nutritions}]},
        products[] faqat SKU lug'ati (nomi yo'q), modifiers[] esa qo'shimchalar. */
