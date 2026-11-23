@@ -14,6 +14,7 @@ import AdminAccess from './screens/admin/AdminAccess'
 import AdminOrders from './screens/admin/AdminOrders'
 import AdminMenu from './screens/admin/AdminMenu'
 import AdminCats from './screens/admin/AdminCats'
+import AdminItemForm from './screens/admin/AdminItemForm'
 import AdminPromos from './screens/admin/AdminPromos'
 import { AdminShell, AdminGate } from './screens/admin/common'
 import { TabBar, ProductSheet, FloatingCart, ScrollTop, GiftProgress, useIsWide, useCartPanelOpen, setCartPanelOpen, useOrdersPanelOpen, setOrdersPanelOpen, useProfilePanelOpen, setProfilePanelOpen, IcX } from './components/ui'
@@ -192,6 +193,7 @@ export default function App() {
         <Route path="/admin/dash" element={<AdminShell><AdminDash /></AdminShell>} />
         <Route path="/admin/menu" element={<AdminShell><AdminMenu /></AdminShell>} />
         <Route path="/admin/menu/:cat" element={<AdminShell><AdminMenu /></AdminShell>} />
+        <Route path="/admin/item/:id" element={<AdminShell><AdminItemForm /></AdminShell>} />
         <Route path="/admin/cats" element={<AdminGate><AdminCats /></AdminGate>} />
         <Route path="/admin/customers" element={<AdminShell><AdminCustomers /></AdminShell>} />
         <Route path="/admin/access" element={<AdminShell><AdminAccess /></AdminShell>} />

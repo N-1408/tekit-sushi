@@ -32,7 +32,7 @@ function Body() {
  let shown = catParam === 'spicy' ? items.filter(isSpicy) : items.filter(i => i.cat === cur)
  if (q.trim()) {
  const s = q.trim().toLowerCase()
- shown = items.filter(i => String(i.t_uz || '').toLowerCase().includes(s) || String(i.slug || '').includes(s))
+ shown = items.filter(i => String(i.name_uz || i.t_uz || '').toLowerCase().includes(s) || String(i.slug || '').includes(s))
  }
  const countIn = (slug: string) => items.filter(i => i.cat === slug).length
 
@@ -101,7 +101,7 @@ function Body() {
  <div className="flex items-center gap-3 flex-1 min-w-0 text-left">
  <img src={pImg(it)} alt="" className="w-[52px] h-[52px] rounded-xl object-cover bg-navy-soft shrink-0" loading="lazy" />
  <div className="flex-1 min-w-0">
- <div className="text-[13.5px] font-extrabold leading-snug line-clamp-1">{it.t_uz}</div>
+ <div className="text-[13.5px] font-extrabold leading-snug line-clamp-1">{it.name_uz || it.t_uz}</div>
  <div className="mt-0.5 flex items-center gap-1.5 flex-wrap">
  <span className={`text-[9.5px] font-extrabold px-1.5 py-0.5 rounded-md ${it.active ? 'a-ok' : 'bg-[var(--line2)] text-[var(--mut)]'}`}>
  {it.active ? t.aActiveA : t.aHidden}
@@ -117,6 +117,7 @@ function Body() {
  </div>
  </div>
  <div className="flex flex-col gap-1.5 items-center">
+ <button onClick={() => nav('/admin/item/' + it.id)} aria-label="Tahrirlash" className="press w-9 h-9 rounded-full bg-[var(--panel)] border border-navy-line grid place-items-center text-[13px] active:scale-90 transition-transform">✏️</button>
  <Toggle on={!!it.active} onChange={() => toggleItem(it)} />
  </div>
  </article>

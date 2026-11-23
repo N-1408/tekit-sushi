@@ -12,6 +12,7 @@ type Cat = any
 const blank = {
   id: '', slug: '', cat: 'set', price: 0, img: '',
   t_uz: '', t_ru: '', t_en: '', d_uz: '', d_ru: '', d_en: '',
+  name_uz: '', name_en: '', source: '',
   pcs: 0, weight: '', hit: false, spicy: false, active: true,
   kcal: '', protein: '', fat: '', carbs: '',
   sale_active: false, sale_percent: 0, sale_price: 0,
@@ -35,6 +36,8 @@ function Body() {
   const [imgPreview, setImgPreview] = React.useState('')
   const fileRef = React.useRef<HTMLInputElement>(null)
   const [uploading, setUploading] = React.useState(false)
+  // iiko taomi: faqat til nomlari va rasm tahrirlanadi (iiko maydonlariga tegilmaydi)
+  const isIiko = !isNew && f.source === 'iiko'
 
   const pickFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -80,9 +83,12 @@ function Body() {
     if (busy) return
     setBusy(true)
     try {
+      const payload: any = isIiko
+        ? { action: 'menu_langs', id, name_uz: f.name_uz || '', name_en: f.name_en || '', img: f.img || '' }
+        : { action: isNew ? 'menu_add' : 'menu_save', ...f }
       const r = await fetch('/api/admin', {
         method: 'POST', headers: { 'Content-Type': 'application/json', ...a.h() },
-        body: JSON.stringify({ action: isNew ? 'menu_add' : 'menu_save', ...f }),
+        body: JSON.stringify(payload),
       })
       const j = await r.json().catch(() => null)
       if (r.ok && j?.ok) { a.refresh(); showToast(t.aSavedA); haptic('success'); nav(`/admin/menu/${f.cat}`, { replace: true }) }
@@ -103,6 +109,46 @@ function Body() {
   }
 
   if (!loaded) return <div className="pb-28"><AdminTopBar title={t.aEditItem} /><div className="px-4 mt-4 h-64 rounded-[20px] bg-[var(--panel)] border border-navy-line animate-pulse" /></div>
+
+  // iiko taomi: til nomlari (o'zbekcha/inglizcha) va rasm. iiko nomi, narxi
+  // va qolgan maydonlari paneldan o'zgarmaydi — har sinxron iiko'dan qaytadi.
+  if (isIiko) return (
+    <div className="pb-32">
+      <AdminTopBar title={t.aEditItem} back />
+      <div className="px-4 mt-4 space-y-3.5">
+        <div className="bg-[var(--panel)] border border-navy-line rounded-[20px] p-4 space-y-3">
+          <div className="text-[11px] font-semibold text-[var(--mut)] leading-snug">
+            iiko nomi: <span className="text-[var(--ink)] font-extrabold">{f.t_uz}</span>
+            {' '}— iiko'dan kelgan ma'lumotlar bu yerda o'zgarmaydi.
+          </div>
+          <div className="flex gap-3">
+            <div className="w-[72px] h-[72px] rounded-2xl bg-navy-soft overflow-hidden shrink-0 grid place-items-center">
+              {imgPreview || f.img ? <img src={imgPreview || pImg(f)} onError={() => setImgPreview('')} alt="" className="w-full h-full object-cover" /> : <span className="text-[22px]">🍣</span>}
+            </div>
+            <div className="flex-1">
+              <Field label={t.aImageF}>
+                <input value={f.img} onChange={e => { set('img', e.target.value); setImgPreview(/^https?:/i.test(e.target.value) ? e.target.value : '') }} placeholder="https://... yoki UUID" className={inputCls} />
+                <label className="mt-2 flex items-center justify-center h-9 rounded-xl border border-navy-line bg-navy-soft text-[var(--btn)] text-[13px] font-medium cursor-pointer active:opacity-70">
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={pickFile} />
+                  {uploading ? t.aUploading : t.aUpImg}
+                </label>
+              </Field>
+            </div>
+          </div>
+          <Field label="Nomi (o'zbekcha)">
+            <input value={f.name_uz || ''} onChange={e => set('name_uz', e.target.value)} placeholder="bo'sh: iiko nomi ko'rinadi" className={inputCls} />
+          </Field>
+          <Field label="Nomi (inglizcha)">
+            <input value={f.name_en || ''} onChange={e => set('name_en', e.target.value)} placeholder="bo'sh: iiko nomi ko'rinadi" className={inputCls} />
+          </Field>
+          <div className="text-[10.5px] text-[var(--mut)]">Rasm ham bu yerda almashtirilsa, sinxron uni saqlab qoladi.</div>
+        </div>
+      </div>
+      <div className="fixed left-0 right-0 bottom-0 z-40 bg-[var(--panel)] border-t border-navy-line px-4 pt-3" style={{ paddingBottom: 'calc(12px + var(--sab))' }}>
+        <Btn onClick={save} disabled={busy}>{busy ? '…' : t.aSave}</Btn>
+      </div>
+    </div>
+  )
 
   return (
     <div className="pb-32">

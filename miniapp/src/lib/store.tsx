@@ -10,6 +10,7 @@ export type ModPick = { group_id: string; option_id: string; q: number }
 export type Product = {
   id: string; slug: string; cat: string; price: number; img: string
   t_uz: string; t_ru: string; t_en: string
+  name_uz?: string | null; name_en?: string | null
   d_uz: string; d_ru: string; d_en: string
   pcs: number; weight?: string; hit?: boolean
   spicy?: boolean | null
@@ -54,7 +55,14 @@ export const CATS = [
 ] as const
 export const CDN = 'https://cdn.delever.uz/delever/'
 export const pDesc = (p: Product | CartLine, l: Lang) => (p as any)['d_' + l] || (p as any).d_uz
-export const pName = (p: Product | CartLine, l: Lang) => (p as any)['t_' + l] || (p as any).t_uz
+/* Admin panelda qo'shilgan til nomlari (name_uz/name_en) iiko nomidan
+   ustun turadi; bo'sh bo'lsa iiko nomi ko'rinadi. */
+export const pName = (p: Product | CartLine, l: Lang) => {
+  const q: any = p
+  if (l === 'uz') return q.name_uz || q.t_uz
+  if (l === 'en') return q.name_en || q.t_en || q.t_uz
+  return q.t_ru || q.t_uz
+}
 export const pImg = (p: Product | CartLine) => {
   const im = String((p as any).img || '')
   if (!im) return ''

@@ -2,8 +2,6 @@ import { getPool } from './_db.js';
 import { cors } from './_verify.js';
 import { syncMenu } from './_iiko.js';
 
-// Oxirgi o'z-o'zidan sinxron vaqti (bir namunada 2 daqiqada bir marta)
-let lastAutoSync = 0;
 
 
 
@@ -51,6 +49,9 @@ function ensureSchema() {
       await p.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS hidden_by_admin boolean DEFAULT false`);
       for (const col of ['kcal', 'protein', 'fat', 'carbs'])
         await p.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS ${col} int`);
+      await p.query(`CREATE TABLE IF NOT EXISTS settings (key text PRIMARY KEY, value text NOT NULL)`);
+      await p.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_uz text`);
+      await p.query(`ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_en text`);
       const need = await p.query(`SELECT id, cat, t_uz, t_ru, t_en, d_uz FROM menu_items WHERE kcal IS NULL AND cat <> 'sous'`);
       for (const it of need.rows) {
         const n = nutritionFor(it);
@@ -77,6 +78,32 @@ function effPrice(it, catPct) {
   return { price: it.price, old: null, pct: 0 };
 }
 
+// Sinxron jadvali DB'da saqlanadi (iiko_last_sync): har bir yangi server
+// nusxasi so'rov kelganda sinxronni qaytadan boshlamasin. Menyu 30 daqiqada
+// bir marta iiko'dan yangilanadi (iiko cheklovlari uchun xavfsiz ritm);
+// sinxron xato bo'lsa 5 daqiqadan keyin qayta urinadi. Paneldagi ⟳ iiko
+// tugmasi istalgan vaqtda darhol sinxronlaydi. Parallel so'rovlar bir
+// sinxronni kutadi (namuna ichidagi qulf).
+let syncInFlight = null;
+async function runMenuSync(p) {
+  try {
+    const results = await syncMenu(p);
+    try {
+      await p.query(
+        `INSERT INTO settings (key, value) VALUES ('iiko_last_sync', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+        [JSON.stringify({ at: new Date().toISOString(), ok: true, results })]);
+    } catch {}
+    return results && results[0];
+  } catch (e) {
+    try {
+      await p.query(
+        `INSERT INTO settings (key, value) VALUES ('iiko_last_sync', $1) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+        [JSON.stringify({ at: new Date().toISOString(), ok: false, error: String((e && e.message) || e).slice(0, 200) })]);
+    } catch {}
+    throw e;
+  }
+}
+
 export default async (req, res) => {
   cors(res);
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -90,18 +117,15 @@ export default async (req, res) => {
     // Menyu bo'sh bo'lsa: iikodan o'z-o'zidan sinxron (mijoz ilk ochilishida
     // ham menyuni ko'radi). Eski iiko qatorlari shu sinxda o'chiriladi.
     let syncInfo = null;
-    const pre = await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true`);
-    let needImg = false;
-    if (pre.rows[0].n) {
+    const syncRow = await p.query(`SELECT value FROM settings WHERE key = 'iiko_last_sync'`);
+    let lastSync = null;
+    try { lastSync = JSON.parse(syncRow.rows[0]?.value || 'null'); } catch {}
+    const lastAt = lastSync && lastSync.at ? (Date.parse(lastSync.at) || 0) : 0;
+    const syncWindowMs = lastSync && lastSync.ok === false ? 5 * 60 * 1000 : 30 * 60 * 1000;
+    if (Date.now() - lastAt > syncWindowMs) {
+      if (!syncInFlight) syncInFlight = runMenuSync(p).finally(() => { syncInFlight = null; });
       try {
-        const noImg = await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true AND source = 'iiko' AND (img IS NULL OR img = '')`);
-        needImg = noImg.rows[0].n > 0;
-      } catch {}
-    }
-    if ((!pre.rows[0].n || needImg) && Date.now() - lastAutoSync > 1800000) {
-      lastAutoSync = Date.now();
-      try {
-        const s = (await syncMenu(p))[0];
+        const s = await syncInFlight;
         if (s) syncInfo = s.items
           ? { text: `iiko: ${s.items} taom, ${s.withImg} rasm (${s.source}${s.imgFromNomenclature ? `, ${s.imgFromNomenclature} nomenklaturadan` : ''})`, debug: s.imgDebug || null }
           : `iiko: ${s.note || "katalog bo'sh"}`;
@@ -115,7 +139,7 @@ export default async (req, res) => {
     const catPct = {};
     for (const c of cats) catPct[c.slug] = c.sale_active ? (c.sale_percent || 0) : 0;
     const rows = (await p.query(
-      `SELECT id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort, kcal, protein, fat, carbs,
+      `SELECT id, slug, cat, price, img, name_uz, name_en, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort, kcal, protein, fat, carbs,
               sale_active, sale_percent, sale_price, spicy
        FROM menu_items WHERE active = true AND price > 0 ORDER BY sort`)).rows;
     let modsByItem = null;

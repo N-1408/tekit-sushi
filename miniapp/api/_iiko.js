@@ -192,6 +192,9 @@ export async function externalMenuCatalog(orgIds) {
 export async function syncMenu(pool, { activate = true } = {}) {
   // Admin qo'lda yashirgan mahsulotni sinxron yana yoqib yubormasin.
   await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS hidden_by_admin boolean DEFAULT false');
+  // Admin til nomlari (name_uz/name_en) faqat DB'da: sinxron ularni hech qachon yozmaydi.
+  await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_uz text');
+  await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_en text');
   let products, groups;
   let srcName = 'nomenclature-v2', menuLabel = '';
   try {

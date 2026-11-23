@@ -62,6 +62,8 @@ function ensureSchema() {
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS protein int;
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS fat int;
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS carbs int;
+      ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_uz text;
+      ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_en text;
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS spicy boolean;
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS iiko_id text;
        ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS iiko_prices jsonb;
@@ -388,6 +390,20 @@ export default async (req, res) => {
         const r = await P.query('DELETE FROM menu_items WHERE id = $1 RETURNING id', [id]);
         if (!r.rows.length) return res.status(404).json({ ok: false, error: 'topilmadi' });
         return res.status(200).json({ ok: true });
+      }
+
+      // ---- iiko taomiga til nomlari (iiko maydonlariga tegilmaydi) ----
+      if (act === 'menu_langs') {
+        const id = str(b.id, 40);
+        const clean = (v) => { const s = String(v ?? '').trim().slice(0, 120); return s || null; };
+        const img = String(b.img ?? '').trim().slice(0, 600);
+        const r = await P.query(
+          `UPDATE menu_items SET name_uz = $2, name_en = $3,
+             img = CASE WHEN $4 = '' THEN img ELSE $4 END
+           WHERE id = $1 RETURNING id, name_uz, name_en, img`,
+          [id, clean(b.name_uz), clean(b.name_en), img]);
+        if (!r.rows.length) return res.status(404).json({ ok: false, error: 'topilmadi' });
+        return res.status(200).json({ ok: true, item: r.rows[0] });
       }
 
       // ---- aksiya: bir mahsulotga yoki butan kategoriyaga ----
