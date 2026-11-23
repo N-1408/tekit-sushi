@@ -157,7 +157,9 @@ export async function tgOAuthFinish(): Promise<'ok' | 'pending' | 'fail' | null>
   history.replaceState(null, '', location.pathname)
   if (!saved || saved.state !== state) return 'fail'
   try { sessionStorage.removeItem('tk-tg-ov') } catch {}
-  const j = await tgLogin(code, saved.verifier, `${location.origin}/admin`)
+  /* Bot bilan admin kirishida token almashinuvi URL boshlanishdagi bilan
+     bir xil bo'lishi shart (Telegram mos kelishini talab qiladi). */
+  const j = await tgLogin(code, saved.verifier, `${location.origin}/`)
   return j.ok ? 'ok' : (j.pending ? 'pending' : 'fail')
 }
 

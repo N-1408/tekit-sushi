@@ -145,7 +145,7 @@ export async function externalMenuCatalog(orgIds) {
         name: it.name,
         description: it.description || '',
         parentGroupId: c.id,
-        imageUrl: it.imageUrl || c.imageUrl || null,
+        imageUrl: it.imageUrl || (sz && (sz.imageUrl || sz.buttonImageUrl)) || c.imageUrl || null,
         type: 'DISH',
         isDeleted: false,
         defaultSalePrice: pr ? Number(pr.price) : null,

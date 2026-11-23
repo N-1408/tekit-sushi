@@ -91,7 +91,14 @@ export default async (req, res) => {
     // ham menyuni ko'radi). Eski iiko qatorlari shu sinxda o'chiriladi.
     let syncInfo = null;
     const pre = await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true`);
-    if (!pre.rows[0].n && Date.now() - lastAutoSync > 120000) {
+    let needImg = false;
+    if (pre.rows[0].n) {
+      try {
+        const noImg = await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true AND source = 'iiko' AND (img IS NULL OR img = '')`);
+        needImg = noImg.rows[0].n > 0;
+      } catch {}
+    }
+    if ((!pre.rows[0].n || needImg) && Date.now() - lastAutoSync > 1800000) {
       lastAutoSync = Date.now();
       try {
         const s = (await syncMenu(p))[0];
@@ -108,7 +115,7 @@ export default async (req, res) => {
     const catPct = {};
     for (const c of cats) catPct[c.slug] = c.sale_active ? (c.sale_percent || 0) : 0;
     const rows = (await p.query(
-      `SELECT id, slug, cat, price, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort, kcal, protein, fat, carbs,
+      `SELECT id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, weight, hit, sort, kcal, protein, fat, carbs,
               sale_active, sale_percent, sale_price, spicy
        FROM menu_items WHERE active = true AND price > 0 ORDER BY sort`)).rows;
     let modsByItem = null;
