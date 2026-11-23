@@ -129,7 +129,7 @@ export default async (req, res) => {
       noImg = (await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true AND source = 'iiko' AND (img IS NULL OR img = '')`)).rows[0].n;
     } catch {}
     const syncWindowMs = lastSync && lastSync.ok === false ? 5 * 60 * 1000 : noImg > 0 ? 10 * 60 * 1000 : 30 * 60 * 1000;
-    const forceSync = (() => { try { return new URL(req.url, 'http://x').searchParams.get('sync') === '1'; } catch { return false; } })();
+    const forceSync = (() => { try { return new URL(req.url, 'http://x').searchParams.get('sync') === '1' || !!req.headers['x-vercel-cron']; } catch { return false; } })();
     if (forceSync || Date.now() - lastAt > syncWindowMs) {
       if (forceSync && !(await rateLimit(req, 'menu-force', 4, 60 * 1000))) return res.status(429).json({ ok: false, error: 'rate' });
       if (!syncInFlight) syncInFlight = runMenuSync(p).finally(() => { syncInFlight = null; });
