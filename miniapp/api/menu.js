@@ -91,7 +91,6 @@ export default async (req, res) => {
     // ham menyuni ko'radi). Eski iiko qatorlari shu sinxda o'chiriladi.
     let syncInfo = null;
     const pre = await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true`);
-    const preN = pre.rows[0].n;
     let needImg = false;
     if (pre.rows[0].n) {
       try {
@@ -99,7 +98,7 @@ export default async (req, res) => {
         needImg = noImg.rows[0].n > 0;
       } catch {}
     }
-    if ((!pre.rows[0].n || needImg) && Date.now() - lastAutoSync > 60000) {
+    if ((!pre.rows[0].n || needImg) && Date.now() - lastAutoSync > 1800000) {
       lastAutoSync = Date.now();
       try {
         const s = (await syncMenu(p))[0];
@@ -161,7 +160,7 @@ export default async (req, res) => {
     // ingredientlar bo'lgan guruhlar).
     const haveCats = new Set(items.map((r) => r.cat));
     const catsOut = cats.filter((c) => haveCats.has(c.slug));
-    return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE ?? 0), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) }, ...(syncInfo ? { sync: syncInfo } : {}), dbg: { v: 9, n: preN, needImg, lastAge: Date.now() - lastAutoSync }, cats: catsOut, items });
+    return res.status(200).json({ ok: true, delivery: { fee: Number(process.env.DELIVERY_FEE ?? 0), threshold: Number(process.env.DELIVERY_FREE_THRESHOLD || 200000) }, ...(syncInfo ? { sync: syncInfo } : {}), cats: catsOut, items });
   } catch (e) {
     console.error('menu error', e);
     return res.status(500).json({ ok: false, error: 'Server xatosi' });
