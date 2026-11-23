@@ -155,19 +155,40 @@ export async function externalMenuCatalog(orgIds) {
   }
   if (!d) throw (byErr || new Error("iiko: menyu o'qilmadi"));
   if (d && Array.isArray(d.products) && !Array.isArray(d.itemCategories) && !Array.isArray(d.itemGroups)) {
-    /* v3 javob shakli: itemsGroups ichida to'liq mahsulotlar, products/modifiers
-       esa guruhlanmagan (modifikatorlar MODIFIER belgisi bilan). */
+    /* v3 javob shakli (rasmiy sxema): itemsGroups[].items[] {productId, name,
+       description, sizePrices[{price, buttonImageUrl, weight, nutritions}]},
+       products[] faqat SKU lug'ati (nomi yo'q), modifiers[] esa qo'shimchalar. */
+    const v3Item = (x) => {
+      const pid = x && (x.productId || x.id || x.itemId);
+      if (!pid || !x.name) return null;
+      const sp = Array.isArray(x.sizePrices) ? x.sizePrices : [];
+      const sz = sp.find((y) => y && y.isDefault) || sp[0] || null;
+      const price = sz ? (typeof sz.price === 'number' ? sz.price : (sz.price && typeof sz.price.currentPrice === 'number' ? sz.price.currentPrice : null)) : null;
+      const img = x.buttonImageUrl || x.imageUrl || (sz && (sz.buttonImageUrl || sz.imageUrl)) || null;
+      return {
+        id: String(pid),
+        name: x.name,
+        description: x.description || '',
+        isAvailable: x.isAvailable !== false,
+        imageUrl: img,
+        buttonImageUrl: img,
+        sizes: [{
+          isDefault: true,
+          imageUrl: sz ? (sz.buttonImageUrl || sz.imageUrl) : null,
+          buttonImageUrl: sz ? sz.buttonImageUrl : null,
+          weight: sz && sz.weight != null ? sz.weight : undefined,
+          nutritions: sz && Array.isArray(sz.nutritions) && sz.nutritions.length ? sz.nutritions.map((n2) => ({ type: n2.type, value: n2.value })) : undefined,
+          prices: price != null ? [{ price }] : [],
+        }],
+      };
+    };
     const catsNorm = [];
     for (const g of (Array.isArray(d.itemsGroups) ? d.itemsGroups : [])) {
-      const its = (Array.isArray(g.items) ? g.items : []).filter((x) => x && (x.itemId || x.id) && x.name);
-      catsNorm.push({ id: String((g && (g.itemGroupId || g.id)) || ''), name: (g && (g.name || g.groupName || '')) || '', imageUrl: (g && (g.imageUrl || g.buttonImageUrl)) || null, itemList: its });
+      const its = (Array.isArray(g.items) ? g.items : []).map(v3Item).filter(Boolean);
+      catsNorm.push({ id: String((g && (g.itemGroupId || g.id)) || ''), name: (g && (g.name || g.groupName || '')) || '', imageUrl: (g && (g.buttonImageUrl || g.imageUrl)) || null, itemList: its });
     }
-    const seen = new Set();
-    for (const c of catsNorm) for (const i2 of c.itemList) seen.add(String(i2.itemId || i2.id));
-    const rest = [];
-    for (const p of d.products) if (p && (p.itemId || p.id) && p.name && !seen.has(String(p.itemId || p.id))) rest.push(p);
-    for (const m of (Array.isArray(d.modifiers) ? d.modifiers : [])) if (m && (m.itemId || m.id) && m.name) { m.type = 'MODIFIER'; rest.push(m); }
-    if (rest.length) catsNorm.push({ id: '', name: '', imageUrl: null, itemList: rest });
+    const mods = (Array.isArray(d.modifiers) ? d.modifiers : []).map(v3Item).filter(Boolean);
+    if (mods.length) catsNorm.push({ id: 'i_modifiers', name: 'Qo\'shimchalar', imageUrl: null, itemList: mods });
     d = Object.assign({}, d, { itemCategories: catsNorm });
   }
   const cats = Array.isArray(d && (d.itemGroups || d.itemCategories)) ? (d.itemGroups || d.itemCategories) : [];
