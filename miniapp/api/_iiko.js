@@ -344,7 +344,7 @@ export async function syncMenu(pool, { activate = true } = {}) {
   const itemRes = await pool.query(
     `INSERT INTO menu_items (id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, source, iiko_id, iiko_prices, weight, kcal, protein, fat, carbs, iiko_images)
      SELECT x.id, x.slug, x.cat, x.price, x.img, x.t_uz, x.t_ru, x.t_en, x.d_uz, x.d_ru, x.d_en, 0, false, $2::boolean, 'iiko', x.iiko_id, x.iiko_prices, x.weight, x.kcal, x.protein, x.fat, x.carbs, x.iiko_images
-     FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, img text, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb, weight text, kcal int, protein int, fat int, carbs int), iiko_images jsonb
+     FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, img text, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb, weight text, kcal int, protein int, fat int, carbs int, iiko_images jsonb)
      ON CONFLICT (id) DO UPDATE SET
        cat = EXCLUDED.cat, price = EXCLUDED.price,
        t_uz = EXCLUDED.t_uz, t_ru = EXCLUDED.t_ru, t_en = EXCLUDED.t_en,
