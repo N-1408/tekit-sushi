@@ -1,6 +1,7 @@
 import { getPool } from './_db.js';
 import { cors } from './_verify.js';
 import { syncMenu } from './_iiko.js';
+import { rateLimit } from './_verify.js';
 
 
 
@@ -121,8 +122,16 @@ export default async (req, res) => {
     let lastSync = null;
     try { lastSync = JSON.parse(syncRow.rows[0]?.value || 'null'); } catch {}
     const lastAt = lastSync && lastSync.at ? (Date.parse(lastSync.at) || 0) : 0;
-    const syncWindowMs = lastSync && lastSync.ok === false ? 5 * 60 * 1000 : 30 * 60 * 1000;
-    if (Date.now() - lastAt > syncWindowMs) {
+    // Rasmlar hali iiko'dan kelmagan bo'lsa sinxronni zichroq uramiz (10 daqika):
+    // rasm kelgach avtomatik 30 daqiqaga qaytadi.
+    let noImg = 0;
+    try {
+      noImg = (await p.query(`SELECT count(*)::int AS n FROM menu_items WHERE active = true AND source = 'iiko' AND (img IS NULL OR img = '')`)).rows[0].n;
+    } catch {}
+    const syncWindowMs = lastSync && lastSync.ok === false ? 5 * 60 * 1000 : noImg > 0 ? 10 * 60 * 1000 : 30 * 60 * 1000;
+    const forceSync = (() => { try { return new URL(req.url, 'http://x').searchParams.get('sync') === '1'; } catch { return false; } })();
+    if (forceSync || Date.now() - lastAt > syncWindowMs) {
+      if (forceSync && !(await rateLimit(req, 'menu-force', 4, 60 * 1000))) return res.status(429).json({ ok: false, error: 'rate' });
       if (!syncInFlight) syncInFlight = runMenuSync(p).finally(() => { syncInFlight = null; });
       try {
         const s = await syncInFlight;

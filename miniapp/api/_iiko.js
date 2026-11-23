@@ -135,7 +135,7 @@ export async function externalMenuCatalog(orgIds) {
     for (const it of items) {
       if (!it || !it.itemId || !it.name) continue;
       if (it.isAvailable === false) continue;
-      const sizes = Array.isArray(it.sizes) && it.sizes.length ? it.sizes : [{}];
+      const sizes = Array.isArray(it.sizes) && it.sizes.length ? it.sizes : (Array.isArray(it.itemSizes) && it.itemSizes.length ? it.itemSizes : [{}]);
       const sz = sizes.find((x) => x && x.isDefault) || sizes[0];
       const prices = Array.isArray(sz && sz.prices) ? sz.prices : [];
       const pr = prices.find((x) => x && (!org || !x.organizationId || String(x.organizationId) === String(org))) || prices[0];
@@ -145,7 +145,9 @@ export async function externalMenuCatalog(orgIds) {
         name: it.name,
         description: it.description || '',
         parentGroupId: c.id,
-        imageUrl: it.imageUrl || (sz && (sz.imageUrl || sz.buttonImageUrl)) || c.imageUrl || null,
+        imageUrl: it.imageUrl || it.buttonImageUrl || (sz && (sz.imageUrl || sz.buttonImageUrl || (sz.buttonImage && sz.buttonImage.url))) || c.buttonImageUrl || c.imageUrl || null,
+        weight: sz && sz.weight != null ? sz.weight : undefined,
+        nutritions: sz && Array.isArray(sz.nutritions) && sz.nutritions.length ? sz.nutritions : undefined,
         type: 'DISH',
         isDeleted: false,
         defaultSalePrice: pr ? Number(pr.price) : null,
@@ -182,7 +184,16 @@ export async function externalMenuCatalog(orgIds) {
       }
     }
   }
-  return { products, groups, menuName: menu.name || '', menuId: menu.id };
+  let rawSample = null;
+  try {
+    const firstCat = cats.find((c) => c && Array.isArray(c.itemList) && c.itemList.length);
+    const firstIt = firstCat && firstCat.itemList[0];
+    if (firstIt) {
+      const fsz = (Array.isArray(firstIt.sizes) && firstIt.sizes[0]) || (Array.isArray(firstIt.itemSizes) && firstIt.itemSizes[0]) || null;
+      rawSample = { item: Object.keys(firstIt).join(','), size: fsz ? Object.keys(fsz).join(',') : null };
+    }
+  } catch (e) { /* diagnostika */ }
+  return { products, groups, menuName: menu.name || '', menuId: menu.id, rawSample };
 }
 
 // Katalogni DB'ga yozadi (iiko IDlari bilan kalitlanadi). Bizga xos ustunlar
@@ -218,6 +229,18 @@ export async function syncMenu(pool, { activate = true } = {}) {
   /* Rasmlar iiko'da taomning o'zida (nomenklatura) saqlanadi: external menu
      javobida rasm maydoni bo'lmasa, nomenklaturadan productId bo'yicha
      olamiz. */
+  // ON CONFLICT bir INSERT ichida bir qatorni ikki marta ko'rsa xato beradi —
+  // shuning uchun har bir jadval uchun kalit bo'yicha bir marta olib qoldiramiz.
+  const dedupe = (rows, key) => {
+    const m = new Map();
+    for (const r of rows) { const k = key(r); if (!m.has(k)) m.set(k, r); }
+    return [...m.values()];
+  };
+  const sellable = dedupe(products.filter((p) => p.name && !p.isDeleted && OK_TYPES.includes(typeOf(p))), (p) => p.productId);
+  if (!sellable.length && products.length) {
+    typeCounts = {};
+    for (const p of products) { const t = typeOf(p); typeCounts[t || '?'] = (typeCounts[t || '?'] || 0) + 1; }
+  }
   const imgMissing = sellable.filter((p) => !p.imageUrl && !(Array.isArray(p.imageUrls) && p.imageUrls.length));
   let imgFromNom = 0;
   if (imgMissing.length) {
@@ -233,18 +256,6 @@ export async function syncMenu(pool, { activate = true } = {}) {
         if (u) { p.imageUrl = u; imgFromNom++; }
       }
     } catch (e) { console.log('rasm uchun nomenklatura olinmadi:', String((e && e.message) || e)); }
-  }
-  // ON CONFLICT bir INSERT ichida bir qatorni ikki marta ko'rsa xato beradi —
-  // shuning uchun har bir jadval uchun kalit bo'yicha bir marta olib qoldiramiz.
-  const dedupe = (rows, key) => {
-    const m = new Map();
-    for (const r of rows) { const k = key(r); if (!m.has(k)) m.set(k, r); }
-    return [...m.values()];
-  };
-  const sellable = dedupe(products.filter((p) => p.name && !p.isDeleted && OK_TYPES.includes(typeOf(p))), (p) => p.productId);
-  if (!sellable.length && products.length) {
-    typeCounts = {};
-    for (const p of products) { const t = typeOf(p); typeCounts[t || '?'] = (typeCounts[t || '?'] || 0) + 1; }
   }
 
   // 1) Toifalar: mahsulotning parentGroupId -> group nomi
@@ -268,6 +279,14 @@ export async function syncMenu(pool, { activate = true } = {}) {
   );
 
   // 2) Mahsulotlar
+  // nutritions tashkilot bo'yicha keladi: o'z tashkilotimiz yoki birinchi yozuv
+  const pickNut = (p, key) => {
+    const arr = Array.isArray(p.nutritions) ? p.nutritions : [];
+    if (!arr.length) return null;
+    const n = arr.find((x) => x && Array.isArray(x.organizations) && x.organizations.length === 0) || arr[0] || {};
+    const v = Number(n[key]);
+    return Number.isFinite(v) && v > 0 ? Math.round(v) : null;
+  };
   const itemJson = sellable.map((p) => {
     const price = priceOf(p) || 0;
     return {
@@ -279,19 +298,25 @@ export async function syncMenu(pool, { activate = true } = {}) {
       d_uz: p.description || '', d_ru: p.description || '', d_en: p.description || '',
       iiko_id: p.productId,
       img: (Array.isArray(p.imageUrls) && p.imageUrls[0] && (typeof p.imageUrls[0] === 'string' ? p.imageUrls[0] : p.imageUrls[0].url)) || p.imageUrl || p.image || null,
+      weight: p.weight != null ? String(p.weight) : null,
+      // iiko nutritions: sizes.nutritions[] -> { energy(kkal), proteins, fats, carbs, organizations[] }
+      kcal: pickNut(p, 'energy'), protein: pickNut(p, 'proteins'), fat: pickNut(p, 'fats'), carbs: pickNut(p, 'carbs'),
       iiko_prices: { default: Math.round(price) },
     };
   });
   const itemRes = await pool.query(
-    `INSERT INTO menu_items (id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, source, iiko_id, iiko_prices)
-     SELECT x.id, x.slug, x.cat, x.price, x.img, x.t_uz, x.t_ru, x.t_en, x.d_uz, x.d_ru, x.d_en, 0, false, $2::boolean, 'iiko', x.iiko_id, x.iiko_prices
-     FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, img text, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb)
+    `INSERT INTO menu_items (id, slug, cat, price, img, t_uz, t_ru, t_en, d_uz, d_ru, d_en, pcs, hit, active, source, iiko_id, iiko_prices, weight, kcal, protein, fat, carbs)
+     SELECT x.id, x.slug, x.cat, x.price, x.img, x.t_uz, x.t_ru, x.t_en, x.d_uz, x.d_ru, x.d_en, 0, false, $2::boolean, 'iiko', x.iiko_id, x.iiko_prices, x.weight, x.kcal, x.protein, x.fat, x.carbs
+     FROM jsonb_to_recordset($1::jsonb) AS x(id text, slug text, cat text, price int, img text, t_uz text, t_ru text, t_en text, d_uz text, d_ru text, d_en text, iiko_id text, iiko_prices jsonb, weight text, kcal int, protein int, fat int, carbs int)
      ON CONFLICT (id) DO UPDATE SET
        cat = EXCLUDED.cat, price = EXCLUDED.price,
        t_uz = EXCLUDED.t_uz, t_ru = EXCLUDED.t_ru, t_en = EXCLUDED.t_en,
        d_uz = EXCLUDED.d_uz, d_ru = EXCLUDED.d_ru, d_en = EXCLUDED.d_en,
        iiko_prices = COALESCE(menu_items.iiko_prices, '{}'::jsonb) || EXCLUDED.iiko_prices,
        img = COALESCE(NULLIF(EXCLUDED.img, ''), menu_items.img),
+       weight = COALESCE(NULLIF(EXCLUDED.weight, ''), menu_items.weight),
+       kcal = COALESCE(EXCLUDED.kcal, menu_items.kcal), protein = COALESCE(EXCLUDED.protein, menu_items.protein),
+       fat = COALESCE(EXCLUDED.fat, menu_items.fat), carbs = COALESCE(EXCLUDED.carbs, menu_items.carbs),
        active = CASE WHEN COALESCE(menu_items.hidden_by_admin, false) THEN false ELSE $2::boolean END`,
     [JSON.stringify(dedupe(itemJson, (r) => r.id)), activate]
   );
@@ -385,6 +410,26 @@ export async function syncMenu(pool, { activate = true } = {}) {
       sampleKeys: Object.keys(sellable[0] || {}).join(','),
       itemImgCount: sellable.filter((p) => p.imageUrl).length,
       szImgSeen: (() => { let n = 0; for (const p of sellable) { for (const sz of (Array.isArray(p.sizes) ? p.sizes : [])) { if (sz && (sz.imageUrl || sz.buttonImageUrl || (Array.isArray(sz.imageUrls) && sz.imageUrls.length))) n++; } } return n; })(),
+      // Chuqur skaner: iiko javobida rasmga o'xshagan maydon qayerda bo'lsa ham topamiz.
+      imgKeysFound: (() => {
+        const RE = /image|photo|logo/i; const hits = {};
+        for (const p of sellable.slice(0, 300)) {
+          const walk = (o, path, depth) => {
+            if (!o || typeof o !== 'object' || depth > 4) return;
+            if (Array.isArray(o)) { for (const x of o.slice(0, 2)) walk(x, path + '[]', depth + 1); return; }
+            for (const k of Object.keys(o)) {
+              if (RE.test(k)) hits[path + '.' + k] = (hits[path + '.' + k] || 0) + 1;
+              const v = o[k];
+              if (v && typeof v === 'object') { try { if (JSON.stringify(v).length < 4000) walk(v, path + '.' + k, depth + 1); } catch {} }
+            }
+          };
+          walk(p, '', 0);
+        }
+        const ks = Object.keys(hits);
+        return ks.length ? ks.slice(0, 12).map((k) => k + ':' + hits[k]).join(' | ') : 'NONE';
+      })(),
+      nomFallback: imgFromNom > 0 ? 'matched ' + imgFromNom : (imgMissing.length ? 'needed ' + imgMissing.length : 'not needed'),
+      rawSample: (() => { const r = (em && em.rawSample) || null; return r ? (r.item + ' || size: ' + (r.size || 'NONE')) : 'n/a'; })(),
     },
   };
   if (!sellable.length) {
