@@ -206,15 +206,17 @@ export async function syncMenu(pool, { activate = true } = {}) {
   // Admin til nomlari (name_uz/name_en) faqat DB'da: sinxron ularni hech qachon yozmaydi.
   await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_uz text');
   await pool.query('ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS name_en text');
-  let products, groups;
+  let products, groups, emErr = null, emSample = null;
   let srcName = 'nomenclature-v2', menuLabel = '';
   try {
     const em = await externalMenuCatalog([process.env.IIKO_ORGANIZATION_ID, process.env.IIKO_ORG_SAMPI]);
     products = em.products; groups = em.groups;
+    emSample = em.rawSample || null;
     srcName = 'external-menu';
     menuLabel = `${em.menuName} (${em.menuId})`;
   } catch (e) {
-    console.log("iiko external menu yuklanmadi, nomenklatura ishlatiladi:", String((e && e.message) || e));
+    emErr = String((e && e.message) || e);
+    console.log("iiko external menu yuklanmadi, nomenklatura ishlatiladi:", emErr);
     const c2 = await catalogV2();
     products = c2.products; groups = c2.groups;
   }
@@ -429,7 +431,8 @@ export async function syncMenu(pool, { activate = true } = {}) {
         return ks.length ? ks.slice(0, 12).map((k) => k + ':' + hits[k]).join(' | ') : 'NONE';
       })(),
       nomFallback: imgFromNom > 0 ? 'matched ' + imgFromNom : (imgMissing.length ? 'needed ' + imgMissing.length : 'not needed'),
-      rawSample: (() => { const r = (em && em.rawSample) || null; return r ? (r.item + ' || size: ' + (r.size || 'NONE')) : 'n/a'; })(),
+      rawSample: (() => { const r = emSample; return r ? (r.item + ' || size: ' + (r.size || 'NONE')) : 'n/a'; })(),
+      emError: emErr || null,
     },
   };
   if (!sellable.length) {
