@@ -130,7 +130,21 @@ export async function externalMenuCatalog(orgIds) {
     } catch (e) { lastErr = e; }
   }
   if (!menu) throw (lastErr || new Error("iiko: external menyu topilmadi"));
-  const d = await call(`/api/menu/v3/by_id?organizationId=${encodeURIComponent(org)}&externalMenuId=${encodeURIComponent(menu.id)}&version=3`, {});
+  /* by_id bir org'ga bog'lanadi: bog'lanish o'zgarsa boshqa org va
+     versiyalar bilan ham urinamiz (iiko 400/410 qaytarishi mumkin). */
+  let d = null, byErr = null;
+  const tryOrgs = [org, ...orgs.filter((o) => o !== org)];
+  for (const o of tryOrgs) {
+    for (const v of [3, 2, 4]) {
+      try {
+        d = await call(`/api/menu/v3/by_id?organizationId=${encodeURIComponent(o)}&externalMenuId=${encodeURIComponent(menu.id)}&version=${v}`, {});
+        org = o;
+        break;
+      } catch (e) { byErr = e; d = null; }
+    }
+    if (d) break;
+  }
+  if (!d) throw (byErr || new Error("iiko: menyu o'qilmadi"));
   const cats = Array.isArray(d && d.itemCategories) ? d.itemCategories : [];
   const groups = [], products = [];
   for (const c of cats) {
