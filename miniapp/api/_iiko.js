@@ -37,6 +37,11 @@ export async function getToken(force = false) {
 async function call(path, body) {
   let r = await raw(path, await getToken(), body);
   if (r.status === 401) r = await raw(path, await getToken(true), body);
+  /* iiko ba'zan vaqtincha 503 qaytaradi (throttle): kutib yana urinamiz */
+  for (let i = 0; (r.status === 503 || r.status === 429) && i < 2; i++) {
+    await new Promise((res) => setTimeout(res, i === 0 ? 3000 : 8000));
+    r = await raw(path, await getToken(), body);
+  }
   if (r.status !== 200) throw new Error(`iiko ${path} failed (HTTP ${r.status})`);
   return r.data;
 }
@@ -216,9 +221,10 @@ export async function syncMenu(pool, { activate = true } = {}) {
     menuLabel = `${em.menuName} (${em.menuId})`;
   } catch (e) {
     emErr = String((e && e.message) || e);
-    console.log("iiko external menu yuklanmadi, nomenklatura ishlatiladi:", emErr);
-    const c2 = await catalogV2();
-    products = c2.products; groups = c2.groups;
+    /* Sinxron manba external menu (iikoWeb'dagi "Test (mini app)"); xom
+       nomenklatura savolga yarar sellable beradi, shuning uchun
+       zaxira yo'q: xato chiqariladi va menyu oxirgi holatda qoladi. */
+    throw new Error(`iiko external menu yuklanmadi: ${emErr}`);
   }
   const groupsById = new Map(groups.map((g) => [g.groupId, g]));
   const byId = new Map(products.map((p) => [p.productId, p]));
