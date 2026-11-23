@@ -385,6 +385,25 @@ export async function syncMenu(pool, { activate = true } = {}) {
       sampleKeys: Object.keys(sellable[0] || {}).join(','),
       itemImgCount: sellable.filter((p) => p.imageUrl).length,
       szImgSeen: (() => { let n = 0; for (const p of sellable) { for (const sz of (Array.isArray(p.sizes) ? p.sizes : [])) { if (sz && (sz.imageUrl || sz.buttonImageUrl || (Array.isArray(sz.imageUrls) && sz.imageUrls.length))) n++; } } return n; })(),
+      // Chuqur skaner: iiko javobida rasmga o'xshagan maydon qayerda bo'lsa ham topamiz.
+      imgKeysFound: (() => {
+        const RE = /image|photo|logo/i; const hits = {};
+        for (const p of sellable.slice(0, 300)) {
+          const walk = (o, path, depth) => {
+            if (!o || typeof o !== 'object' || depth > 4) return;
+            if (Array.isArray(o)) { for (const x of o.slice(0, 2)) walk(x, path + '[]', depth + 1); return; }
+            for (const k of Object.keys(o)) {
+              if (RE.test(k)) hits[path + '.' + k] = (hits[path + '.' + k] || 0) + 1;
+              const v = o[k];
+              if (v && typeof v === 'object') { try { if (JSON.stringify(v).length < 4000) walk(v, path + '.' + k, depth + 1); } catch {} }
+            }
+          };
+          walk(p, '', 0);
+        }
+        const ks = Object.keys(hits);
+        return ks.length ? ks.slice(0, 12).map((k) => k + ':' + hits[k]).join(' | ') : 'NONE';
+      })(),
+      nomFallback: imgFromNom > 0 ? 'matched ' + imgFromNom : (imgMissing.length ? 'needed ' + imgMissing.length : 'not needed'),
     },
   };
   if (!sellable.length) {

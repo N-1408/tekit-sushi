@@ -34,7 +34,6 @@ function Body() {
 
  const set = (k: string, v: any) => setF((s: any) => ({ ...s, [k]: v }))
  function openEdit(c: Cat) { setEdit(c); setIsNew(false); setF({ ...blank, ...c }) }
- function openNew() { setEdit({} as Cat); setIsNew(true); setF({ ...blank }) }
 
  async function save() {
  setBusy(true)
@@ -88,9 +87,7 @@ function Body() {
 
  return (
  <div className="pb-28">
- <AdminTopBar title={t.aCatsM} back right={
- <button onClick={openNew} className="press h-9 rounded-full bg-[var(--btn)] text-[var(--btn-ink)] px-3.5 text-[12.5px] font-extrabold grid place-items-center active:scale-95 transition-transform">+ {t.aAddCat}</button>
- } />
+ <AdminTopBar title={t.aCatsM} back />
  <div className="px-4 mt-3 space-y-2">
  {cats.map((c, i) => (
  <article key={c.slug} className={`bg-[var(--panel)] border border-navy-line rounded-[18px] p-3 flex items-center gap-2.5 ${!c.active ? 'opacity-55' : ''}`}>
